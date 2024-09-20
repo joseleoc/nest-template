@@ -1,2 +1,2 @@
-export { AuthController } from './controller/auth.controller';
-export { AuthService } from './service/auth.service';
+export { AuthController } from './auth.controller';
+export { AuthService } from './auth.service';

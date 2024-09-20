@@ -1,6 +1,7 @@
-import { UsersService } from '@/modules/users';
-import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Injectable } from '@nestjs/common';
+
+import { UsersService } from '@/modules/users';
 
 @Injectable()
 export class AuthService {
@@ -8,17 +9,6 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
   ) {}
-
-  // async login(payload: any): Promise<{ access_token: string }> {
-  //   const user = await this.usersService.findOne(payload.username);
-  //   if (user?.password !== payload.password) {
-  //     throw new UnauthorizedException();
-  //   }
-  //   const sub = { sub: user.userId, username: user.username };
-  //   return {
-  //     access_token: await this.jwtService.signAsync(sub),
-  //   };
-  // }
 
   async login(user: any) {
     const payload = { username: user.username, sub: user.userId };

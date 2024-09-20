@@ -1,6 +1,8 @@
 ## Description
-Oneg backend.
+Nest template.
 Build with [Nest](https://github.com/nestjs/nest) framework TypeScript.
+Uses swagger for documentation.
+
 
 ## Project setup
 

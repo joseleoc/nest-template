@@ -1,8 +1,12 @@
 {
-  "name": "oneg-backend",
+  "name": "nest-template",
   "version": "0.0.1",
   "description": "",
-  "author": "",
+  "author": {
+    "name": "Leonardo Contreras",
+    "email": "joseleoc123@gmail.com",
+    "url": "https://github.com/joseleoc"
+  },
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

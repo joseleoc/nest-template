@@ -1,22 +1,32 @@
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Controller, Post, UseGuards, Request, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UseGuards,
+  Request,
+  Get,
+  Body,
+} from '@nestjs/common';
 
 import { SkipAuth } from '@/decorators/index';
 import { LocalAuthGuard } from '@/guards/index';
 
 import { AuthService } from './auth.service';
+import { LoginRequestBody, LoginResponseBody } from './auth.constants';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @ApiOperation({ summary: 'Create cat' })
-  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @Post('login')
   @SkipAuth()
   @UseGuards(LocalAuthGuard)
-  @Post('login')
-  async login(@Request() req) {
+  @ApiOperation(LoginRequestBody)
+  @ApiResponse(LoginResponseBody)
+  async login(@Request() req, @Body() body) {
+    console.log({ body });
+    console.log('Controller auth login', req);
     return this.authService.login(req.user);
   }
 

@@ -1,12 +1,5 @@
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import {
-  Controller,
-  Post,
-  UseGuards,
-  Request,
-  Get,
-  Body,
-} from '@nestjs/common';
+import { Controller, Post, UseGuards, Request, Get } from '@nestjs/common';
 
 import { SkipAuth } from '@/decorators/index';
 import { LocalAuthGuard } from '@/guards/index';
@@ -24,9 +17,7 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @ApiOperation(LoginRequestBody)
   @ApiResponse(LoginResponseBody)
-  async login(@Request() req, @Body() body) {
-    console.log({ body });
-    console.log('Controller auth login', req);
+  async login(@Request() req) {
     return this.authService.login(req.user);
   }
 

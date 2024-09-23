@@ -3,6 +3,10 @@ export const jwtConstants = {
     'DO NOT USE THIS VALUE. INSTEAD, CREATE A COMPLEX SECRET AND KEEP IT SAFE OUTSIDE OF THE SOURCE CODE.',
 };
 
+/**
+ * Request body for login
+ * Used for swagger documentation
+ */
 export const LoginRequestBody = {
   summary: 'Login',
   requestBody: {
@@ -21,6 +25,10 @@ export const LoginRequestBody = {
   },
 };
 
+/**
+ * Response body for login
+ * Used for swagger documentation
+ */
 export const LoginResponseBody = {
   status: 200,
   content: {

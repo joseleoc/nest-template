@@ -18,9 +18,12 @@ export class UsersService {
     },
   ];
 
-  create(createUserDto: CreateUserDto) {
-    console.log({ createUserDto });
-    return 'This action adds a new user';
+  create(createUserDto: CreateUserDto): Promise<{ serId: string }> {
+    return new Promise(
+      (resolve: (value: { serId: string }) => void, reject) => {
+        reject('Not implemented');
+      },
+    );
   }
 
   findAll() {

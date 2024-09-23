@@ -6,23 +6,36 @@ import {
   Patch,
   Param,
   Delete,
+  HttpException,
+  HttpStatus,
+  HttpCode,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import {
+  SwaggerCreateUser,
+  SwaggerCreateUserResponse,
+} from './users.constants';
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @ApiOperation({ summary: 'Create user' })
-  @ApiResponse({ status: 403, description: 'Forbidden.' })
   @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation(SwaggerCreateUser)
+  @ApiResponse(SwaggerCreateUserResponse)
   create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+    console.log(createUserDto);
+    // try {
+    //   return this.usersService.create(createUserDto);
+    // } catch (error) {
+    //   throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    // }
   }
 
   @Get()

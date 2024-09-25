@@ -5,11 +5,13 @@ import { InjectModel } from '@nestjs/mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-import { type User } from './entities/user.entity';
+import { User, UserSchemaName } from './schemas/user.schema';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel('User') private readonly userModel: Model<User>) {}
+  constructor(
+    @InjectModel(UserSchemaName) private readonly userModel: Model<User>,
+  ) {}
 
   create(createUserDto: CreateUserDto): Promise<{ userId: string }> {
     return new Promise(

@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpException,
   Res,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 
@@ -49,16 +50,18 @@ export class UsersController {
 
   @Get(':id')
   async findOne(@Param('id') id: string, @Res() res: Response) {
-    try {
-      const user = await this.usersService.findOne(id);
-      if (user != null) {
-        res.status(HttpStatus.OK).json({ user });
-      } else {
-        res.status(HttpStatus.NOT_FOUND).json({ message: 'User not found' });
-      }
-    } catch (error) {
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: error });
-    }
+    this.usersService
+      .findOne(id)
+      .then((user) => {
+        if (user != null) {
+          res.status(HttpStatus.OK).json({ user });
+        } else {
+          throw new NotFoundException();
+        }
+      })
+      .catch((error) => {
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: error });
+      });
   }
 
   @Patch(':id')

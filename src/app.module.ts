@@ -13,7 +13,7 @@ import { AuthModule } from './modules/auth/auth.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    MongooseModule.forRoot('mongodb://localhost/oneg'),
+    MongooseModule.forRoot(process.env.DB_URL, { dbName: process.env.DB_NAME }),
     AuthModule,
     UsersModule,
   ],

@@ -1,50 +1,71 @@
 import { Injectable } from '@nestjs/common';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
+
+import { type User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  private readonly users: User[] = [
-    {
-      userId: '1',
-      userName: 'john',
-      password: 'changeme',
-    },
-    {
-      userId: '2',
-      userName: 'maria',
-      password: 'guess',
-    },
-  ];
+  constructor(@InjectModel('User') private readonly userModel: Model<User>) {}
 
-  create(createUserDto: CreateUserDto): Promise<{ serId: string }> {
+  create(createUserDto: CreateUserDto): Promise<{ userId: string }> {
     return new Promise(
-      (resolve: (value: { serId: string }) => void, reject) => {
-        reject('Not implemented');
+      (resolve: (value: { userId: string }) => void, reject) => {
+        this.userModel
+          .create(createUserDto)
+          .then((res) => {
+            resolve({ userId: res.id });
+          })
+          .catch((error) => {
+            reject(error);
+          });
       },
     );
   }
 
-  findAll() {
-    return `This action returns all users`;
-  }
+  // findAll() {
+  //   return `This action returns all users`;
+  // }
 
-  findOne(id: string) {
+  findOne(id: string): Promise<User> {
     return new Promise((resolve: (value: User) => void, reject) => {
-      const user = this.users.find((user) => user.userName === id);
-
-      if (user) resolve(user);
-      else reject({ code: 404, message: 'User not found' });
+      this.userModel
+        .findById(id)
+        .then((user) => {
+          console.log({ user });
+          resolve(user);
+        })
+        .catch((error) => {
+          reject(error);
+        });
     });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    console.log({ updateUserDto });
-    return `This action updates a #${id} user`;
+  update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    return new Promise((resolve: (value: User) => void, reject) => {
+      this.userModel
+        .findByIdAndUpdate(id, updateUserDto, { new: true })
+        .then((res) => {
+          const updatedUser = res.$clone();
+          resolve(updatedUser);
+        })
+        .catch((error) => reject(error));
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  remove(id: string): Promise<User> {
+    return new Promise((resolve: (value: User) => void, reject) => {
+      this.userModel
+        .findByIdAndDelete(id)
+        .then((res) => {
+          const deletedUser = res.$clone();
+          resolve(deletedUser);
+        })
+        .catch((error) => reject(error));
+    });
+    // return `This action removes a #${id} user`;
   }
 }

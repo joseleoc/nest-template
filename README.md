@@ -3,6 +3,9 @@ Nest template.
 Build with [Nest](https://github.com/nestjs/nest) framework TypeScript.
 Uses swagger for documentation.
 
+## Mongodb branch
+This branch is meant to configure the Mongodb database.
+
 
 ## Project setup
 

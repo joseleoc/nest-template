@@ -6,55 +6,68 @@ import {
   Patch,
   Param,
   Delete,
-  HttpException,
   HttpStatus,
   HttpCode,
+  HttpException,
+  Res,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import {
-  SwaggerCreateUser,
-  SwaggerCreateUserResponse,
-} from './users.constants';
+import { SwaggerCreateUserResponse } from './users.constants';
+import { SkipAuth } from '@/decorators/index';
+import { Response } from 'express';
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
+  @Post('/create')
+  @SkipAuth()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation(SwaggerCreateUser)
   @ApiResponse(SwaggerCreateUserResponse)
-  create(@Body() createUserDto: CreateUserDto) {
-    console.log(createUserDto);
-    // try {
-    //   return this.usersService.create(createUserDto);
-    // } catch (error) {
-    //   throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    // }
+  async create(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
+    try {
+      const userCreated = await this.usersService.create(createUserDto);
+      res.status(HttpStatus.CREATED).json({
+        message: 'User created successfully',
+        userId: userCreated.userId,
+      });
+      return;
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
-  }
+  // @Get()
+  // findAll() {
+  //   return this.usersService.findAll();
+  // }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+  async findOne(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const user = await this.usersService.findOne(id);
+      if (user != null) {
+        res.status(HttpStatus.OK).json({ user });
+      } else {
+        res.status(HttpStatus.NOT_FOUND).json({ message: 'User not found' });
+      }
+    } catch (error) {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: error });
+    }
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+    return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+    return this.usersService.remove(id);
   }
 }

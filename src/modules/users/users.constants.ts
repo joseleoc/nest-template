@@ -1,20 +1,26 @@
-export const SwaggerCreateUser = {
-  summary: 'Create user',
-  requestBody: {
-    required: true,
-    content: {
-      'aplication/json': {
-        schema: {
-          type: 'object',
-          properties: {
-            userName: { type: 'string' },
-            password: { type: 'string' },
-          },
-        },
-      },
-    },
-  },
-};
+// export const SwaggerCreateUser: ApiOperationOptions = {
+//   summary: 'Create user',
+//   requestBody: {
+//     required: true,
+//     content: {
+//       'aplication/json': {
+//         schema: {
+//           type: 'object',
+//           properties: {
+//             userName: { type: 'string' },
+//             password: { type: 'string' },
+//             tier: { type: 'string' },
+//           },
+//         },
+//         example: {
+//           userName: 'john',
+//           password: 'changeme',
+//           tier: 'FREE',
+//         },
+//       },
+//     },
+//   },
+// };
 
 export const SwaggerCreateUserResponse = {
   status: 200,
@@ -22,7 +28,10 @@ export const SwaggerCreateUserResponse = {
     'application/json': {
       schema: {
         type: 'object',
-        properties: { userId: { type: 'string' } },
+        properties: {
+          message: { type: 'string' },
+          userId: { type: 'string' },
+        },
       },
     },
   },

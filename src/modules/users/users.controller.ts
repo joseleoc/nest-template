@@ -9,7 +9,9 @@ import {
   HttpException,
   HttpStatus,
   HttpCode,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { UsersService } from './users.service';
@@ -44,8 +46,19 @@ export class UsersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+  findOne(@Param('id') id: string, @Res() res: Response) {
+    this.usersService
+      .findOne(id)
+      .then((user) => {
+        if (user != null) {
+          res.status(HttpStatus.OK).json(user);
+        } else {
+          res.status(HttpStatus.NOT_FOUND).json({ message: 'User not found' });
+        }
+      })
+      .catch((error) => {
+        throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+      });
   }
 
   @Patch(':id')

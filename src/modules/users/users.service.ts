@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { hashSync } from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -18,9 +19,10 @@ export class UsersService {
     },
   ];
 
-  create(createUserDto: CreateUserDto): Promise<{ serId: string }> {
+  create(createUserDto: CreateUserDto): Promise<{ userId: string }> {
     return new Promise(
-      (resolve: (value: { serId: string }) => void, reject) => {
+      (resolve: (value: { userId: string }) => void, reject) => {
+        createUserDto.password = hashSync(createUserDto.password, 10);
         reject('Not implemented');
       },
     );
@@ -34,8 +36,7 @@ export class UsersService {
     return new Promise((resolve: (value: User) => void, reject) => {
       const user = this.users.find((user) => user.userName === id);
 
-      if (user) resolve(user);
-      else reject({ code: 404, message: 'User not found' });
+      resolve(user);
     });
   }
 

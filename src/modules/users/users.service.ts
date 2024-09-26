@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
+import { hashSync } from 'bcrypt';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-import { User, UserSchemaName } from './schemas/user.schema';
+import { User, UserDocument, UserSchemaName } from './schemas/user.schema';
 
 @Injectable()
 export class UsersService {
@@ -16,14 +17,19 @@ export class UsersService {
   create(createUserDto: CreateUserDto): Promise<{ userId: string }> {
     return new Promise(
       (resolve: (value: { userId: string }) => void, reject) => {
-        this.userModel
-          .create(createUserDto)
-          .then((res) => {
-            resolve({ userId: res.id });
-          })
-          .catch((error) => {
-            reject(error);
-          });
+        try {
+          createUserDto.password = hashSync(createUserDto.password, 10);
+          this.userModel
+            .create(createUserDto)
+            .then((res) => {
+              resolve({ userId: res.id });
+            })
+            .catch((error) => {
+              reject(error);
+            });
+        } catch (error) {
+          reject(error);
+        }
       },
     );
   }
@@ -32,12 +38,24 @@ export class UsersService {
   //   return `This action returns all users`;
   // }
 
-  findOne(id: string): Promise<User> {
-    return new Promise((resolve: (value: User) => void, reject) => {
+  findOne(id: string): Promise<UserDocument> {
+    return new Promise((resolve: (value: UserDocument) => void, reject) => {
       this.userModel
         .findById(id)
         .then((user) => {
-          console.log({ user });
+          resolve(user);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  }
+
+  findOneByUserName(userName: string): Promise<UserDocument> {
+    return new Promise((resolve: (value: UserDocument) => void, reject) => {
+      this.userModel
+        .findOne({ userName })
+        .then((user) => {
           resolve(user);
         })
         .catch((error) => {

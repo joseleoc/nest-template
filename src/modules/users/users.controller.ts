@@ -35,7 +35,7 @@ export class UsersController {
       const userCreated = await this.usersService.create(createUserDto);
       res.status(HttpStatus.CREATED).json({
         message: 'User created successfully',
-        userId: userCreated.userId,
+        _id: userCreated.userId,
       });
       return;
     } catch (error) {

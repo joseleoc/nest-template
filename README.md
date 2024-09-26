@@ -23,7 +23,10 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## Run tests
+## Tests
+
+Use faker to generate fake data for testing.
+
 
 ```bash
 # unit tests

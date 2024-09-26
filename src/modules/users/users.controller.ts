@@ -21,23 +21,24 @@ import {
   SwaggerCreateUser,
   SwaggerCreateUserResponse,
 } from './users.constants';
+import { SkipAuth } from '@/decorators/index';
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
+  @Post('/create')
+  @SkipAuth()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation(SwaggerCreateUser)
   @ApiResponse(SwaggerCreateUserResponse)
   create(@Body() createUserDto: CreateUserDto) {
-    console.log(createUserDto);
-    // try {
-    //   return this.usersService.create(createUserDto);
-    // } catch (error) {
-    //   throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    // }
+    try {
+      return this.usersService.create(createUserDto);
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Get()

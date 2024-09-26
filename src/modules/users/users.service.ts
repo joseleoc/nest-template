@@ -1,9 +1,10 @@
-import { hashSync } from 'bcrypt';
+import { genSalt, hashSync } from 'bcrypt';
 import { Injectable } from '@nestjs/common';
 
 import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { faker } from '@faker-js/faker';
 
 @Injectable()
 export class UsersService {
@@ -20,10 +21,20 @@ export class UsersService {
     },
   ];
 
-  create(createUserDto: CreateUserDto): Promise<{ userId: string }> {
+  constructor() {}
+
+  create(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
     return new Promise(
-      (resolve: (value: { userId: string }) => void, reject) => {
-        createUserDto.password = hashSync(createUserDto.password, 10);
+      async (resolve: (value: Omit<User, 'password'>) => void, reject) => {
+        createUserDto.password = await this.hashPassword(
+          createUserDto.password,
+        );
+        console.log(createUserDto.password);
+        const user = {
+          userId: faker.string.uuid(),
+          userName: createUserDto.userName,
+        };
+        resolve(user);
         reject('Not implemented');
       },
     );
@@ -72,5 +83,10 @@ export class UsersService {
         reject({ code: 404, message: 'User not found' });
       }
     });
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    const salt = await genSalt(+process.env.APP_SALT);
+    return hashSync(password, salt);
   }
 }

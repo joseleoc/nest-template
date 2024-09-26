@@ -1,6 +1,6 @@
 ## Description
-Nest template.
-Build with [Nest](https://github.com/nestjs/nest) framework TypeScript.
+Nest template.\
+Build with [Nest](https://github.com/nestjs/nest) framework TypeScript.\
 Uses swagger for documentation.
 
 ## Mongodb branch
@@ -26,7 +26,10 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## Run tests
+## Tests
+
+Use [faker](https://fakerjs.dev/guide/usage.html) to generate fake data for testing.
+
 
 ```bash
 # unit tests

@@ -2,8 +2,8 @@ import { JwtService } from '@nestjs/jwt';
 import { Injectable } from '@nestjs/common';
 
 import { UsersService } from '@/modules/users';
-import { AuthPayloadDto } from './dto/auth.dto';
-import { UserDocument } from '../users/schemas/user.schema';
+import { User, UserDocument } from '../users/schemas/user.schema';
+import { ValidateUserDTO } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +19,10 @@ export class AuthService {
     };
   }
 
-  async validateUser({ username, password }: AuthPayloadDto): Promise<any> {
+  async validateUser({
+    username,
+    password,
+  }: ValidateUserDTO): Promise<Omit<User, 'password'>> {
     return new Promise(async (resolve: (value: any) => void, reject) => {
       try {
         const user = await this.usersService.findOneByUserName(username);

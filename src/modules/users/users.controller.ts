@@ -46,9 +46,9 @@ export class UsersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @Res() res: Response) {
+  findUserById(@Param('id') id: string, @Res() res: Response) {
     this.usersService
-      .findOne(id)
+      .findUserById(id)
       .then((user) => {
         if (user != null) {
           res.status(HttpStatus.OK).json(user);
@@ -63,11 +63,11 @@ export class UsersController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+    return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+    return this.usersService.remove(id);
   }
 }

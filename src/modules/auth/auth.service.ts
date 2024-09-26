@@ -22,7 +22,7 @@ export class AuthService {
   async validateUser({ username, password }: AuthPayloadDto): Promise<any> {
     return new Promise(async (resolve: (value: any) => void, reject) => {
       try {
-        const user = await this.usersService.findOne(username);
+        const user = await this.usersService.findUserById(username);
         if (user && user.password === password) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { password, ...returnedUser } = user;

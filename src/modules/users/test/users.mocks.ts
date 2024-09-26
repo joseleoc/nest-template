@@ -43,4 +43,15 @@ export const UsersServiceMock = {
     .mockImplementation(
       (id: string): Promise<boolean> => new Promise((resolve) => resolve(true)),
     ),
+  findUserByUserName: jest
+    .fn()
+    .mockImplementation((userName: string): Promise<User> => {
+      return new Promise((resolve) =>
+        resolve({
+          userId: faker.string.uuid(),
+          userName: userName,
+          password: faker.internet.password(),
+        }),
+      );
+    }),
 };

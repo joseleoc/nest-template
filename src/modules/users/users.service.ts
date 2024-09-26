@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
 import { hashSync } from 'bcrypt';
+import { Injectable } from '@nestjs/common';
+
+import { User } from './entities/user.entity';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -35,6 +36,14 @@ export class UsersService {
   findUserById(id: string): Promise<User> {
     return new Promise((resolve: (value: User) => void, reject) => {
       const user = this.users.find((user) => user.userName === id);
+
+      resolve(user);
+    });
+  }
+
+  findUserByUserName(userName: string): Promise<User> {
+    return new Promise((resolve: (value: User) => void, reject) => {
+      const user = this.users.find((user) => user.userName === userName);
 
       resolve(user);
     });

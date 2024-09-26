@@ -1,6 +1,6 @@
 ## Description
-Nest template.
-Build with [Nest](https://github.com/nestjs/nest) framework TypeScript.
+Nest template.\
+Build with [Nest](https://github.com/nestjs/nest) framework TypeScript.\
 Uses swagger for documentation.
 
 
@@ -25,7 +25,7 @@ $ npm run start:prod
 
 ## Tests
 
-Use faker to generate fake data for testing.
+Use [faker](https://fakerjs.dev/guide/usage.html) to generate fake data for testing.
 
 
 ```bash

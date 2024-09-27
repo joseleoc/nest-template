@@ -5,7 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersServiceMock } from '@/modules/users/test/users.mocks';
 import { faker } from '@faker-js/faker';
 import { getModelToken } from '@nestjs/mongoose';
-import { UserSchemaName } from '@/modules/users/schemas/user.schema';
+import { User } from '@/modules/users/schemas/user.schema';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -17,7 +17,7 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         {
-          provide: getModelToken(UserSchemaName),
+          provide: getModelToken(User.name),
           useValue: {
             new: jest.fn().mockResolvedValue({}),
             constructor: jest.fn().mockResolvedValue({}),

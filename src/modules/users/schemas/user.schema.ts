@@ -1,6 +1,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { Plan, UserLanguage } from '../entities/user.entity';
+
+export enum Plan {
+  FREE = 'FREE',
+  PREMIUM = 'PREMIUM',
+}
+
+export type PlanType = keyof typeof Plan;
+
+export enum UserLanguage {
+  EN = 'en',
+  ES = 'es',
+}
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -44,8 +55,10 @@ export class User {
 
   @Prop({ default: 0, type: Number })
   credits: number;
+
+  constructor(user: User) {
+    Object.assign(this, user);
+  }
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
-
-export const UserSchemaName = 'User';

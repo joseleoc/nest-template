@@ -10,11 +10,12 @@ async function bootstrap() {
     .setTitle('Oneg Backend')
     .setDescription('Oneg Backend API description')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('docs', app, document);
   // TODO change cors origins
-  app.enableCors({ origin: '*' });
+  app.enableCors();
   await app.listen(process.env.PORT);
 }
 bootstrap();

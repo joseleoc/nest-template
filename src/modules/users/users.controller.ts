@@ -1,3 +1,4 @@
+import { Response } from 'express';
 import {
   Controller,
   Get,
@@ -12,16 +13,16 @@ import {
   Res,
   NotFoundException,
 } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+import { SkipAuth } from '@/decorators/index';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { SwaggerCreateUserResponse } from './users.constants';
-import { SkipAuth } from '@/decorators/index';
-import { Response } from 'express';
+import { CreateUserResponse } from './users.constants';
 
 @ApiTags('Users')
+@ApiResponse(CreateUserResponse)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -29,13 +30,12 @@ export class UsersController {
   @Post('/create')
   @SkipAuth()
   @HttpCode(HttpStatus.CREATED)
-  @ApiResponse(SwaggerCreateUserResponse)
   async create(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
     try {
       const userCreated = await this.usersService.create(createUserDto);
       res.status(HttpStatus.CREATED).json({
         message: 'User created successfully',
-        _id: userCreated.userId,
+        user: userCreated,
       });
       return;
     } catch (error) {
@@ -43,6 +43,8 @@ export class UsersController {
     }
   }
 
+  @ApiBearerAuth()
+  @ApiBearerAuth()
   @Get(':id')
   async findOne(@Param('id') id: string, @Res() res: Response) {
     this.usersService

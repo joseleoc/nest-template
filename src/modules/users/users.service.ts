@@ -6,48 +6,50 @@ import { InjectModel } from '@nestjs/mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-import { User, UserDocument, UserSchemaName } from './schemas/user.schema';
+import { User } from './schemas/user.schema';
 import { ConfigService } from '@nestjs/config';
+import { PublicUser } from './types/users.types';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectModel(UserSchemaName) private readonly userModel: Model<User>,
+    @InjectModel(User.name) private readonly userModel: Model<User>,
     private configService: ConfigService,
   ) {}
 
-  create(createUserDto: CreateUserDto): Promise<{ userId: string }> {
-    return new Promise(
-      async (resolve: (value: { userId: string }) => void, reject) => {
-        try {
-          createUserDto.password = await this.hashPassword(
-            createUserDto.password,
-          );
-          this.userModel
-            .create(createUserDto)
-            .then((res) => {
-              resolve({ userId: res.id });
-            })
-            .catch((error) => {
-              reject(error);
-            });
-        } catch (error) {
-          reject(error);
-        }
-      },
-    );
+  create(createUserDto: CreateUserDto): Promise<PublicUser> {
+    return new Promise(async (resolve: (value: PublicUser) => void, reject) => {
+      try {
+        createUserDto.password = await this.hashPassword(
+          createUserDto.password,
+        );
+        this.userModel
+          .create(createUserDto)
+          .then((res) => {
+            const user = new PublicUser(res);
+
+            resolve(user);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
 
   // findAll() {
   //   return `This action returns all users`;
   // }
 
-  findOne(id: string): Promise<UserDocument> {
-    return new Promise((resolve: (value: UserDocument) => void, reject) => {
+  findOne(id: string): Promise<PublicUser> {
+    return new Promise((resolve: (value: PublicUser) => void, reject) => {
       this.userModel
         .findById(id)
         .then((user) => {
-          resolve(user);
+          const foundUser = new PublicUser(user);
+          resolve(foundUser);
         })
         .catch((error) => {
           reject(error);
@@ -55,12 +57,13 @@ export class UsersService {
     });
   }
 
-  findOneByUserName(userName: string): Promise<UserDocument> {
-    return new Promise((resolve: (value: UserDocument) => void, reject) => {
+  findOneByUserName(userName: string): Promise<PublicUser> {
+    return new Promise((resolve: (value: PublicUser) => void, reject) => {
       this.userModel
         .findOne({ userName })
         .then((user) => {
-          resolve(user);
+          const foundUser = new PublicUser(user);
+          resolve(foundUser);
         })
         .catch((error) => {
           reject(error);

@@ -9,6 +9,7 @@ import { AppController } from './app.controller';
 
 import { UsersModule } from './modules/users';
 import { AuthModule } from './modules/auth/auth.module';
+import { ChildrenModule } from './modules/children/children.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AuthModule } from './modules/auth/auth.module';
     MongooseModule.forRoot(process.env.DB_URL, { dbName: process.env.DB_NAME }),
     AuthModule,
     UsersModule,
+    ChildrenModule,
   ],
   controllers: [AppController],
   providers: [

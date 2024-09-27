@@ -43,11 +43,6 @@ export class UsersController {
     }
   }
 
-  // @Get()
-  // findAll() {
-  //   return this.usersService.findAll();
-  // }
-
   @Get(':id')
   async findOne(@Param('id') id: string, @Res() res: Response) {
     this.usersService

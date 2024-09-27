@@ -1,4 +1,4 @@
-import { hashSync } from 'bcrypt';
+import { genSalt, hashSync } from 'bcrypt';
 import { Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
@@ -7,18 +7,22 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 import { User, UserDocument, UserSchemaName } from './schemas/user.schema';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(UserSchemaName) private readonly userModel: Model<User>,
+    private configService: ConfigService,
   ) {}
 
   create(createUserDto: CreateUserDto): Promise<{ userId: string }> {
     return new Promise(
-      (resolve: (value: { userId: string }) => void, reject) => {
+      async (resolve: (value: { userId: string }) => void, reject) => {
         try {
-          createUserDto.password = hashSync(createUserDto.password, 10);
+          createUserDto.password = await this.hashPassword(
+            createUserDto.password,
+          );
           this.userModel
             .create(createUserDto)
             .then((res) => {
@@ -87,5 +91,10 @@ export class UsersService {
         .catch((error) => reject(error));
     });
     // return `This action removes a #${id} user`;
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    const salt = await genSalt(+this.configService.getOrThrow('APP_SALT'));
+    return hashSync(password, salt);
   }
 }

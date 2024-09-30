@@ -1,5 +1,5 @@
 import { genSalt, hashSync } from 'bcrypt';
-import { Injectable } from '@nestjs/common';
+import { HttpCode, HttpStatus, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 
@@ -48,8 +48,12 @@ export class UsersService {
       this.userModel
         .findById(id)
         .then((user) => {
-          const foundUser = new PublicUser(user);
-          resolve(foundUser);
+          if (user != null) {
+            const foundUser = new PublicUser(user);
+            resolve(foundUser);
+          } else {
+            reject({ message: 'User not found', code: HttpStatus.NOT_FOUND });
+          }
         })
         .catch((error) => {
           reject(error);

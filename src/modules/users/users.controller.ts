@@ -22,7 +22,6 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserResponse } from './users.constants';
 
 @ApiTags('Users')
-@ApiResponse(CreateUserResponse)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -30,6 +29,7 @@ export class UsersController {
   @Post('/create')
   @SkipAuth()
   @HttpCode(HttpStatus.CREATED)
+  @ApiResponse(CreateUserResponse)
   async create(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
     try {
       const userCreated = await this.usersService.create(createUserDto);
@@ -57,7 +57,7 @@ export class UsersController {
         }
       })
       .catch((error) => {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: error });
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
       });
   }
 

@@ -8,19 +8,41 @@ import { Model } from 'mongoose';
 @Injectable()
 export class ChildrenService {
   constructor(
-    @InjectModel(Child.name) private readonly userModel: Model<Child>,
+    @InjectModel(Child.name) private readonly childModel: Model<Child>,
   ) {}
 
-  create(createChildDto: CreateChildDto) {
-    return 'This action adds a new child';
+  create(createChildDto: CreateChildDto): Promise<Child> {
+    return new Promise((resolve, reject) => {
+      this.childModel
+        .create(createChildDto)
+        .then((res) => {
+          const child = res.toObject();
+          resolve(child);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
   }
 
-  findAll() {
-    return `This action returns all children`;
+  findAllByParentId(parentId: string): Promise<Child[]> {
+    return new Promise((resolve, reject) => {
+      this.childModel
+        .find({ parentId })
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((error) => reject(error));
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} child`;
+  findChildrenById(id: string): Promise<Child> {
+    return new Promise((resolve, reject) => {
+      this.childModel
+        .findById(id)
+        .then((res) => resolve(res))
+        .catch((error) => reject(error));
+    });
   }
 
   update(id: number, updateChildDto: UpdateChildDto) {

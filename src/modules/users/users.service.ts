@@ -1,14 +1,14 @@
-import { genSalt, hashSync } from 'bcrypt';
-import { HttpCode, HttpStatus, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
+import { genSalt, hashSync } from 'bcrypt';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { ConfigService } from '@nestjs/config';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-import { User, UserDocument } from './schemas/user.schema';
-import { ConfigService } from '@nestjs/config';
 import { PublicUser } from './types/users.types';
+import { User, UserDocument } from './schemas/user.schema';
 
 @Injectable()
 export class UsersService {
@@ -25,7 +25,7 @@ export class UsersService {
         );
         this.userModel
           .findOneAndUpdate(
-            { email: createUserDto.email },
+            { email: createUserDto.email, deleted: true },
             { userName: createUserDto.userName, deleted: false },
             { new: true },
           )
@@ -53,10 +53,6 @@ export class UsersService {
     });
   }
 
-  // findAll() {
-  //   return `This action returns all users`;
-  // }
-
   findOne(id: string): Promise<PublicUser> {
     return new Promise((resolve: (value: PublicUser) => void, reject) => {
       this.userModel
@@ -81,8 +77,7 @@ export class UsersService {
         .findOne({ userName })
         .then((user) => {
           if (user != null && user.deleted === false) {
-            const foundUser = new PublicUser(user);
-            resolve(foundUser);
+            resolve(user);
           } else resolve(null);
         })
         .catch((error) => {

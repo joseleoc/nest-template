@@ -12,10 +12,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { ChildrenService } from './children.service';
-import { CreateChildDto } from './dto/create-child.dto';
-import { UpdateChildDto } from './dto/update-child.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
+
+import { ChildrenService } from './children.service';
+import { UpdateChildDto } from './dto/update-child.dto';
+import { CreateChildDto } from './dto/create-child.dto';
 
 @ApiTags('Children')
 @Controller('children')
@@ -44,7 +45,6 @@ export class ChildrenController {
           }
         })
         .catch((error) => {
-          console.log({ error });
           res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
         });
     } catch (error) {

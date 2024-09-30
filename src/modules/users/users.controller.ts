@@ -12,6 +12,7 @@ import {
   HttpException,
   Res,
   NotFoundException,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 
@@ -22,7 +23,6 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserResponse } from './users.constants';
 
 @ApiTags('Users')
-@ApiBearerAuth()
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -59,6 +59,18 @@ export class UsersController {
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
       });
   }
+
+  // @Get('')
+  // async findByNameOrEmail(
+  //   @Query('userName') userName: string,
+  //   @Query('email') email: string,
+  // ) {
+  //   try {
+
+  //   } catch (error) {
+  //     throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+  //   }
+  // }
 
   @Patch(':id')
   update(

@@ -20,7 +20,7 @@ describe('ChildrenService', () => {
         },
         {
           provide: getModelToken(User.name),
-          useValue: MockMongooseModel,
+          useValue: { findById: () => Promise.resolve({ deleted: false }) },
         },
       ],
     }).compile();

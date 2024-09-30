@@ -17,6 +17,7 @@ export class Child {
     type: MongoSchema.Types.ObjectId,
     ref: User.name,
     trim: true,
+    immutable: true,
   })
   parentId: string;
 
@@ -33,6 +34,12 @@ export class Child {
     enum: Object.values(Genders),
   })
   gender: string;
+
+  @Prop({
+    type: Boolean,
+    default: false,
+  })
+  deleted: boolean;
 
   constructor(data: Child) {
     Object.assign(this, data);

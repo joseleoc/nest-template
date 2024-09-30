@@ -13,4 +13,6 @@ export class MockMongooseModel {
       resolve(res);
     });
   };
+
+  static findById = (data: any) => Promise.resolve(data);
 }

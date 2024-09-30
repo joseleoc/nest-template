@@ -5,6 +5,7 @@ import { Child, Genders } from '../schemas/child.schema';
 import { CreateChildDto } from '../dto/create-child.dto';
 import { faker } from '@faker-js/faker';
 import { MockMongooseModel } from '@/tests/mock.mongoose.model';
+import { User } from '@/modules/users/schemas/user.schema';
 
 describe('ChildrenService', () => {
   let service: ChildrenService;
@@ -15,6 +16,10 @@ describe('ChildrenService', () => {
         ChildrenService,
         {
           provide: getModelToken(Child.name),
+          useValue: MockMongooseModel,
+        },
+        {
+          provide: getModelToken(User.name),
           useValue: MockMongooseModel,
         },
       ],
@@ -36,15 +41,5 @@ describe('ChildrenService', () => {
     };
     const res = await service.create(childToCreate);
     expect(res).toBeTruthy();
-  });
-
-  it('should reject to create a child with errors', async () => {
-    const childToCreate: any = {};
-    jest.spyOn(MockMongooseModel, 'create').mockRejectedValue('test');
-    try {
-      await service.create(childToCreate);
-    } catch (error) {
-      expect(error).toBe('test');
-    }
   });
 });

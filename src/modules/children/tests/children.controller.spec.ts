@@ -4,6 +4,8 @@ import { ChildrenService } from '../children.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { Child } from '../schemas/child.schema';
 import { Model } from 'mongoose';
+import { User } from '@/modules/users/schemas/user.schema';
+import { MockMongooseModel } from '@/tests/mock.mongoose.model';
 
 describe('ChildrenController', () => {
   let controller: ChildrenController;
@@ -14,6 +16,10 @@ describe('ChildrenController', () => {
       providers: [
         ChildrenService,
         { provide: getModelToken(Child.name), useValue: Model<Child> },
+        {
+          provide: getModelToken(User.name),
+          useValue: MockMongooseModel,
+        },
       ],
     }).compile();
 

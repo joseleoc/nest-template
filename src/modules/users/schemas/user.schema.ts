@@ -56,6 +56,9 @@ export class User {
   @Prop({ default: 0, type: Number })
   credits: number;
 
+  @Prop({ type: Boolean, default: false })
+  deleted: boolean;
+
   constructor(user: User) {
     Object.assign(this, user);
   }

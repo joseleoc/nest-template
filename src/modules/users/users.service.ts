@@ -6,7 +6,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-import { User } from './schemas/user.schema';
+import { User, UserDocument } from './schemas/user.schema';
 import { ConfigService } from '@nestjs/config';
 import { PublicUser } from './types/users.types';
 
@@ -24,15 +24,29 @@ export class UsersService {
           createUserDto.password,
         );
         this.userModel
-          .create(createUserDto)
-          .then((res) => {
-            const user = new PublicUser(res);
+          .findOneAndUpdate(
+            { email: createUserDto.email },
+            { userName: createUserDto.userName, deleted: false },
+            { new: true },
+          )
+          .then((foundUser: UserDocument | null) => {
+            if (foundUser == null) {
+              this.userModel
+                .create(createUserDto)
+                .then((res) => {
+                  const user = new PublicUser(res);
 
-            resolve(user);
+                  resolve(user);
+                })
+                .catch((error) => {
+                  reject(error);
+                });
+            } else {
+              resolve(foundUser);
+            }
           })
-          .catch((error) => {
-            reject(error);
-          });
+          .then()
+          .catch((error) => reject(error));
       } catch (error) {
         reject(error);
       }
@@ -48,11 +62,11 @@ export class UsersService {
       this.userModel
         .findById(id)
         .then((user) => {
-          if (user != null) {
+          if (user != null && user.deleted === false) {
             const foundUser = new PublicUser(user);
             resolve(foundUser);
           } else {
-            reject({ message: 'User not found', code: HttpStatus.NOT_FOUND });
+            resolve(null);
           }
         })
         .catch((error) => {
@@ -66,8 +80,10 @@ export class UsersService {
       this.userModel
         .findOne({ userName })
         .then((user) => {
-          const foundUser = new PublicUser(user);
-          resolve(foundUser);
+          if (user != null && user.deleted === false) {
+            const foundUser = new PublicUser(user);
+            resolve(foundUser);
+          } else resolve(null);
         })
         .catch((error) => {
           reject(error);
@@ -75,29 +91,31 @@ export class UsersService {
     });
   }
 
-  update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  update(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
     return new Promise((resolve: (value: User) => void, reject) => {
       this.userModel
         .findByIdAndUpdate(id, updateUserDto, { new: true })
         .then((res) => {
-          const updatedUser = res.$clone();
+          const updatedUser = res.toObject();
           resolve(updatedUser);
         })
         .catch((error) => reject(error));
     });
   }
 
-  remove(id: string): Promise<User> {
-    return new Promise((resolve: (value: User) => void, reject) => {
+  remove(id: string): Promise<{ id: string; deleted: boolean } | null> {
+    return new Promise((resolve, reject) => {
       this.userModel
-        .findByIdAndDelete(id)
+        .findByIdAndUpdate(id, { deleted: true })
         .then((res) => {
-          const deletedUser = res.$clone();
-          resolve(deletedUser);
+          if (res != null) {
+            resolve({ id, deleted: true });
+          } else {
+            resolve(null);
+          }
         })
         .catch((error) => reject(error));
     });
-    // return `This action removes a #${id} user`;
   }
 
   private async hashPassword(password: string): Promise<string> {

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from '../users.service';
 import { Model } from 'mongoose';
-import { User, UserSchema, UserSchemaName } from '../schemas/user.schema';
+import { User, UserSchema } from '../schemas/user.schema';
 import { getModelToken, MongooseModule } from '@nestjs/mongoose';
 
 describe('UsersService', () => {
@@ -10,13 +10,11 @@ describe('UsersService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
-        MongooseModule.forFeature([
-          { name: UserSchemaName, schema: UserSchema },
-        ]),
+        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
       ],
       providers: [
         UsersService,
-        { provide: getModelToken(UserSchemaName), useValue: Model<User> },
+        { provide: getModelToken(User.name), useValue: Model<User> },
       ],
     }).compile();
 

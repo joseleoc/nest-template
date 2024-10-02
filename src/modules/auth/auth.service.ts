@@ -1,3 +1,4 @@
+import { compare } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Injectable } from '@nestjs/common';
 
@@ -25,15 +26,26 @@ export class AuthService {
   }: ValidateUserDTO): Promise<Omit<User, 'password'>> {
     return new Promise(async (resolve: (value: any) => void, reject) => {
       try {
-        const user = await this.usersService.findOneByUserName(username);
+        this.usersService
+          .findOneByUserName(username)
+          .then((user) => {
+            if (user == null) {
+              resolve(null);
+              return;
+            }
 
-        if (user && user.password === password) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { password, ...returnedUser } = user;
-          resolve(returnedUser);
-        } else {
-          reject(null);
-        }
+            compare(password, user.password)
+              .then((valid) => {
+                if (valid) {
+                  delete user.password;
+                  resolve(user);
+                } else {
+                  reject(null);
+                }
+              })
+              .catch(() => resolve(null));
+          })
+          .catch((error) => reject(error));
       } catch (error) {
         reject(error);
       }

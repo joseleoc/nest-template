@@ -1,53 +1,69 @@
+import { Model } from 'mongoose';
 import { genSalt, hashSync } from 'bcrypt';
 import { Injectable } from '@nestjs/common';
-import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
+import { ConfigService } from '@nestjs/config';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-import { User, UserDocument, UserSchemaName } from './schemas/user.schema';
-import { ConfigService } from '@nestjs/config';
+import { PublicUser } from './types/users.types';
+import { User, UserDocument } from './schemas/user.schema';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectModel(UserSchemaName) private readonly userModel: Model<User>,
+    @InjectModel(User.name) private readonly userModel: Model<User>,
     private configService: ConfigService,
   ) {}
 
-  create(createUserDto: CreateUserDto): Promise<{ userId: string }> {
-    return new Promise(
-      async (resolve: (value: { userId: string }) => void, reject) => {
-        try {
-          createUserDto.password = await this.hashPassword(
-            createUserDto.password,
-          );
-          this.userModel
-            .create(createUserDto)
-            .then((res) => {
-              resolve({ userId: res.id });
-            })
-            .catch((error) => {
-              reject(error);
-            });
-        } catch (error) {
-          reject(error);
-        }
-      },
-    );
+  create(createUserDto: CreateUserDto): Promise<PublicUser> {
+    return new Promise(async (resolve: (value: PublicUser) => void, reject) => {
+      try {
+        createUserDto.password = await this.hashPassword(
+          createUserDto.password,
+        );
+        this.userModel
+          .findOneAndUpdate(
+            { email: createUserDto.email, deleted: true },
+            { userName: createUserDto.userName, deleted: false },
+            { new: true },
+          )
+          .then((foundUser: UserDocument | null) => {
+            if (foundUser == null) {
+              this.userModel
+                .create(createUserDto)
+                .then((res) => {
+                  const user = new PublicUser(res);
+
+                  resolve(user);
+                })
+                .catch((error) => {
+                  reject(error);
+                });
+            } else {
+              resolve(foundUser);
+            }
+          })
+          .then()
+          .catch((error) => reject(error));
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
 
-  // findAll() {
-  //   return `This action returns all users`;
-  // }
-
-  findOne(id: string): Promise<UserDocument> {
-    return new Promise((resolve: (value: UserDocument) => void, reject) => {
+  findOne(id: string): Promise<PublicUser> {
+    return new Promise((resolve: (value: PublicUser) => void, reject) => {
       this.userModel
         .findById(id)
         .then((user) => {
-          resolve(user);
+          if (user != null && user.deleted === false) {
+            const foundUser = new PublicUser(user);
+            resolve(foundUser);
+          } else {
+            resolve(null);
+          }
         })
         .catch((error) => {
           reject(error);
@@ -55,12 +71,14 @@ export class UsersService {
     });
   }
 
-  findOneByUserName(userName: string): Promise<UserDocument> {
-    return new Promise((resolve: (value: UserDocument) => void, reject) => {
+  findOneByUserName(userName: string): Promise<PublicUser> {
+    return new Promise((resolve: (value: PublicUser) => void, reject) => {
       this.userModel
         .findOne({ userName })
         .then((user) => {
-          resolve(user);
+          if (user != null && user.deleted === false) {
+            resolve(user);
+          } else resolve(null);
         })
         .catch((error) => {
           reject(error);
@@ -68,29 +86,31 @@ export class UsersService {
     });
   }
 
-  update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  update(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
     return new Promise((resolve: (value: User) => void, reject) => {
       this.userModel
         .findByIdAndUpdate(id, updateUserDto, { new: true })
         .then((res) => {
-          const updatedUser = res.$clone();
+          const updatedUser = res.toObject();
           resolve(updatedUser);
         })
         .catch((error) => reject(error));
     });
   }
 
-  remove(id: string): Promise<User> {
-    return new Promise((resolve: (value: User) => void, reject) => {
+  remove(id: string): Promise<{ id: string; deleted: boolean } | null> {
+    return new Promise((resolve, reject) => {
       this.userModel
-        .findByIdAndDelete(id)
+        .findByIdAndUpdate(id, { deleted: true })
         .then((res) => {
-          const deletedUser = res.$clone();
-          resolve(deletedUser);
+          if (res != null) {
+            resolve({ id, deleted: true });
+          } else {
+            resolve(null);
+          }
         })
         .catch((error) => reject(error));
     });
-    // return `This action removes a #${id} user`;
   }
 
   private async hashPassword(password: string): Promise<string> {

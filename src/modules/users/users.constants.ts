@@ -1,36 +1,19 @@
-// export const SwaggerCreateUser: ApiOperationOptions = {
-//   summary: 'Create user',
-//   requestBody: {
-//     required: true,
-//     content: {
-//       'aplication/json': {
-//         schema: {
-//           type: 'object',
-//           properties: {
-//             userName: { type: 'string' },
-//             password: { type: 'string' },
-//             tier: { type: 'string' },
-//           },
-//         },
-//         example: {
-//           userName: 'john',
-//           password: 'changeme',
-//           tier: 'FREE',
-//         },
-//       },
-//     },
-//   },
-// };
+import { HttpStatus } from '@nestjs/common';
+import { ApiResponseOptions } from '@nestjs/swagger';
 
-export const SwaggerCreateUserResponse = {
-  status: 200,
+export const CreateUserResponse: ApiResponseOptions = {
+  status: HttpStatus.CREATED,
+  description:
+    'Create user response, if the user has been already created and deleted: updates the "deleted" field to false',
   content: {
     'application/json': {
       schema: {
         type: 'object',
         properties: {
           message: { type: 'string' },
-          userId: { type: 'string' },
+          user: {
+            type: 'object',
+          },
         },
       },
     },

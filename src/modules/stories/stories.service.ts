@@ -8,21 +8,22 @@ export class StoriesService {
   openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   async create(createStoryDto: CreateStoryDto) {
     return new Promise(async (resolve: (value: any) => void, reject) => {
-      this.openai.chat.completions
-        .create({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: 'You are a helpful assistant.' },
-            {
-              role: 'user',
-              content: 'Write a haiku about recursion in programming.',
-            },
-          ],
-        })
-        .then((completion) => {
-          resolve(completion.choices[0].message);
-        })
-        .catch((error) => reject(error));
+      reject('Not implemented');
+      // this.openai.chat.completions
+      //   .create({
+      //     model: 'gpt-4o-mini',
+      //     messages: [
+      //       { role: 'system', content: 'You are a helpful assistant.' },
+      //       {
+      //         role: 'user',
+      //         content: 'Write a haiku about recursion in programming.',
+      //       },
+      //     ],
+      //   })
+      //   .then((completion) => {
+      //     resolve(completion.choices[0].message);
+      //   })
+      //   .catch((error) => reject(error));
     });
   }
 

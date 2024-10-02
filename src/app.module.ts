@@ -12,6 +12,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ChildrenModule } from './modules/children/children.module';
 import { StoriesModule } from './modules/stories/stories.module';
 import { NarratorsModule } from './modules/narrators/narrators.module';
+import { CharactersModule } from './modules/characters/characters.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { NarratorsModule } from './modules/narrators/narrators.module';
     ChildrenModule,
     StoriesModule,
     NarratorsModule,
+    CharactersModule,
   ],
   controllers: [AppController],
   providers: [

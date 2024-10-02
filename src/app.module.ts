@@ -13,6 +13,7 @@ import { ChildrenModule } from './modules/children/children.module';
 import { StoriesModule } from './modules/stories/stories.module';
 import { NarratorsModule } from './modules/narrators/narrators.module';
 import { CharactersModule } from './modules/characters/characters.module';
+import { StoriesPlacesModule } from './modules/stories-places/stories-places.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { CharactersModule } from './modules/characters/characters.module';
     StoriesModule,
     NarratorsModule,
     CharactersModule,
+    StoriesPlacesModule,
   ],
   controllers: [AppController],
   providers: [

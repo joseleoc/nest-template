@@ -1,12 +1,6 @@
+import { Plan } from '@/modules/plans/types/plans.types';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-
-export enum Plan {
-  FREE = 'FREE',
-  PREMIUM = 'PREMIUM',
-}
-
-export type PlanType = keyof typeof Plan;
 
 export enum UserLanguage {
   EN = 'en',
@@ -41,7 +35,7 @@ export class User {
   @Prop({ default: Date.now, type: Date })
   createdAt?: Date;
 
-  @Prop({ default: Plan.FREE, enum: Object.values(Plan) })
+  @Prop({ default: Plan.MAGIC_TALES, enum: Object.values(Plan) })
   Plan: Plan;
 
   @Prop({ default: UserLanguage.EN, enum: Object.values(UserLanguage) })

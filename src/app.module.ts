@@ -14,6 +14,7 @@ import { StoriesModule } from './modules/stories/stories.module';
 import { NarratorsModule } from './modules/narrators/narrators.module';
 import { CharactersModule } from './modules/characters/characters.module';
 import { StoriesPlacesModule } from './modules/stories-places/stories-places.module';
+import { PlansModule } from './modules/plans/plans.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { StoriesPlacesModule } from './modules/stories-places/stories-places.mod
     NarratorsModule,
     CharactersModule,
     StoriesPlacesModule,
+    PlansModule,
   ],
   controllers: [AppController],
   providers: [

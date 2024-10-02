@@ -12,9 +12,8 @@ import {
   HttpException,
   Res,
   NotFoundException,
-  Query,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { SkipAuth } from '@/decorators/index';
 import { UsersService } from './users.service';
@@ -45,6 +44,9 @@ export class UsersController {
   }
 
   @Get(':id')
+  @ApiResponse({
+    description: `Retrieves an existing use's non sensitive info `,
+  })
   async findOne(@Param('id') id: string, @Res() res: Response) {
     this.usersService
       .findOne(id)
@@ -60,19 +62,8 @@ export class UsersController {
       });
   }
 
-  // @Get('')
-  // async findByNameOrEmail(
-  //   @Query('userName') userName: string,
-  //   @Query('email') email: string,
-  // ) {
-  //   try {
-
-  //   } catch (error) {
-  //     throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
-  //   }
-  // }
-
   @Patch(':id')
+  @ApiResponse({ description: 'Updates an existing user' })
   update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -97,6 +88,10 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @ApiResponse({
+    description:
+      'Performs a lazy deletion to an user document, updating the "deleted" field to true, so it is treated as deleted element',
+  })
   remove(@Param('id') id: string, @Res() res: Response) {
     try {
       this.usersService

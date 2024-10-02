@@ -33,6 +33,7 @@ export class AuthService {
               resolve(null);
               return;
             }
+
             compare(password, user.password)
               .then((valid) => {
                 if (valid) {

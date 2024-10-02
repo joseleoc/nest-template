@@ -10,14 +10,19 @@ import { AppController } from './app.controller';
 import { UsersModule } from './modules/users';
 import { AuthModule } from './modules/auth/auth.module';
 import { ChildrenModule } from './modules/children/children.module';
+import { StoriesModule } from './modules/stories/stories.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: `.env.${process.env.NODE_ENV}`,
+    }),
     MongooseModule.forRoot(process.env.DB_URL, { dbName: process.env.DB_NAME }),
     AuthModule,
     UsersModule,
     ChildrenModule,
+    StoriesModule,
   ],
   controllers: [AppController],
   providers: [

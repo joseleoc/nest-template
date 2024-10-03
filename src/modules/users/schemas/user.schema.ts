@@ -1,4 +1,4 @@
-import { Plan } from '@/modules/plans/types/plans.types';
+import { PlanNames } from '@/modules/plans/schemas/plan.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
@@ -35,8 +35,8 @@ export class User {
   @Prop({ default: Date.now, type: Date })
   createdAt?: Date;
 
-  @Prop({ default: Plan.MAGIC_TALES, enum: Object.values(Plan) })
-  Plan: Plan;
+  @Prop({ default: PlanNames.MAGIC_TALES, enum: Object.values(PlanNames) })
+  plan: PlanNames;
 
   @Prop({ default: UserLanguage.EN, enum: Object.values(UserLanguage) })
   language: UserLanguage;

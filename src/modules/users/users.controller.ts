@@ -49,7 +49,7 @@ export class UsersController {
   })
   async findOne(@Param('id') id: string, @Res() res: Response) {
     this.usersService
-      .findOne(id)
+      .findOneById(id)
       .then((user) => {
         if (user != null) {
           res.status(HttpStatus.OK).json({ user });

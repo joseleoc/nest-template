@@ -9,14 +9,21 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 import { PublicUser } from './types/users.types';
 import { User, UserDocument } from './schemas/user.schema';
+import { PlanNames } from '../plans/schemas/plan.schema';
 
 @Injectable()
 export class UsersService {
+  // --------------------------------------------------------------------------------
+  // Constructor
+  // --------------------------------------------------------------------------------
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
     private configService: ConfigService,
   ) {}
 
+  // --------------------------------------------------------------------------------
+  // Public methods
+  // --------------------------------------------------------------------------------
   create(createUserDto: CreateUserDto): Promise<PublicUser> {
     return new Promise(async (resolve: (value: PublicUser) => void, reject) => {
       try {
@@ -53,10 +60,10 @@ export class UsersService {
     });
   }
 
-  findOne(id: string): Promise<PublicUser> {
+  findOneById(id: string): Promise<PublicUser> {
     return new Promise((resolve: (value: PublicUser) => void, reject) => {
       this.userModel
-        .findById(id)
+        .findOne({ _id: id, deleted: false })
         .then((user) => {
           if (user != null && user.deleted === false) {
             const foundUser = new PublicUser(user);
@@ -113,8 +120,40 @@ export class UsersService {
     });
   }
 
+  canCreateStory(user: User): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (user != null && user.deleted === false) {
+        const maxStories = this.checkPlanLimit(user.plan);
+        if (maxStories >= user.credits) {
+          resolve(true);
+          return;
+        } else {
+          resolve(false);
+        }
+      } else {
+        resolve(false);
+      }
+    });
+  }
+
+  // --------------------------------------------------------------------------------
+  // Private methods
+  // --------------------------------------------------------------------------------
   private async hashPassword(password: string): Promise<string> {
     const salt = await genSalt(+this.configService.getOrThrow('APP_SALT'));
     return hashSync(password, salt);
+  }
+
+  private checkPlanLimit(userPlan: PlanNames): number {
+    switch (userPlan) {
+      case PlanNames.MAGIC_TALES:
+        return 5;
+      case PlanNames.AMAZING_STORIES:
+        return 15;
+      case PlanNames.UNLIMITED_WORLDS:
+        return Number.POSITIVE_INFINITY;
+      default:
+        return 0;
+    }
   }
 }

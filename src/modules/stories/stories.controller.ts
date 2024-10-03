@@ -6,7 +6,10 @@ import {
   Patch,
   Param,
   Delete,
+  Res,
+  HttpStatus,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { StoriesService } from './stories.service';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { UpdateStoryDto } from './dto/update-story.dto';
@@ -16,8 +19,21 @@ export class StoriesController {
   constructor(private readonly storiesService: StoriesService) {}
 
   @Post()
-  create(@Body() createStoryDto: CreateStoryDto) {
-    return this.storiesService.create(createStoryDto);
+  create(@Body() createStoryDto: CreateStoryDto, @Res() res: Response) {
+    console.log({ createStoryDto });
+    this.storiesService
+      .create(createStoryDto)
+      .then((story) => {
+        res.status(HttpStatus.CREATED).json(story);
+      })
+      .catch((error) => {
+        console.log(error);
+        if (error?.code != null) {
+          res.status(error.code).json(error);
+        } else {
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+        }
+      });
   }
 
   @Get()

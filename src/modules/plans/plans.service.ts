@@ -17,9 +17,12 @@ export class PlansService {
   // --------------------------------------------------------------------------------
   // Public methods
   // --------------------------------------------------------------------------------
+
   /**
    * This method is used to save the plans to the database for the first time only.
    * It checks if the plans exist in the database, if not, it creates them.
+   *
+   * `Important:` this method should be called only once.
    */
   createPlansIfNotExist(): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -38,6 +41,18 @@ export class PlansService {
               resolve();
             })
             .catch((error) => reject(error));
+        })
+        .catch((error) => reject(error));
+    });
+  }
+
+  /** Finds all plans */
+  findAll(): Promise<Plan[]> {
+    return new Promise((resolve, reject) => {
+      this.planModel
+        .find()
+        .then((plans) => {
+          resolve(plans);
         })
         .catch((error) => reject(error));
     });

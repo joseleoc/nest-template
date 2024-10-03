@@ -20,7 +20,7 @@ export class Plan {
   name: string;
 
   @Prop({ required: true, type: Number, min: 0, default: 5 })
-  limit: number;
+  creditsLimit: number;
 
   @Prop({ required: true, type: Number, min: 0 })
   price: number;

@@ -20,14 +20,12 @@ export class StoriesController {
 
   @Post()
   create(@Body() createStoryDto: CreateStoryDto, @Res() res: Response) {
-    console.log({ createStoryDto });
     this.storiesService
       .create(createStoryDto)
       .then((story) => {
         res.status(HttpStatus.CREATED).json(story);
       })
       .catch((error) => {
-        console.log(error);
         if (error?.code != null) {
           res.status(error.code).json(error);
         } else {

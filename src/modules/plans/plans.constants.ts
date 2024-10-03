@@ -3,7 +3,7 @@ import { Plan, PlanNames } from './schemas/plan.schema';
 export const DefaultPlans: Plan[] = [
   {
     name: PlanNames.MAGIC_TALES,
-    limit: 5,
+    creditsLimit: 5,
     price: 5.99,
     accessToText: true,
     accessToVoice: false,
@@ -11,7 +11,7 @@ export const DefaultPlans: Plan[] = [
   },
   {
     name: PlanNames.AMAZING_STORIES,
-    limit: 15,
+    creditsLimit: 15,
     price: 7.99,
     accessToText: true,
     accessToVoice: true,
@@ -19,7 +19,7 @@ export const DefaultPlans: Plan[] = [
   },
   {
     name: PlanNames.UNLIMITED_WORLDS,
-    limit: Number.POSITIVE_INFINITY,
+    creditsLimit: Number.POSITIVE_INFINITY,
     price: 15.99,
     accessToText: true,
     accessToVoice: true,

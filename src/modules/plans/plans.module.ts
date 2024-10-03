@@ -10,5 +10,6 @@ import { Plan, PlanSchema } from './schemas/plan.schema';
   ],
   controllers: [PlansController],
   providers: [PlansService],
+  exports: [PlansService],
 })
 export class PlansModule {}

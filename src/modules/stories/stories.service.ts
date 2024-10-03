@@ -34,33 +34,37 @@ export class StoriesService {
             });
             return;
           }
-          const canCreateStory = await this.usersService.canCreateStory(user);
-          if (canCreateStory) {
-            const mockStory: Story = {
-              title: faker.lorem.sentence(4),
-              content: faker.lorem.paragraph(),
-              summary: faker.lorem.paragraph(),
-              narratorId: faker.string.uuid(),
-              style: StoryStyle.FICTIONAL,
-              storyPurpose: faker.lorem.sentence(),
-              coreIssue: faker.lorem.sentence(),
-              characterId: faker.string.uuid(),
-              placeId: faker.string.uuid(),
-              images: [faker.image.urlPicsumPhotos()],
-              thumbnail: faker.image.urlPicsumPhotos(),
-              childId: faker.string.uuid(),
-              userId: faker.string.uuid(),
-              finalDetails: faker.lorem.paragraph(),
-              readingTime: faker.number.int({ min: 0, max: 10 }),
-            };
-            resolve(mockStory);
-          } else {
-            reject({
-              message: "User doesn't have enough credits to create a story",
-              canCreate: canCreateStory,
-              code: HttpStatus.PAYMENT_REQUIRED,
-            });
-          }
+          this.usersService.canCreateStory(user).then((canCreateStory) => {
+            if (canCreateStory) {
+              const mockStory: Story = {
+                title: faker.lorem.sentence(4),
+                content: faker.lorem.paragraph(),
+                summary: faker.lorem.paragraph(),
+                narratorId: faker.string.uuid(),
+                style: StoryStyle.FICTIONAL,
+                storyPurpose: faker.lorem.sentence(),
+                coreIssue: faker.lorem.sentence(),
+                characterId: faker.string.uuid(),
+                placeId: faker.string.uuid(),
+                images: [faker.image.urlPicsumPhotos()],
+                thumbnail: faker.image.urlPicsumPhotos(),
+                childId: faker.string.uuid(),
+                userId: faker.string.uuid(),
+                finalDetails: faker.lorem.paragraph(),
+                readingTime: faker.number.int({ min: 0, max: 10 }),
+              };
+
+              const userCredits = user.credits - 1;
+              this.usersService.updateCredits(user.id, userCredits);
+              resolve(mockStory);
+            } else {
+              reject({
+                message: "User doesn't have enough credits to create a story",
+                canCreate: canCreateStory,
+                code: HttpStatus.PAYMENT_REQUIRED,
+              });
+            }
+          });
         })
         .catch((error) => reject(error));
     });

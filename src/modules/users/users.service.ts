@@ -9,7 +9,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 import { PublicUser } from './types/users.types';
 import { User, UserDocument } from './schemas/user.schema';
-import { PlanNames } from '../plans/schemas/plan.schema';
+import { PlansService } from '../plans/plans.service';
 
 @Injectable()
 export class UsersService {
@@ -19,6 +19,7 @@ export class UsersService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
     private configService: ConfigService,
+    private plansService: PlansService,
   ) {}
 
   // --------------------------------------------------------------------------------
@@ -49,7 +50,7 @@ export class UsersService {
                   reject(error);
                 });
             } else {
-              resolve(foundUser);
+              resolve(new PublicUser(foundUser));
             }
           })
           .then()
@@ -84,7 +85,7 @@ export class UsersService {
         .findOne({ userName })
         .then((user) => {
           if (user != null && user.deleted === false) {
-            resolve(user);
+            resolve(new PublicUser(user));
           } else resolve(null);
         })
         .catch((error) => {
@@ -98,7 +99,20 @@ export class UsersService {
       this.userModel
         .findByIdAndUpdate(id, updateUserDto, { new: true })
         .then((res) => {
-          const updatedUser = res.toObject();
+          const updatedUser = new PublicUser(res);
+          resolve(updatedUser);
+        })
+        .catch((error) => reject(error));
+    });
+  }
+
+  /** Updates the credits of a user */
+  updateCredits(id: string, credits: number): Promise<User | null> {
+    return new Promise((resolve, reject) => {
+      this.userModel
+        .findByIdAndUpdate(id, { credits: credits })
+        .then((res) => {
+          const updatedUser = new PublicUser(res);
           resolve(updatedUser);
         })
         .catch((error) => reject(error));
@@ -123,8 +137,7 @@ export class UsersService {
   canCreateStory(user: User): Promise<boolean> {
     return new Promise((resolve) => {
       if (user != null && user.deleted === false) {
-        const maxStories = this.checkPlanLimit(user.plan);
-        if (maxStories >= user.credits) {
+        if (user.credits > 0) {
           resolve(true);
           return;
         } else {
@@ -144,16 +157,20 @@ export class UsersService {
     return hashSync(password, salt);
   }
 
-  private checkPlanLimit(userPlan: PlanNames): number {
-    switch (userPlan) {
-      case PlanNames.MAGIC_TALES:
-        return 5;
-      case PlanNames.AMAZING_STORIES:
-        return 15;
-      case PlanNames.UNLIMITED_WORLDS:
-        return Number.POSITIVE_INFINITY;
-      default:
-        return 0;
-    }
-  }
+  // private checkPlanLimit(userPlan: PlanNames): Promise<number> {
+  //   return new Promise((resolve, reject) => {
+  //     this.plansService
+  //       .findAll()
+  //       .then((plans) => {
+  //         const plan = plans.find((plan) => plan.name === userPlan);
+  //         console.log({ plan });
+  //         if (plan != null) {
+  //           resolve(plan.creditsLimit);
+  //         } else {
+  //           resolve(0);
+  //         }
+  //       })
+  //       .catch((error) => reject(error));
+  //   });
+  // }
 }

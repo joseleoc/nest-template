@@ -5,6 +5,8 @@ Uses swagger for documentation.
 
 
 ## Project setup
+Set up the env variables in the .env file. See the .env.example file for more information.
+
 
 ```bash
 $ npm install

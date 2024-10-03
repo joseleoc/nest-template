@@ -14,11 +14,11 @@ export class CreateUserDto {
   @ApiProperty({ example: 'changeme', required: true, type: 'string' })
   password: string;
   @ApiProperty({
-    example: 'FREE',
+    example: PlanNames.MAGIC_TALES,
     required: false,
     enum: Object.values(PlanNames),
   })
-  plan?: PlanNames;
+  plan: PlanNames;
 
   @ApiProperty({
     example: 'en',

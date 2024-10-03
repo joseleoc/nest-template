@@ -1,6 +1,6 @@
 import { Model } from 'mongoose';
 import { genSalt, hashSync } from 'bcrypt';
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 
@@ -8,8 +8,9 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 import { PublicUser } from './types/users.types';
-import { User, UserDocument } from './schemas/user.schema';
+import { User, UserDocument, UserLanguage } from './schemas/user.schema';
 import { PlansService } from '../plans/plans.service';
+import { PlanNames } from '../plans/schemas/plan.schema';
 
 @Injectable()
 export class UsersService {
@@ -31,30 +32,65 @@ export class UsersService {
         createUserDto.password = await this.hashPassword(
           createUserDto.password,
         );
-        this.userModel
-          .findOneAndUpdate(
-            { email: createUserDto.email, deleted: true },
-            { userName: createUserDto.userName, deleted: false },
-            { new: true },
-          )
-          .then((foundUser: UserDocument | null) => {
-            if (foundUser == null) {
+        const planNames = Object.values(PlanNames);
+        if (!planNames.includes(createUserDto.plan)) {
+          reject({
+            message: 'Plan not found',
+            code: HttpStatus.NOT_FOUND,
+          });
+          return;
+        }
+        this.plansService
+          .findPlanByName(createUserDto.plan)
+          .then((plan) => {
+            if (plan != null) {
               this.userModel
-                .create(createUserDto)
-                .then((res) => {
-                  const user = new PublicUser(res);
+                .findOneAndUpdate(
+                  { email: createUserDto.email, deleted: true },
+                  { userName: createUserDto.userName, deleted: false },
+                  { new: true },
+                )
+                .then((foundUser: UserDocument | null) => {
+                  if (foundUser == null) {
+                    const userToCreate: User = {
+                      credits: plan.creditsLimit,
+                      ...createUserDto,
+                      deleted: false,
+                      language: createUserDto.language || UserLanguage.EN,
+                    };
+                    this.userModel
+                      .create(userToCreate)
+                      .then((res) => {
+                        const user = new PublicUser(res);
 
-                  resolve(user);
+                        resolve(user);
+                      })
+                      .catch((error) => {
+                        reject(error);
+                      });
+                  } else {
+                    resolve(new PublicUser(foundUser));
+                  }
                 })
-                .catch((error) => {
-                  reject(error);
-                });
+                .catch(() =>
+                  reject({
+                    message: 'Error handling the user',
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
+                  }),
+                );
             } else {
-              resolve(new PublicUser(foundUser));
+              reject({
+                message: 'Plan not found',
+                code: HttpStatus.NOT_FOUND,
+              });
             }
           })
-          .then()
-          .catch((error) => reject(error));
+          .catch(() =>
+            reject({
+              message: 'Error setting the plan',
+              code: HttpStatus.INTERNAL_SERVER_ERROR,
+            }),
+          );
       } catch (error) {
         reject(error);
       }
@@ -79,13 +115,14 @@ export class UsersService {
     });
   }
 
-  findOneByUserName(userName: string): Promise<PublicUser> {
-    return new Promise((resolve: (value: PublicUser) => void, reject) => {
+  /** Returns a user document by its username */
+  findUserDocumentByUserName(userName: string): Promise<UserDocument> {
+    return new Promise((resolve: (value: UserDocument) => void, reject) => {
       this.userModel
         .findOne({ userName })
         .then((user) => {
           if (user != null && user.deleted === false) {
-            resolve(new PublicUser(user));
+            resolve(user);
           } else resolve(null);
         })
         .catch((error) => {

@@ -13,12 +13,27 @@ import { Response } from 'express';
 import { StoriesService } from './stories.service';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { UpdateStoryDto } from './dto/update-story.dto';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Stories')
+@ApiBearerAuth()
 @Controller('stories')
 export class StoriesController {
   constructor(private readonly storiesService: StoriesService) {}
 
   @Post()
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'When the story is created successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.PAYMENT_REQUIRED,
+    description: 'Payment required when the user does not have enough credits',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'When the user does not exist, is deleted or is not found',
+  })
   create(@Body() createStoryDto: CreateStoryDto, @Res() res: Response) {
     this.storiesService
       .create(createStoryDto)

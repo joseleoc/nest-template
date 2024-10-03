@@ -13,7 +13,7 @@ import {
   Res,
   NotFoundException,
 } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { SkipAuth } from '@/decorators/index';
 import { UsersService } from './users.service';
@@ -22,14 +22,23 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserResponse } from './users.constants';
 
 @ApiTags('Users')
+@ApiBearerAuth()
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post('/create')
   @SkipAuth()
-  @HttpCode(HttpStatus.CREATED)
   @ApiResponse(CreateUserResponse)
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description:
+      'Internal server error, could be caused by a database error, such as a duplicated userName or email',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Plan not found',
+  })
   async create(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
     try {
       const userCreated = await this.usersService.create(createUserDto);

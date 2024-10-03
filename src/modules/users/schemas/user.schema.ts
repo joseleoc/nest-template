@@ -41,11 +41,11 @@ export class User {
   @Prop({ default: UserLanguage.EN, enum: Object.values(UserLanguage) })
   language: UserLanguage;
 
-  @Prop({ default: {}, type: Object })
-  Billing: unknown;
+  // @Prop({ default: {}, type: Object })
+  // Billing?: unknown;
 
-  @Prop({ default: {}, type: Object })
-  storyConfig: unknown;
+  // @Prop({ default: {}, type: Object })
+  // storyConfig?: unknown;
 
   @Prop({ default: 0, type: Number })
   credits: number;

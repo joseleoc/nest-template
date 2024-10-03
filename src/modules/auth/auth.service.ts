@@ -27,8 +27,9 @@ export class AuthService {
     return new Promise(async (resolve: (value: any) => void, reject) => {
       try {
         this.usersService
-          .findOneByUserName(username)
+          .findUserDocumentByUserName(username)
           .then((user) => {
+            console.log(user);
             if (user == null) {
               resolve(null);
               return;

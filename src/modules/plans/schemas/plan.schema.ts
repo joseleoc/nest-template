@@ -16,6 +16,7 @@ export class Plan {
     type: String,
     trim: true,
     enum: Object.values(PlanNames),
+    unique: true,
   })
   name: string;
 

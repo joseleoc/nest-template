@@ -2,7 +2,7 @@ import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
-import { Plan } from './schemas/plan.schema';
+import { Plan, PlanNames } from './schemas/plan.schema';
 import { DefaultPlans } from './plans.constants';
 
 @Injectable()
@@ -53,6 +53,21 @@ export class PlansService {
         .find()
         .then((plans) => {
           resolve(plans);
+        })
+        .catch((error) => reject(error));
+    });
+  }
+
+  findPlanByName(name: keyof typeof PlanNames): Promise<Plan | null> {
+    return new Promise((resolve, reject) => {
+      this.planModel
+        .findOne({ name })
+        .then((plan) => {
+          if (plan != null) {
+            resolve(plan);
+          } else {
+            reject(null);
+          }
         })
         .catch((error) => reject(error));
     });

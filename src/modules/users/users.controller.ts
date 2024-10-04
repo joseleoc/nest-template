@@ -22,7 +22,6 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserResponse } from './users.constants';
 
 @ApiTags('Users')
-@ApiBearerAuth()
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -53,6 +52,7 @@ export class UsersController {
   }
 
   @Get(':id')
+  @ApiBearerAuth()
   @ApiResponse({
     description: `Retrieves an existing use's non sensitive info `,
   })
@@ -72,6 +72,7 @@ export class UsersController {
   }
 
   @Patch(':id')
+  @ApiBearerAuth()
   @ApiResponse({ description: 'Updates an existing user' })
   update(
     @Param('id') id: string,
@@ -97,6 +98,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth()
   @ApiResponse({
     description:
       'Performs a lazy deletion to an user document, updating the "deleted" field to true, so it is treated as deleted element',

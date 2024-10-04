@@ -20,9 +20,4 @@ export class AuthController {
   async login(@Request() req) {
     return this.authService.login(req.user);
   }
-
-  @Get('profile')
-  getProfile(@Request() req) {
-    return req.user;
-  }
 }

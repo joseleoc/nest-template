@@ -20,8 +20,8 @@ export class Story {
   @Prop({ required: true, type: String, trim: true })
   title: string;
 
-  @Prop({ required: true, type: String, trim: true })
-  content: string;
+  @Prop({ required: true, type: Array<string>, trim: true, default: [] })
+  content: string[];
 
   @Prop({ required: true, type: String, trim: true })
   summary: string;

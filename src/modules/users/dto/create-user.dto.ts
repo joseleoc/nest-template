@@ -15,7 +15,7 @@ export class CreateUserDto {
   password: string;
   @ApiProperty({
     example: PlanNames.MAGIC_TALES,
-    required: false,
+    required: true,
     enum: Object.values(PlanNames),
   })
   plan: PlanNames;

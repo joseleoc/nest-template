@@ -12,13 +12,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { ChildrenService } from './children.service';
 import { UpdateChildDto } from './dto/update-child.dto';
 import { CreateChildDto } from './dto/create-child.dto';
 
 @ApiTags('Children')
+@ApiBearerAuth()
 @Controller('children')
 export class ChildrenController {
   constructor(private readonly childrenService: ChildrenService) {}

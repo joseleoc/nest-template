@@ -171,18 +171,29 @@ export class UsersService {
     });
   }
 
-  canCreateStory(user: User): Promise<boolean> {
-    return new Promise((resolve) => {
-      if (user != null && user.deleted === false) {
-        if (user.credits > 0) {
-          resolve(true);
-          return;
-        } else {
-          resolve(false);
-        }
-      } else {
-        resolve(false);
-      }
+  /**
+   * Used to check if the user has enough credits to create a story
+   * @param userId the user id to check
+   * @returns a promise that resolves to an object with the user and a boolean indicating if the user can create a story
+   */
+  findUserAndCheckCredits(
+    userId: string,
+  ): Promise<{ canCreateStory: boolean; user: PublicUser | null }> {
+    return new Promise((resolve, reject) => {
+      this.findOneById(userId)
+        .then((user) => {
+          if (user != null && user.deleted === false) {
+            if (user.credits > 0) {
+              resolve({ canCreateStory: true, user: user });
+              return;
+            } else {
+              resolve({ canCreateStory: false, user: user });
+            }
+          } else {
+            resolve({ canCreateStory: false, user: null });
+          }
+        })
+        .catch((error) => reject(error));
     });
   }
 

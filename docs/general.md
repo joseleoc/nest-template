@@ -13,6 +13,7 @@ DB_NAME="Used to connect to the mongo database."
 APP_SALT="Used to salt the passwords."
 OPENAI_API_KEY="The openAI api key. Used to connect to the openai api."
 OPENAI_PROJECT="The openAI project id. Used to connect to the openai api."
+OPENAI_ORGANIZATION="The openAI organization id. Identifier for this organization sometimes used in API requests.
 ```
 
 All the endpoints are protected by a jwt guard by default. To change the default behavior, use the `@SkipAuth()` decorator over the controller or method.

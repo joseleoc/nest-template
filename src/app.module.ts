@@ -15,6 +15,8 @@ import { NarratorsModule } from './modules/narrators/narrators.module';
 import { CharactersModule } from './modules/characters/characters.module';
 import { StoriesPlacesModule } from './modules/stories-places/stories-places.module';
 import { PlansModule } from './modules/plans/plans.module';
+import { AiModule } from './modules/ai/ai.module';
+import { OnegLogsModule } from './modules/oneg-logs/oneg-logs.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { PlansModule } from './modules/plans/plans.module';
     CharactersModule,
     StoriesPlacesModule,
     PlansModule,
+    AiModule,
+    OnegLogsModule,
   ],
   controllers: [AppController],
   providers: [

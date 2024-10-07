@@ -5,10 +5,12 @@ import { Story, StorySchema } from './schemas/stories.schemas';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { UsersModule } from '../users';
+import { AiModule } from '../ai/ai.module';
 
 @Module({
   imports: [
     UsersModule,
+    AiModule,
     MongooseModule.forFeature([{ name: Story.name, schema: StorySchema }]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],

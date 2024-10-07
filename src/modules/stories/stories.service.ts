@@ -1,30 +1,21 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { UpdateStoryDto } from './dto/update-story.dto';
-import OpenAI from 'openai';
 import { Story } from './entities/story.entity';
-import { faker } from '@faker-js/faker';
-import { StoryStyle } from './schemas/stories.schemas';
 import { UsersService } from '../users';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { AiService } from '../ai/ai.service';
 
 @Injectable()
 export class StoriesService {
-  // --------------------------------------------------------------------------------
-  // Local properties
-  // --------------------------------------------------------------------------------
-  openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-    project: process.env.OPENAI_PROJECT,
-  });
-
   // --------------------------------------------------------------------------------
   // Constructor
   // --------------------------------------------------------------------------------
   constructor(
     @InjectModel(Story.name) private readonly storyModel: Model<Story>,
     private usersService: UsersService,
+    private aiService: AiService,
   ) {}
 
   // --------------------------------------------------------------------------------
@@ -47,7 +38,8 @@ export class StoriesService {
 
           if (canCreateStory) {
             //Creates the story
-            this.createStory(user)
+            this.aiService
+              .createStory(user)
               .then((story) => {
                 // Updates the user credits
                 const userCredits = user.credits - 1;
@@ -90,62 +82,6 @@ export class StoriesService {
   // --------------------------------------------------------------------------------
   // Private methods
   // --------------------------------------------------------------------------------
-  private createStory(params: any): Promise<Story> {
-    return new Promise((resolve, reject) => {
-      // this.openai.chat.completions
-      //   .create({
-      //     model: 'gpt-4o-mini',
-      //     metadata: { type: 'story' },
-      //     response_format: {
-      //       type: 'json_schema',
-      //       json_schema: {
-      //         name: 'story',
-      //         description: 'Story schema',
-      //         schema: {},
-      //         strict: true,
-      //       },
-      //     },
-      //     messages: [
-      //       { role: 'system', content: 'You are a helpful assistant.' },
-      //       {
-      //         role: 'user',
-      //         content: 'Write a haiku about recursion in programming.',
-      //       },
-      //     ],
-      //   })
-      //   .then((completion) => {
-      //     resolve(completion.choices[0].message);
-      //   })
-      //   .catch((error) => reject(error));
-
-      const mockStory: Story = {
-        title: faker.lorem.sentence(4),
-        content: [
-          faker.lorem.paragraph(),
-          faker.lorem.paragraph(),
-          faker.lorem.paragraph(),
-        ],
-        summary: faker.lorem.paragraph(),
-        narratorId: '66fee460276fe7d5503d493f',
-        style: StoryStyle.FICTIONAL,
-        storyPurpose: faker.lorem.sentence(),
-        coreIssue: faker.lorem.sentence(),
-        characterId: '66fee460276fe7d5503d493f',
-        placeId: '66fee460276fe7d5503d493f',
-        images: [
-          faker.image.urlPicsumPhotos(),
-          faker.image.urlPicsumPhotos(),
-          faker.image.urlPicsumPhotos(),
-        ],
-        thumbnail: faker.image.urlPicsumPhotos(),
-        childId: '66fee460276fe7d5503d493f',
-        userId: '66fee460276fe7d5503d493f',
-        finalDetails: faker.lorem.paragraph(),
-        readingTime: faker.number.int({ min: 0, max: 10 }),
-      };
-      resolve(mockStory);
-    });
-  }
 
   private saveStory(story: Story): Promise<Story> {
     return new Promise((resolve, reject) => {

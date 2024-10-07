@@ -3,8 +3,9 @@ import { JwtService } from '@nestjs/jwt';
 import { Injectable } from '@nestjs/common';
 
 import { UsersService } from '@/modules/users';
-import { User, UserDocument } from '../users/schemas/user.schema';
+import { UserDocument } from '../users/schemas/user.schema';
 import { ValidateUserDTO } from './dto/auth.dto';
+import { PublicUser } from '../users/types/users.types';
 
 @Injectable()
 export class AuthService {
@@ -13,23 +14,25 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(user: UserDocument) {
+  async login(
+    user: UserDocument,
+  ): Promise<{ access_token: string; userId: string }> {
     const payload = { username: user.userName, sub: user._id };
     return {
       access_token: this.jwtService.sign(payload),
+      userId: user.id,
     };
   }
 
   async validateUser({
     username,
     password,
-  }: ValidateUserDTO): Promise<Omit<User, 'password'>> {
-    return new Promise(async (resolve: (value: any) => void, reject) => {
+  }: ValidateUserDTO): Promise<PublicUser> {
+    return new Promise(async (resolve: (value: PublicUser) => void, reject) => {
       try {
         this.usersService
           .findUserDocumentByUserName(username)
           .then((user) => {
-            console.log(user);
             if (user == null) {
               resolve(null);
               return;
@@ -39,7 +42,7 @@ export class AuthService {
               .then((valid) => {
                 if (valid) {
                   delete user.password;
-                  resolve(user);
+                  resolve(new PublicUser(user));
                 } else {
                   reject(null);
                 }

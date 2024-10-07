@@ -92,7 +92,6 @@ export class StoriesService {
   // --------------------------------------------------------------------------------
   private createStory(params: any): Promise<Story> {
     return new Promise((resolve, reject) => {
-      console.log('Creating story');
       // this.openai.chat.completions
       //   .create({
       //     model: 'gpt-4o-mini',
@@ -156,7 +155,6 @@ export class StoriesService {
           resolve(res);
         })
         .catch((error) => {
-          console.log(error);
           reject(error);
         });
     });

@@ -30,7 +30,10 @@ export const LoginResponseBody = {
     'application/json': {
       schema: {
         type: 'object',
-        properties: { access_token: { type: 'string' } },
+        properties: {
+          access_token: { type: 'string' },
+          userId: { type: 'string' },
+        },
       },
     },
   },

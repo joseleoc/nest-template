@@ -93,50 +93,58 @@ export class StoriesService {
   private createStory(params: any): Promise<Story> {
     return new Promise((resolve, reject) => {
       console.log('Creating story');
-      this.openai.chat.completions
-        .create({
-          model: 'gpt-4o-mini',
-          metadata: { type: 'story' },
-          response_format: 'json_schema',
-          messages: [
-            { role: 'system', content: 'You are a helpful assistant.' },
-            {
-              role: 'user',
-              content: 'Write a haiku about recursion in programming.',
-            },
-          ],
-        })
-        .then((completion) => {
-          resolve(completion.choices[0].message);
-        })
-        .catch((error) => reject(error));
+      // this.openai.chat.completions
+      //   .create({
+      //     model: 'gpt-4o-mini',
+      //     metadata: { type: 'story' },
+      //     response_format: {
+      //       type: 'json_schema',
+      //       json_schema: {
+      //         name: 'story',
+      //         description: 'Story schema',
+      //         schema: {},
+      //         strict: true,
+      //       },
+      //     },
+      //     messages: [
+      //       { role: 'system', content: 'You are a helpful assistant.' },
+      //       {
+      //         role: 'user',
+      //         content: 'Write a haiku about recursion in programming.',
+      //       },
+      //     ],
+      //   })
+      //   .then((completion) => {
+      //     resolve(completion.choices[0].message);
+      //   })
+      //   .catch((error) => reject(error));
 
-      // const mockStory: Story = {
-      //   title: faker.lorem.sentence(4),
-      //   content: [
-      //     faker.lorem.paragraph(),
-      //     faker.lorem.paragraph(),
-      //     faker.lorem.paragraph(),
-      //   ],
-      //   summary: faker.lorem.paragraph(),
-      //   narratorId: '66fee460276fe7d5503d493f',
-      //   style: StoryStyle.FICTIONAL,
-      //   storyPurpose: faker.lorem.sentence(),
-      //   coreIssue: faker.lorem.sentence(),
-      //   characterId: '66fee460276fe7d5503d493f',
-      //   placeId: '66fee460276fe7d5503d493f',
-      //   images: [
-      //     faker.image.urlPicsumPhotos(),
-      //     faker.image.urlPicsumPhotos(),
-      //     faker.image.urlPicsumPhotos(),
-      //   ],
-      //   thumbnail: faker.image.urlPicsumPhotos(),
-      //   childId: '66fee460276fe7d5503d493f',
-      //   userId: '66fee460276fe7d5503d493f',
-      //   finalDetails: faker.lorem.paragraph(),
-      //   readingTime: faker.number.int({ min: 0, max: 10 }),
-      // };
-      // resolve(mockStory);
+      const mockStory: Story = {
+        title: faker.lorem.sentence(4),
+        content: [
+          faker.lorem.paragraph(),
+          faker.lorem.paragraph(),
+          faker.lorem.paragraph(),
+        ],
+        summary: faker.lorem.paragraph(),
+        narratorId: '66fee460276fe7d5503d493f',
+        style: StoryStyle.FICTIONAL,
+        storyPurpose: faker.lorem.sentence(),
+        coreIssue: faker.lorem.sentence(),
+        characterId: '66fee460276fe7d5503d493f',
+        placeId: '66fee460276fe7d5503d493f',
+        images: [
+          faker.image.urlPicsumPhotos(),
+          faker.image.urlPicsumPhotos(),
+          faker.image.urlPicsumPhotos(),
+        ],
+        thumbnail: faker.image.urlPicsumPhotos(),
+        childId: '66fee460276fe7d5503d493f',
+        userId: '66fee460276fe7d5503d493f',
+        finalDetails: faker.lorem.paragraph(),
+        readingTime: faker.number.int({ min: 0, max: 10 }),
+      };
+      resolve(mockStory);
     });
   }
 

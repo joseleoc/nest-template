@@ -1,13 +1,16 @@
 ## Description
 Nest template.\
 Build with [Nest](https://github.com/nestjs/nest) framework TypeScript.\
-Uses swagger for documentation.
+Uses swagger for API documentation.\
+more info [here](./docs/general.md).
+
 
 ## Mongodb branch
 This branch is meant to configure the Mongodb database.
 
 
 ## Project setup
+see [.env.example](.env.example) for the required environment variables.
 
 ```bash
 $ npm install

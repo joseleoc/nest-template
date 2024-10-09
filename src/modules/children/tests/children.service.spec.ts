@@ -6,7 +6,6 @@ import { CreateChildDto } from '../dto/create-child.dto';
 import { faker } from '@faker-js/faker';
 import { MockMongooseModel } from '@/tests/mock.mongoose.model';
 import { User } from '@/modules/users/schemas/user.schema';
-import { Gender } from '@/general.types';
 
 describe('ChildrenService', () => {
   let service: ChildrenService;

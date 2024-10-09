@@ -5,7 +5,6 @@ import { User } from '../schemas/user.schema';
 import { getModelToken } from '@nestjs/mongoose';
 import { PlansModule } from '@/modules/plans/plans.module';
 import { PlansService } from '@/modules/plans/plans.service';
-import { ConfigService } from '@nestjs/config';
 
 describe('UsersService', () => {
   let service: UsersService;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { CreateNarratorDto } from './dto/create-narrator.dto';
 import { UpdateNarratorDto } from './dto/update-narrator.dto';

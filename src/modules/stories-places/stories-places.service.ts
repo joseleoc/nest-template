@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { CreateStoriesPlaceDto } from './dto/create-stories-place.dto';
 import { UpdateStoriesPlaceDto } from './dto/update-stories-place.dto';

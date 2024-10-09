@@ -1,12 +1,19 @@
-import { SchemaFactory } from '@nestjs/mongoose';
+import { Gender } from '@/general.types';
+import { Prop, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
 export type characterDocument = HydratedDocument<Character>;
 
 export class Character {
-  name: string;
-  age: number;
-  gender: string;
+  @Prop({ required: true, type: String, trim: true })
+  description: string;
+  @Prop({
+    required: true,
+    type: String,
+    trim: true,
+    enum: Object.values(Gender),
+  })
+  gender: Gender;
 }
 
 export const CharacterSchema = SchemaFactory.createForClass(Character);

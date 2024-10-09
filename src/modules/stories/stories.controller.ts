@@ -14,6 +14,9 @@ import { StoriesService } from './stories.service';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { UpdateStoryDto } from './dto/update-story.dto';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Gender } from '@/general.types';
+import { NarratorAgeCategory } from '../narrators/schemas/narrators.schema';
+import { StoryStyle } from './schemas/stories.schema';
 
 @ApiTags('Stories')
 @ApiBearerAuth()

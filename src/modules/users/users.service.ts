@@ -8,9 +8,10 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 import { PublicUser } from './types/users.types';
-import { User, UserDocument, UserLanguage } from './schemas/user.schema';
+import { User, UserDocument } from './schemas/user.schema';
 import { PlansService } from '../plans/plans.service';
 import { PlanNames } from '../plans/schemas/plan.schema';
+import { Language } from '@/general.types';
 
 @Injectable()
 export class UsersService {
@@ -56,7 +57,7 @@ export class UsersService {
                       credits: plan.creditsLimit,
                       ...createUserDto,
                       deleted: false,
-                      language: createUserDto.language || UserLanguage.EN,
+                      language: createUserDto.language || Language.EN,
                     };
                     this.userModel
                       .create(userToCreate)

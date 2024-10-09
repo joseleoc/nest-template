@@ -1,11 +1,7 @@
+import { Language } from '@/general.types';
 import { PlanNames } from '@/modules/plans/schemas/plan.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-
-export enum UserLanguage {
-  EN = 'en',
-  ES = 'es',
-}
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -38,8 +34,8 @@ export class User {
   @Prop({ default: PlanNames.MAGIC_TALES, enum: Object.values(PlanNames) })
   plan: PlanNames;
 
-  @Prop({ default: UserLanguage.EN, enum: Object.values(UserLanguage) })
-  language: UserLanguage;
+  @Prop({ default: Language.EN, enum: Object.values(Language) })
+  language: Language;
 
   // @Prop({ default: {}, type: Object })
   // Billing?: unknown;

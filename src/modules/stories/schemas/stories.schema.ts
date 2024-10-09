@@ -1,10 +1,11 @@
-import { Character } from '@/modules/characters/entities/character.entity';
+import { Character } from '@/modules/characters/schemas/character.schema';
 import { Child } from '@/modules/children/schemas/child.schema';
-import { Narrator } from '@/modules/narrators/entities/narrator.entity';
+import { Narrator } from '@/modules/narrators/schemas/narrators.schema';
 import { StoryPlace } from '@/modules/stories-places/schemas/story-place.schema';
 import { User } from '@/modules/users/schemas/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Schema as MongoSchema } from 'mongoose';
+import { StoryPurpose } from './story-purpose.schema';
 
 export enum StoryStyle {
   'FICTIONAL' = 'FICTIONAL',
@@ -15,7 +16,11 @@ export const StoryDefaultThumbnail = 'story-default-thumbnail.png';
 
 export type StoryDocument = HydratedDocument<Story>;
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  toObject: { versionKey: false },
+  toJSON: { versionKey: false },
+})
 export class Story {
   @Prop({ required: true, type: String, trim: true })
   title: string;
@@ -32,7 +37,7 @@ export class Story {
     ref: Narrator.name,
     trim: true,
   })
-  narratorId?: string;
+  narratorId: string;
 
   @Prop({
     required: false,
@@ -42,7 +47,7 @@ export class Story {
   })
   style: keyof typeof StoryStyle;
 
-  @Prop({ required: false, type: String, trim: true })
+  @Prop({ required: false, type: StoryPurpose, trim: true })
   storyPurpose?: string;
 
   @Prop({ required: false, type: String, trim: true })

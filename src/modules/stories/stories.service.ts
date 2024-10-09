@@ -1,30 +1,29 @@
+//TODO: Remove this line
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { UpdateStoryDto } from './dto/update-story.dto';
-import OpenAI from 'openai';
-import { Story } from './entities/story.entity';
-import { faker } from '@faker-js/faker';
-import { StoryStyle } from './schemas/stories.schemas';
 import { UsersService } from '../users';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { AiService } from '../ai/ai.service';
+import { AiStory } from '../ai/schemas/ai-story.schema';
+import { PublicUser } from '../users/types/users.types';
+import { Story, StoryStyle } from './schemas/stories.schema';
+import { Gender } from '@/general.types';
+import { NarratorAgeCategory } from '../narrators/schemas/narrators.schema';
+import { ChildrenService } from '../children/children.service';
 
 @Injectable()
 export class StoriesService {
-  // --------------------------------------------------------------------------------
-  // Local properties
-  // --------------------------------------------------------------------------------
-  openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-    project: process.env.OPENAI_PROJECT,
-  });
-
   // --------------------------------------------------------------------------------
   // Constructor
   // --------------------------------------------------------------------------------
   constructor(
     @InjectModel(Story.name) private readonly storyModel: Model<Story>,
     private usersService: UsersService,
+    private aiService: AiService,
+    private ChildrenService: ChildrenService,
   ) {}
 
   // --------------------------------------------------------------------------------
@@ -33,9 +32,13 @@ export class StoriesService {
   async create(createStoryDto: CreateStoryDto): Promise<Story> {
     return new Promise(async (resolve: (value: any) => void, reject) => {
       // Check if the user has enough credits to create a story
-      this.usersService
-        .findUserAndCheckCredits(createStoryDto.userId)
-        .then(({ canCreateStory, user }) => {
+      Promise.all([
+        this.usersService.findUserAndCheckCredits(createStoryDto.userId),
+        this.ChildrenService.findChildById(createStoryDto.childId),
+      ])
+        .then((res) => {
+          const [{ canCreateStory, user }, child] = res;
+
           // reject if the user is not found or deleted
           if (user == null) {
             reject({
@@ -47,14 +50,14 @@ export class StoriesService {
 
           if (canCreateStory) {
             //Creates the story
-            this.createStory(user)
+            this.aiService
+              .createStory({ user, prompt: createStoryDto, child })
               .then((story) => {
                 // Updates the user credits
                 const userCredits = user.credits - 1;
                 this.usersService.updateCredits(user.id, userCredits);
-
                 // Saves the story to the db
-                this.saveStory(story)
+                this.saveStory({ story, user })
                   .then(() => resolve(story))
                   .catch((error) => reject(error));
               })
@@ -67,7 +70,9 @@ export class StoriesService {
               code: HttpStatus.PAYMENT_REQUIRED,
             });
           }
-        });
+        })
+
+        .catch((error) => reject(error));
     });
   }
 
@@ -90,65 +95,22 @@ export class StoriesService {
   // --------------------------------------------------------------------------------
   // Private methods
   // --------------------------------------------------------------------------------
-  private createStory(params: any): Promise<Story> {
-    return new Promise((resolve, reject) => {
-      // this.openai.chat.completions
-      //   .create({
-      //     model: 'gpt-4o-mini',
-      //     metadata: { type: 'story' },
-      //     response_format: {
-      //       type: 'json_schema',
-      //       json_schema: {
-      //         name: 'story',
-      //         description: 'Story schema',
-      //         schema: {},
-      //         strict: true,
-      //       },
-      //     },
-      //     messages: [
-      //       { role: 'system', content: 'You are a helpful assistant.' },
-      //       {
-      //         role: 'user',
-      //         content: 'Write a haiku about recursion in programming.',
-      //       },
-      //     ],
-      //   })
-      //   .then((completion) => {
-      //     resolve(completion.choices[0].message);
-      //   })
-      //   .catch((error) => reject(error));
 
-      const mockStory: Story = {
-        title: faker.lorem.sentence(4),
-        content: [
-          faker.lorem.paragraph(),
-          faker.lorem.paragraph(),
-          faker.lorem.paragraph(),
-        ],
-        summary: faker.lorem.paragraph(),
-        narratorId: '66fee460276fe7d5503d493f',
+  private saveStory(params: {
+    story: AiStory;
+    user: PublicUser;
+  }): Promise<Story> {
+    return new Promise((resolve, reject) => {
+      const story: Story = {
+        title: params.story.title,
+        content: params.story.content,
+        summary: params.story.summary,
+        userId: params.user.id,
+        narratorId: '6705640b9b9cdcd5b4b8fc26',
+        images: [],
+        thumbnail: 'thumbnail',
         style: StoryStyle.FICTIONAL,
-        storyPurpose: faker.lorem.sentence(),
-        coreIssue: faker.lorem.sentence(),
-        characterId: '66fee460276fe7d5503d493f',
-        placeId: '66fee460276fe7d5503d493f',
-        images: [
-          faker.image.urlPicsumPhotos(),
-          faker.image.urlPicsumPhotos(),
-          faker.image.urlPicsumPhotos(),
-        ],
-        thumbnail: faker.image.urlPicsumPhotos(),
-        childId: '66fee460276fe7d5503d493f',
-        userId: '66fee460276fe7d5503d493f',
-        finalDetails: faker.lorem.paragraph(),
-        readingTime: faker.number.int({ min: 0, max: 10 }),
       };
-      resolve(mockStory);
-    });
-  }
-
-  private saveStory(story: Story): Promise<Story> {
-    return new Promise((resolve, reject) => {
       this.storyModel
         .create(story)
         .then((res) => {

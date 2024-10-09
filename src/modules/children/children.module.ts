@@ -12,5 +12,6 @@ import { User, UserSchema } from '../users/schemas/user.schema';
   ],
   controllers: [ChildrenController],
   providers: [ChildrenService],
+  exports: [ChildrenService],
 })
 export class ChildrenModule {}

@@ -3,5 +3,8 @@
     "source.fixAll": "explicit"
   },
   "editor.formatOnSave": false,
-  "material-icon-theme.activeIconPack": "nest"
+  "material-icon-theme.activeIconPack": "nest",
+  "cSpell.words": [
+    "Oneg"
+  ]
 }

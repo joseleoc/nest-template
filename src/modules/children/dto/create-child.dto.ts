@@ -1,5 +1,5 @@
+import { Gender } from '@/general.types';
 import { ApiProperty } from '@nestjs/swagger';
-import { Genders } from '../schemas/child.schema';
 
 export class CreateChildDto {
   @ApiProperty({ required: true, example: 'id', type: 'string' })
@@ -14,8 +14,8 @@ export class CreateChildDto {
   @ApiProperty({
     required: true,
     example: 'male / female / other',
-    enum: Object.values(Genders),
+    enum: Object.values(Gender),
     type: 'string',
   })
-  gender: string;
+  gender: Gender;
 }

@@ -25,6 +25,10 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @ApiOperation(LoginRequestBody)
   @ApiResponse(LoginResponseBody)
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'User not found or password is wrong',
+  })
   async login(@Request() req, @Res() res: Response) {
     try {
       this.authService

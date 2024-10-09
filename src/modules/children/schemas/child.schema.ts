@@ -1,16 +1,18 @@
+import { Gender } from '@/general.types';
 import { User } from '@/modules/users/schemas/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Schema as MongoSchema } from 'mongoose';
 
-export enum Genders {
-  MALE = 'male',
-  FEMALE = 'female',
-  OTHER = 'other',
-}
-
 export type ChildDocument = HydratedDocument<Child>;
 
-@Schema()
+@Schema({
+  toObject: {
+    versionKey: false,
+  },
+  toJSON: {
+    versionKey: false,
+  },
+})
 export class Child {
   @Prop({
     required: true,
@@ -31,9 +33,9 @@ export class Child {
     required: true,
     type: String,
     trim: true,
-    enum: Object.values(Genders),
+    enum: Object.values(Gender),
   })
-  gender: string;
+  gender: Gender;
 
   @Prop({
     type: Boolean,

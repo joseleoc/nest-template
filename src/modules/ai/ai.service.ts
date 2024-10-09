@@ -7,6 +7,7 @@ import { faker } from '@faker-js/faker';
 import { CreateStoryDto } from '../stories/dto/create-story.dto';
 import { User } from '../users/schemas/user.schema';
 import { PublicUser } from '../users/types/users.types';
+import { Child } from '../children/schemas/child.schema';
 // import { StoryStyle } from './schemas/stories.schemas';
 
 @Injectable()
@@ -32,23 +33,38 @@ export class AiService {
   createStory(params: {
     prompt: CreateStoryDto;
     user: User | PublicUser;
+    child?: Child | null;
   }): Promise<AiStory> {
     return new Promise((resolve: (value: AiStory) => void, reject) => {
+      const { prompt, user, child } = params;
+      console.log(params);
       this.openai.chat.completions
         .create({
           model: 'gpt-4o-mini',
           response_format: zodResponseFormat(AiStorySchema, 'story'),
-          temperature: 0.1,
           messages: [
             {
               role: 'system',
               content:
-                'You are a helpful assistant designed to output JSON. You will only output the JSON, and nothing else.',
+                'You are a story assistant designed to output JSON. You will only output the JSON, and nothing else.',
+            },
+            {
+              role: 'system',
+              content: `You also are a ${prompt.storyNarrator.gender} ${prompt.storyNarrator.ageCategory} story narrator, and you will output the story in ${prompt.language || user.language} language. The story is narrated to a ${child?.gender || ''} child with ${child?.age || 9} years.`,
             },
             {
               role: 'user',
-              content:
-                'Write an story about a boy named John. Provide a summary, a narrator, a character, a place, and a theme. The theme should be a concept or idea that the story explores, and the character should be a person or animal that the story is about. The place should be a location or setting that the story takes place in.',
+              content: `Please,
+              create a ${prompt.storyStyle} story for a child with ${child?.age || 9} years.
+              The story must take place in: ${prompt.storyPlace.description}.
+              The main character is: ${prompt.mainCharacter.description}.
+              The story should revolve around solving the following problem: ${prompt.solveProblem.selectedOption}, related to ${prompt.solveProblem.inputValue}.
+              The story should teach or help with: ${prompt.storyHelp}.
+
+              As a final considerations: ${prompt.finalDetails}.
+
+              The story must be written in ${prompt.language || user.language} language.
+              takes place in ${prompt.storyPlace.description}`,
             },
           ],
         })
@@ -62,34 +78,37 @@ export class AiService {
           }
           resolve(story);
         })
-        .catch((error) => reject(error));
+        .catch((error) => {
+          console.log(error);
+          reject(error);
+        });
 
-      const mockStory: Story = {
-        title: faker.lorem.sentence(4),
-        content: [
-          faker.lorem.paragraph(),
-          faker.lorem.paragraph(),
-          faker.lorem.paragraph(),
-        ],
-        summary: faker.lorem.paragraph(),
-        narratorId: '66fee460276fe7d5503d493f',
-        style: StoryStyle.FICTIONAL,
-        storyPurpose: faker.lorem.sentence(),
-        coreIssue: faker.lorem.sentence(),
-        characterId: '66fee460276fe7d5503d493f',
-        placeId: '66fee460276fe7d5503d493f',
-        images: [
-          faker.image.urlPicsumPhotos(),
-          faker.image.urlPicsumPhotos(),
-          faker.image.urlPicsumPhotos(),
-        ],
-        thumbnail: faker.image.urlPicsumPhotos(),
-        childId: '66fee460276fe7d5503d493f',
-        userId: '66fee460276fe7d5503d493f',
-        finalDetails: faker.lorem.paragraph(),
-        readingTime: faker.number.int({ min: 0, max: 10 }),
-      };
-      resolve(mockStory);
+      // const mockStory: Story = {
+      //   title: faker.lorem.sentence(4),
+      //   content: [
+      //     faker.lorem.paragraph(),
+      //     faker.lorem.paragraph(),
+      //     faker.lorem.paragraph(),
+      //   ],
+      //   summary: faker.lorem.paragraph(),
+      //   narratorId: '66fee460276fe7d5503d493f',
+      //   style: StoryStyle.FICTIONAL,
+      //   storyPurpose: faker.lorem.sentence(),
+      //   coreIssue: faker.lorem.sentence(),
+      //   characterId: '66fee460276fe7d5503d493f',
+      //   placeId: '66fee460276fe7d5503d493f',
+      //   images: [
+      //     faker.image.urlPicsumPhotos(),
+      //     faker.image.urlPicsumPhotos(),
+      //     faker.image.urlPicsumPhotos(),
+      //   ],
+      //   thumbnail: faker.image.urlPicsumPhotos(),
+      //   childId: '66fee460276fe7d5503d493f',
+      //   userId: '66fee460276fe7d5503d493f',
+      //   finalDetails: faker.lorem.paragraph(),
+      //   readingTime: faker.number.int({ min: 0, max: 10 }),
+      // };
+      // resolve(mockStory);
     });
   }
 }

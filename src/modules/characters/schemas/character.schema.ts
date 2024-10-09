@@ -6,9 +6,7 @@ export type characterDocument = HydratedDocument<Character>;
 
 export class Character {
   @Prop({ required: true, type: String, trim: true })
-  name: string;
-  @Prop({ required: true, type: Number, min: 0 })
-  age: number;
+  description: string;
   @Prop({
     required: true,
     type: String,

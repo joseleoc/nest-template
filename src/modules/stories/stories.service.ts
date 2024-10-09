@@ -12,6 +12,7 @@ import { PublicUser } from '../users/types/users.types';
 import { Story, StoryStyle } from './schemas/stories.schema';
 import { Gender } from '@/general.types';
 import { NarratorAgeCategory } from '../narrators/schemas/narrators.schema';
+import { ChildrenService } from '../children/children.service';
 
 @Injectable()
 export class StoriesService {
@@ -22,6 +23,7 @@ export class StoriesService {
     @InjectModel(Story.name) private readonly storyModel: Model<Story>,
     private usersService: UsersService,
     private aiService: AiService,
+    private ChildrenService: ChildrenService,
   ) {}
 
   // --------------------------------------------------------------------------------
@@ -30,9 +32,13 @@ export class StoriesService {
   async create(createStoryDto: CreateStoryDto): Promise<Story> {
     return new Promise(async (resolve: (value: any) => void, reject) => {
       // Check if the user has enough credits to create a story
-      this.usersService
-        .findUserAndCheckCredits(createStoryDto.userId)
-        .then(({ canCreateStory, user }) => {
+      Promise.all([
+        this.usersService.findUserAndCheckCredits(createStoryDto.userId),
+        this.ChildrenService.findChildById(createStoryDto.childId),
+      ])
+        .then((res) => {
+          const [{ canCreateStory, user }, child] = res;
+
           // reject if the user is not found or deleted
           if (user == null) {
             reject({
@@ -45,7 +51,7 @@ export class StoriesService {
           if (canCreateStory) {
             //Creates the story
             this.aiService
-              .createStory({ user, prompt: createStoryDto })
+              .createStory({ user, prompt: createStoryDto, child })
               .then((story) => {
                 // Updates the user credits
                 const userCredits = user.credits - 1;
@@ -64,7 +70,9 @@ export class StoriesService {
               code: HttpStatus.PAYMENT_REQUIRED,
             });
           }
-        });
+        })
+
+        .catch((error) => reject(error));
     });
   }
 

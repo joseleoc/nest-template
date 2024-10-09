@@ -48,7 +48,7 @@ export class ChildrenService {
     });
   }
 
-  findChildrenById(id: string): Promise<Child> {
+  findChildById(id: string): Promise<Child | null> {
     return new Promise((resolve, reject) => {
       this.childModel
         .findById(id)

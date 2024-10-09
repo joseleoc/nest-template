@@ -79,7 +79,7 @@ export class ChildrenController {
   findChildrenById(@Param('id') id: string, @Res() res: Response) {
     try {
       this.childrenService
-        .findChildrenById(id)
+        .findChildById(id)
         .then((child) => {
           if (child != null) {
             res.status(HttpStatus.OK).json({

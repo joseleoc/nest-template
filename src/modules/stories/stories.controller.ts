@@ -3,20 +3,14 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
   Res,
   HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { StoriesService } from './stories.service';
 import { CreateStoryDto } from './dto/create-story.dto';
-import { UpdateStoryDto } from './dto/update-story.dto';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Gender } from '@/general.types';
-import { NarratorAgeCategory } from '../narrators/schemas/narrators.schema';
-import { StoryStyle } from './schemas/stories.schema';
 
 @ApiTags('Stories')
 @ApiBearerAuth()
@@ -52,23 +46,43 @@ export class StoriesController {
       });
   }
 
-  @Get()
-  findAll() {
-    return this.storiesService.findAll();
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'When the user has stories',
+  })
+  @Get('userStories/:id')
+  findUserStories(@Param('id') id: string, @Res() res: Response) {
+    try {
+      this.storiesService
+        .findUserStories(id)
+        .then((stories) => {
+          res.status(HttpStatus.OK).json(stories);
+        })
+        .catch((error) => {
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+        });
+    } catch (error) {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+    }
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.storiesService.findOne(+id);
-  }
+  // @Get()
+  // findAll() {
+  //   return this.storiesService.findAll();
+  // }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateStoryDto: UpdateStoryDto) {
-    return this.storiesService.update(+id, updateStoryDto);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.storiesService.findOne(+id);
+  // }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.storiesService.remove(+id);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateStoryDto: UpdateStoryDto) {
+  //   return this.storiesService.update(+id, updateStoryDto);
+  // }
+
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.storiesService.remove(+id);
+  // }
 }

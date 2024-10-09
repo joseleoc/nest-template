@@ -2,13 +2,10 @@ import OpenAI from 'openai';
 import { Injectable } from '@nestjs/common';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { AiStory, AiStorySchema } from './schemas/ai-story.schema';
-import { Story, StoryStyle } from '../stories/schemas/stories.schema';
-import { faker } from '@faker-js/faker';
 import { CreateStoryDto } from '../stories/dto/create-story.dto';
 import { User } from '../users/schemas/user.schema';
 import { PublicUser } from '../users/types/users.types';
-import { Child } from '../children/schemas/child.schema';
-// import { StoryStyle } from './schemas/stories.schemas';
+import { PublicChild } from '../children/types/children.types';
 
 @Injectable()
 export class AiService {
@@ -33,11 +30,10 @@ export class AiService {
   createStory(params: {
     prompt: CreateStoryDto;
     user: User | PublicUser;
-    child?: Child | null;
+    child?: PublicChild | null;
   }): Promise<AiStory> {
     return new Promise((resolve: (value: AiStory) => void, reject) => {
       const { prompt, user, child } = params;
-      console.log(params);
       this.openai.chat.completions
         .create({
           model: 'gpt-4o-mini',
@@ -69,7 +65,6 @@ export class AiService {
           ],
         })
         .then((completion) => {
-          console.log(completion);
           let story: AiStory;
           if (typeof completion.choices[0].message.content === 'string') {
             story = JSON.parse(completion.choices[0].message.content);
@@ -79,7 +74,6 @@ export class AiService {
           resolve(story);
         })
         .catch((error) => {
-          console.log(error);
           reject(error);
         });
 

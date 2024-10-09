@@ -48,12 +48,13 @@ export class ChildrenService {
     });
   }
 
-  findChildById(id: string): Promise<Child | null> {
+  findChildById(id: string): Promise<PublicChild | null> {
     return new Promise((resolve, reject) => {
       this.childModel
         .findById(id)
         .then((res) => {
-          if ((res.deleted = false)) resolve(res);
+          if (res != null && res.deleted === false)
+            resolve(new PublicChild(res));
           else resolve(null);
         })
         .catch((error) => reject(error));

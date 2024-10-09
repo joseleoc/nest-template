@@ -1,11 +1,11 @@
 import { Character } from '@/modules/characters/schemas/character.schema';
 import { Child } from '@/modules/children/schemas/child.schema';
-import { Narrator } from '@/modules/narrators/schemas/narrators.schema';
 import { StoryPlace } from '@/modules/stories-places/schemas/story-place.schema';
 import { User } from '@/modules/users/schemas/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Schema as MongoSchema } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 import { StoryPurpose } from './story-purpose.schema';
+import { Narrator } from '@/modules/narrators/schemas/narrators.schema';
 
 export enum StoryStyle {
   'FICTIONAL' = 'FICTIONAL',
@@ -32,53 +32,46 @@ export class Story {
   summary: string;
 
   @Prop({
-    required: false,
-    type: MongoSchema.Types.ObjectId,
-    ref: Narrator.name,
+    required: true,
+    type: Character,
     trim: true,
   })
-  narratorId: string;
-
-  @Prop({
-    required: false,
-    type: String,
-    trim: true,
-    enum: Object.values(StoryStyle),
-  })
-  style: keyof typeof StoryStyle;
-
-  @Prop({ required: false, type: StoryPurpose, trim: true })
-  storyPurpose?: string;
-
-  @Prop({ required: false, type: String, trim: true })
-  coreIssue?: string;
-
-  @Prop({
-    required: false,
-    type: MongoSchema.Types.ObjectId,
-    trim: true,
-    ref: Character.name,
-  })
-  characterId?: string;
-
-  @Prop({
-    required: false,
-    type: MongoSchema.Types.ObjectId,
-    trim: true,
-    ref: StoryPlace.name,
-  })
-  placeId?: string;
-
-  @Prop({ required: true, type: Array<string>, default: [] })
-  images: string[];
+  mainCharacter: Character;
 
   @Prop({
     required: true,
     type: String,
     trim: true,
+    enum: Object.values(StoryStyle),
+  })
+  storyStyle: keyof typeof StoryStyle;
+
+  @Prop({ required: true, type: StoryPurpose, trim: true })
+  solveProblem: StoryPurpose;
+
+  @Prop({ required: true, type: String, trim: true, default: '' })
+  storyHelp: string;
+
+  @Prop({ required: true, type: Narrator, trim: true })
+  storyNarrator: Narrator;
+
+  @Prop({
+    required: true,
+    type: StoryPlace,
+    trim: true,
+  })
+  storyPlace: StoryPlace;
+
+  @Prop({ required: true, type: Array<string>, default: [] })
+  images: string[];
+
+  @Prop({
+    required: false,
+    type: String,
+    trim: true,
     default: StoryDefaultThumbnail,
   })
-  thumbnail: string;
+  thumbnail?: string;
 
   @Prop({ required: false, type: String, trim: true, ref: Child.name })
   childId?: string;

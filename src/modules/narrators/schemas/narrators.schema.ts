@@ -21,19 +21,23 @@ export type NarratorDocument = HydratedDocument<Narrator>;
 })
 export class Narrator {
   @Prop({
-    required: true,
+    required: false,
     type: String,
     enum: Object.values(NarratorAgeCategory),
+    default: NarratorAgeCategory.ADULT,
   })
-  ageCategory: NarratorAgeCategory;
+  ageCategory?: NarratorAgeCategory;
 
   @Prop({
-    required: true,
+    required: false,
     type: String,
     trim: true,
     enum: Object.values(Gender),
   })
-  gender: Gender;
+  gender?: Gender;
+
+  @Prop({ required: false, type: String, trim: true, default: '' })
+  description?: string;
 }
 
 export const NarratorSchema = SchemaFactory.createForClass(Narrator);

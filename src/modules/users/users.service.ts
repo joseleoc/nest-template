@@ -194,7 +194,12 @@ export class UsersService {
             resolve({ canCreateStory: false, user: null });
           }
         })
-        .catch((error) => reject(error));
+        .catch((error) =>
+          reject({
+            error,
+            message: 'Error checking if the user can create a story',
+          }),
+        );
     });
   }
 

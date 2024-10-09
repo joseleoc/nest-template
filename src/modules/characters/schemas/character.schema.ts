@@ -8,12 +8,13 @@ export class Character {
   @Prop({ required: true, type: String, trim: true })
   description: string;
   @Prop({
-    required: true,
+    required: false,
     type: String,
     trim: true,
     enum: Object.values(Gender),
+    default: '',
   })
-  gender: Gender;
+  gender?: Gender;
 }
 
 export const CharacterSchema = SchemaFactory.createForClass(Character);

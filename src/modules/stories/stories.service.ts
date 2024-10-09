@@ -9,10 +9,9 @@ import { Model } from 'mongoose';
 import { AiService } from '../ai/ai.service';
 import { AiStory } from '../ai/schemas/ai-story.schema';
 import { PublicUser } from '../users/types/users.types';
-import { Story, StoryStyle } from './schemas/stories.schema';
-import { Gender } from '@/general.types';
-import { NarratorAgeCategory } from '../narrators/schemas/narrators.schema';
+import { Story } from './schemas/stories.schema';
 import { ChildrenService } from '../children/children.service';
+import { PublicChild } from '../children/types/children.types';
 
 @Injectable()
 export class StoriesService {
@@ -38,7 +37,6 @@ export class StoriesService {
       ])
         .then((res) => {
           const [{ canCreateStory, user }, child] = res;
-
           // reject if the user is not found or deleted
           if (user == null) {
             reject({
@@ -57,7 +55,7 @@ export class StoriesService {
                 const userCredits = user.credits - 1;
                 this.usersService.updateCredits(user.id, userCredits);
                 // Saves the story to the db
-                this.saveStory({ story, user })
+                this.saveStory({ story, user, child, prompt: createStoryDto })
                   .then(() => resolve(story))
                   .catch((error) => reject(error));
               })
@@ -72,7 +70,23 @@ export class StoriesService {
           }
         })
 
-        .catch((error) => reject(error));
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  }
+
+  findUserStories(id: string): Promise<Story[]> {
+    return new Promise((resolve, reject) => {
+      this.storyModel
+        .find({ userId: id })
+        .sort({ createdAt: -1 })
+        .then((stories) => {
+          resolve(stories);
+        })
+        .catch((error) => {
+          reject(error);
+        });
     });
   }
 
@@ -99,20 +113,28 @@ export class StoriesService {
   private saveStory(params: {
     story: AiStory;
     user: PublicUser;
+    child: PublicChild | null;
+    prompt: CreateStoryDto;
   }): Promise<Story> {
     return new Promise((resolve, reject) => {
-      const story: Story = {
-        title: params.story.title,
-        content: params.story.content,
-        summary: params.story.summary,
-        userId: params.user.id,
-        narratorId: '6705640b9b9cdcd5b4b8fc26',
+      const { story, user, child, prompt } = params;
+      const newStory: Story = {
+        title: story.title,
+        content: story.content,
+        summary: story.summary,
+        mainCharacter: prompt.mainCharacter,
+        storyStyle: prompt.storyStyle,
+        solveProblem: prompt.solveProblem,
+        storyHelp: prompt.storyHelp,
+        storyNarrator: prompt.storyNarrator,
+        storyPlace: prompt.storyPlace,
         images: [],
-        thumbnail: 'thumbnail',
-        style: StoryStyle.FICTIONAL,
+        userId: user.id,
+        childId: child?._id,
+        finalDetails: prompt.finalDetails,
       };
       this.storyModel
-        .create(story)
+        .create(newStory)
         .then((res) => {
           resolve(res);
         })

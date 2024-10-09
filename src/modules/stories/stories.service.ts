@@ -1,11 +1,17 @@
+//TODO: Remove this line
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { UpdateStoryDto } from './dto/update-story.dto';
-import { Story } from './entities/story.entity';
 import { UsersService } from '../users';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AiService } from '../ai/ai.service';
+import { AiStory } from '../ai/schemas/ai-story.schema';
+import { PublicUser } from '../users/types/users.types';
+import { Story, StoryStyle } from './schemas/stories.schema';
+import { Gender } from '@/general.types';
+import { NarratorAgeCategory } from '../narrators/schemas/narrators.schema';
 
 @Injectable()
 export class StoriesService {
@@ -39,14 +45,13 @@ export class StoriesService {
           if (canCreateStory) {
             //Creates the story
             this.aiService
-              .createStory(user)
+              .createStory({ user, prompt: createStoryDto })
               .then((story) => {
                 // Updates the user credits
                 const userCredits = user.credits - 1;
                 this.usersService.updateCredits(user.id, userCredits);
-
                 // Saves the story to the db
-                this.saveStory(story)
+                this.saveStory({ story, user })
                   .then(() => resolve(story))
                   .catch((error) => reject(error));
               })
@@ -83,8 +88,21 @@ export class StoriesService {
   // Private methods
   // --------------------------------------------------------------------------------
 
-  private saveStory(story: Story): Promise<Story> {
+  private saveStory(params: {
+    story: AiStory;
+    user: PublicUser;
+  }): Promise<Story> {
     return new Promise((resolve, reject) => {
+      const story: Story = {
+        title: params.story.title,
+        content: params.story.content,
+        summary: params.story.summary,
+        userId: params.user.id,
+        narratorId: '6705640b9b9cdcd5b4b8fc26',
+        images: [],
+        thumbnail: 'thumbnail',
+        style: StoryStyle.FICTIONAL,
+      };
       this.storyModel
         .create(story)
         .then((res) => {

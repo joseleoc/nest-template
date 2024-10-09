@@ -1,11 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ChildrenService } from '../children.service';
 import { getModelToken } from '@nestjs/mongoose';
-import { Child, Genders } from '../schemas/child.schema';
+import { Child } from '../schemas/child.schema';
 import { CreateChildDto } from '../dto/create-child.dto';
 import { faker } from '@faker-js/faker';
 import { MockMongooseModel } from '@/tests/mock.mongoose.model';
 import { User } from '@/modules/users/schemas/user.schema';
+import { Gender } from '@/general.types';
 
 describe('ChildrenService', () => {
   let service: ChildrenService;
@@ -37,7 +38,7 @@ describe('ChildrenService', () => {
       parentId: '123',
       name: faker.person.fullName(),
       age: 10,
-      gender: Genders.MALE,
+      gender: 'MALE',
     };
     const res = await service.create(childToCreate);
     expect(res).toBeTruthy();

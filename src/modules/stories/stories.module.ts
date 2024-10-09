@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { StoriesService } from './stories.service';
 import { StoriesController } from './stories.controller';
-import { Story, StorySchema } from './schemas/stories.schemas';
+import { Story, StorySchema } from './schemas/stories.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { UsersModule } from '../users';

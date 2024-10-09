@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserLanguage } from '../schemas/user.schema';
+
 import { PlanNames } from '@/modules/plans/schemas/plan.schema';
+import { Language } from '@/general.types';
 
 export class CreateUserDto {
   @ApiProperty({ example: 'john', required: true, type: 'string' })
@@ -23,8 +24,8 @@ export class CreateUserDto {
   @ApiProperty({
     example: 'en',
     required: false,
-    default: UserLanguage.EN,
-    enum: Object.values(UserLanguage),
+    default: Language.EN,
+    enum: Object.values(Language),
   })
-  language?: UserLanguage;
+  language?: Language;
 }

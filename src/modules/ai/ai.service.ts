@@ -33,7 +33,9 @@ export class AiService {
     child?: PublicChild | null;
   }): Promise<AiStory> {
     return new Promise((resolve: (value: AiStory) => void, reject) => {
+      // En los prompts debe ser por punto a punto, concretos.
       const { prompt, user, child } = params;
+      console.log(params);
       this.openai.chat.completions
         .create({
           model: 'gpt-4o-mini',
@@ -46,21 +48,28 @@ export class AiService {
             },
             {
               role: 'system',
-              content: `You also are a ${prompt.storyNarrator.gender} ${prompt.storyNarrator.ageCategory} story narrator, and you will output the story in ${prompt.language || user.language} language. The story is narrated to a ${child?.gender || ''} child with ${child?.age || 9} years.`,
+              content: `
+              You also are a ${prompt.storyNarrator.gender} ${prompt.storyNarrator.ageCategory} story narrator, 
+              and you will output the story in ${prompt.language || user.language} language. 
+              The story is narrated to a ${child?.gender || ''} child with ${child?.age || 9} years.
+              `,
             },
             {
               role: 'user',
               content: `Please,
-              create a ${prompt.storyStyle} story for a child with ${child?.age || 9} years.
+              create a ${prompt.storyStyle} story for a child with ${child?.age || 9} years. 
               The story must take place in: ${prompt.storyPlace.description}.
               The main character is: ${prompt.mainCharacter.description}.
-              The story should revolve around solving the following problem: ${prompt.solveProblem.selectedOption}, related to ${prompt.solveProblem.inputValue}.
+              The story should revolve around solving the following problem: ${prompt.solveProblem?.selectedOption || prompt.teachSomething?.selectedOption || ''}, related to ${prompt.solveProblem?.inputValue || prompt.teachSomething?.inputValue || ''}.
               The story should teach or help with: ${prompt.storyHelp}.
-
-              As a final considerations: ${prompt.finalDetails}.
-
+              
               The story must be written in ${prompt.language || user.language} language.
-              takes place in ${prompt.storyPlace.description}`,
+              
+              As a final consideration: ${prompt.finalDetails}.
+              Most importantly, do not include bad words, do not include offensive language, do not include references to sexual activities, 
+              do not include references to drugs, do not include references to violence, do not include references to illegal activities, 
+              do not include references to politics, do not use any other content that is not suitable for children.
+              `,
             },
           ],
         })

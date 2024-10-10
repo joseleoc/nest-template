@@ -46,8 +46,11 @@ export class Story {
   })
   storyStyle: keyof typeof StoryStyle;
 
-  @Prop({ required: true, type: StoryPurpose, trim: true })
-  solveProblem: StoryPurpose;
+  @Prop({ required: false, type: StoryPurpose })
+  solveProblem?: StoryPurpose;
+
+  @Prop({ required: false, type: StoryPurpose })
+  teachSomething?: StoryPurpose;
 
   @Prop({ required: true, type: String, trim: true, default: '' })
   storyHelp: string;

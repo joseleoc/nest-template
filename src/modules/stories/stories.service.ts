@@ -125,6 +125,7 @@ export class StoriesService {
         mainCharacter: prompt.mainCharacter,
         storyStyle: prompt.storyStyle,
         solveProblem: prompt.solveProblem,
+        teachSomething: prompt.teachSomething,
         storyHelp: prompt.storyHelp,
         storyNarrator: prompt.storyNarrator,
         storyPlace: prompt.storyPlace,

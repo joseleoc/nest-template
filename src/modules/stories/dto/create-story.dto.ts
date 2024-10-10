@@ -19,11 +19,18 @@ export class CreateStoryDto {
   storyPlace: StoryPlace;
 
   @ApiProperty({
-    required: true,
+    required: false,
     type: Object,
     default: { inputValue: '', selectedOption: '' },
   })
-  solveProblem: { inputValue: string; selectedOption: string };
+  solveProblem?: { inputValue: string; selectedOption: string };
+
+  @ApiProperty({
+    required: false,
+    type: Object,
+    default: { inputValue: '', selectedOption: '' },
+  })
+  teachSomething?: { inputValue: string; selectedOption: string };
 
   @ApiProperty({ required: true, type: String, default: '' })
   storyHelp: string;

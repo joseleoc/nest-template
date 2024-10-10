@@ -60,7 +60,15 @@ export class AiService {
               create a ${prompt.storyStyle} story for a child with ${child?.age || 9} years. 
               The story must take place in: ${prompt.storyPlace.description}.
               The main character is: ${prompt.mainCharacter.description}.
-              The story should revolve around solving the following problem: ${prompt.solveProblem?.selectedOption || prompt.teachSomething?.selectedOption || ''}, related to ${prompt.solveProblem?.inputValue || prompt.teachSomething?.inputValue || ''}.
+              ${
+                prompt.solveProblem?.selectedOption != undefined &&
+                `The story should revolve around solving the following problem: ${prompt.solveProblem?.selectedOption}, related to ${prompt.solveProblem?.inputValue}`
+              }
+              ${
+                prompt.teachSomething?.selectedOption != undefined &&
+                `The story should revolve teaching something about: ${prompt.teachSomething?.selectedOption}, related to ${prompt.teachSomething?.inputValue}`
+              }
+              .
               The story should teach or help with: ${prompt.storyHelp}.
               
               The story must be written in ${prompt.language || user.language} language.

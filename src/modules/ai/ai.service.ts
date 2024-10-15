@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { AiStory, AiStorySchema } from './schemas/ai-story.schema';
 import { CreateStoryDto } from '../stories/dto/create-story.dto';
@@ -12,7 +12,7 @@ export class AiService {
   // --------------------------------------------------------------------------------
   // Local properties
   // --------------------------------------------------------------------------------
-
+  private readonly logger = new Logger(AiService.name);
   private openai: OpenAI;
   // --------------------------------------------------------------------------------
   // Constructor
@@ -35,7 +35,6 @@ export class AiService {
     return new Promise((resolve: (value: AiStory) => void, reject) => {
       // En los prompts debe ser por punto a punto, concretos.
       const { prompt, user, child } = params;
-      console.log(params);
       this.openai.chat.completions
         .create({
           model: 'gpt-4o-mini',
@@ -89,8 +88,19 @@ export class AiService {
             story = completion.choices[0].message.content as any;
           }
           resolve(story);
+          this.logger.log({
+            message: 'Story created successfully',
+            AICompletion: {
+              id: completion.id,
+              object: completion.object,
+              created: completion.created,
+              model: completion.model,
+              usage: completion.usage,
+            },
+          });
         })
         .catch((error) => {
+          this.logger.error(error);
           reject(error);
         });
 

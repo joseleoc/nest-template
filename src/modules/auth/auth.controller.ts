@@ -6,6 +6,7 @@ import {
   Request,
   HttpStatus,
   Res,
+  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 
@@ -18,6 +19,14 @@ import { LoginRequestBody, LoginResponseBody } from './auth.constants';
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
+  // --------------------------------------------------------------------------------
+  // Local properties
+  // --------------------------------------------------------------------------------
+  private readonly logger = new Logger(AuthController.name);
+
+  // --------------------------------------------------------------------------------
+  // Constructor
+  // --------------------------------------------------------------------------------
   constructor(private authService: AuthService) {}
 
   @Post('login')
@@ -37,9 +46,11 @@ export class AuthController {
           res.status(HttpStatus.OK).json(access);
         })
         .catch((error) => {
+          this.logger.error(error);
           res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
         });
     } catch (error) {
+      this.logger.error(error);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
     }
   }

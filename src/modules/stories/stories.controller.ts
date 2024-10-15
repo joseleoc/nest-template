@@ -6,6 +6,7 @@ import {
   Param,
   Res,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { StoriesService } from './stories.service';
@@ -16,8 +17,19 @@ import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 @ApiBearerAuth()
 @Controller('stories')
 export class StoriesController {
+  // --------------------------------------------------------------------------------
+  // Local properties
+  // --------------------------------------------------------------------------------
+  private readonly logger = new Logger(StoriesController.name);
+
+  // --------------------------------------------------------------------------------
+  // Constructor
+  // --------------------------------------------------------------------------------
   constructor(private readonly storiesService: StoriesService) {}
 
+  // --------------------------------------------------------------------------------
+  // Public methods
+  // --------------------------------------------------------------------------------
   @Post()
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -38,6 +50,7 @@ export class StoriesController {
         res.status(HttpStatus.CREATED).json(story);
       })
       .catch((error) => {
+        this.logger.error(error);
         if (error?.code != null) {
           res.status(error.code).json(error);
         } else {
@@ -59,9 +72,12 @@ export class StoriesController {
           res.status(HttpStatus.OK).json(stories);
         })
         .catch((error) => {
+          this.logger.error(error);
           res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
         });
     } catch (error) {
+      this.logger.error(error);
+
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
     }
   }

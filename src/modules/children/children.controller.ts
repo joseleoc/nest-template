@@ -10,6 +10,7 @@ import {
   HttpStatus,
   Res,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -22,8 +23,19 @@ import { CreateChildDto } from './dto/create-child.dto';
 @ApiBearerAuth()
 @Controller('children')
 export class ChildrenController {
+  // --------------------------------------------------------------------------------
+  // Local properties
+  // --------------------------------------------------------------------------------
+  private readonly logger = new Logger(ChildrenController.name);
+
+  // --------------------------------------------------------------------------------
+  // Constructor
+  // --------------------------------------------------------------------------------
   constructor(private readonly childrenService: ChildrenService) {}
 
+  // --------------------------------------------------------------------------------
+  // Public methods
+  // --------------------------------------------------------------------------------
   @Post()
   @ApiResponse({
     description:
@@ -46,9 +58,13 @@ export class ChildrenController {
           }
         })
         .catch((error) => {
+          this.logger.error(error);
+
           res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
         });
     } catch (error) {
+      this.logger.error(error);
+
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -66,10 +82,12 @@ export class ChildrenController {
             children,
           });
         })
-        .catch((error) =>
-          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error }),
-        );
+        .catch((error) => {
+          this.logger.error(error);
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+        });
     } catch (error) {
+      this.logger.error(error);
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -89,10 +107,12 @@ export class ChildrenController {
             throw new NotFoundException();
           }
         })
-        .catch((error) =>
-          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error }),
-        );
+        .catch((error) => {
+          this.logger.error(error);
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+        });
     } catch (error) {
+      this.logger.error(error);
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -117,10 +137,12 @@ export class ChildrenController {
             throw new NotFoundException();
           }
         })
-        .catch((error) =>
-          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error }),
-        );
+        .catch((error) => {
+          this.logger.error(error);
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+        });
     } catch (error) {
+      this.logger.error(error);
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -141,10 +163,12 @@ export class ChildrenController {
             throw new NotFoundException();
           }
         })
-        .catch((error) =>
-          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error }),
-        );
+        .catch((error) => {
+          this.logger.error(error);
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+        });
     } catch (error) {
+      this.logger.error(error);
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

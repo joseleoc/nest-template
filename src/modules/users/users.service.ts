@@ -1,6 +1,6 @@
 import { Model } from 'mongoose';
 import { genSalt, hashSync } from 'bcrypt';
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 
@@ -15,6 +15,10 @@ import { Language } from '@/general.types';
 
 @Injectable()
 export class UsersService {
+  // --------------------------------------------------------------------------------
+  // Local properties
+  // --------------------------------------------------------------------------------
+  private readonly logger = new Logger();
   // --------------------------------------------------------------------------------
   // Constructor
   // --------------------------------------------------------------------------------

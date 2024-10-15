@@ -11,6 +11,7 @@ import {
   HttpException,
   Res,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 
@@ -23,7 +24,18 @@ import { CreateUserResponse } from './users.constants';
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
+  // --------------------------------------------------------------------------------
+  // Local properties
+  // --------------------------------------------------------------------------------
+  private readonly logger = new Logger(UsersController.name);
+  // --------------------------------------------------------------------------------
+  // Constructor
+  // --------------------------------------------------------------------------------
   constructor(private readonly usersService: UsersService) {}
+
+  // --------------------------------------------------------------------------------
+  // Public methods
+  // --------------------------------------------------------------------------------
 
   @Post('/create')
   @SkipAuth()
@@ -38,16 +50,18 @@ export class UsersController {
     description: 'Plan not found',
   })
   async create(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
-    try {
-      const userCreated = await this.usersService.create(createUserDto);
-      res.status(HttpStatus.CREATED).json({
-        message: 'User created successfully',
-        user: userCreated,
+    this.usersService
+      .create(createUserDto)
+      .then((userCreated) => {
+        res.status(HttpStatus.CREATED).json({
+          message: 'User created successfully',
+          user: userCreated,
+        });
+      })
+      .catch((error) => {
+        this.logger.error(error);
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
       });
-      return;
-    } catch (error) {
-      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
   }
 
   @Get(':id')
@@ -66,6 +80,7 @@ export class UsersController {
         }
       })
       .catch((error) => {
+        this.logger.error(error);
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
       });
   }
@@ -89,9 +104,12 @@ export class UsersController {
           }
         })
         .catch((error) => {
+          this.logger.error(error);
           res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
         });
     } catch (error) {
+      this.logger.error(error);
+
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -114,9 +132,13 @@ export class UsersController {
           }
         })
         .catch((error) => {
+          this.logger.error(error);
+
           res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
         });
     } catch (error) {
+      this.logger.error(error);
+
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

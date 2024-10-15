@@ -15,15 +15,19 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
    * Used by the local strategy to validate a user's credentials with the passport library.
    */
   async validate(username: string, password: string): Promise<PublicUser> {
-    return new Promise(async (resolve) => {
-      const user = await this.authService.validateUser({
-        username,
-        password,
-      });
-      if (!user) {
-        throw new UnauthorizedException();
-      }
-      resolve(user);
+    return new Promise(async (resolve, reject) => {
+      this.authService
+        .validateUser({
+          username,
+          password,
+        })
+        .then((user) => {
+          if (!user) {
+            throw new UnauthorizedException();
+          }
+          resolve(user);
+        })
+        .catch((error) => reject(error));
     });
   }
 }

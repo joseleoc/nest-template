@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ElevenLabsClient } from 'elevenlabs';
 import { createWriteStream } from 'node:fs';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class TextToSpeechService {
@@ -31,7 +32,7 @@ export class TextToSpeechService {
           text,
         })
         .then((audio) => {
-          //   const fileName = `${uuid()}.mp3`;
+          const fileName = `${uuid()}.mp3`;
           const fileStream = createWriteStream(fileName);
 
           audio.pipe(fileStream);

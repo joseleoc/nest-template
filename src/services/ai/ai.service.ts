@@ -2,10 +2,10 @@ import OpenAI from 'openai';
 import { Injectable, Logger } from '@nestjs/common';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { AiStory, AiStorySchema } from './schemas/ai-story.schema';
-import { CreateStoryDto } from '../stories/dto/create-story.dto';
-import { User } from '../users/schemas/user.schema';
-import { PublicUser } from '../users/types/users.types';
-import { PublicChild } from '../children/types/children.types';
+import { CreateStoryDto } from '../../modules/stories/dto/create-story.dto';
+import { User } from '../../modules/users/schemas/user.schema';
+import { PublicUser } from '../../modules/users/types/users.types';
+import { PublicChild } from '../../modules/children/types/children.types';
 
 @Injectable()
 export class AiService {

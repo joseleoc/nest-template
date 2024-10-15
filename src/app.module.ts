@@ -15,13 +15,14 @@ import { NarratorsModule } from './modules/narrators/narrators.module';
 import { CharactersModule } from './modules/characters/characters.module';
 import { StoriesPlacesModule } from './modules/stories-places/stories-places.module';
 import { PlansModule } from './modules/plans/plans.module';
-import { AiModule } from './modules/ai/ai.module';
 import { LoggerModule } from 'nestjs-pino';
 import {
   CORRELATION_ID_HEADER,
   CorrelationIdMiddleware,
 } from './middlewares/correlation-id/correlation-id.middleware';
 import { Request } from 'express';
+import { TextToSpeechService } from './services/text-to-speech/text-to-speech.service';
+import { ServicesModule } from './services/services.module';
 
 @Module({
   imports: [
@@ -64,7 +65,7 @@ import { Request } from 'express';
     CharactersModule,
     StoriesPlacesModule,
     PlansModule,
-    AiModule,
+    ServicesModule,
   ],
   controllers: [AppController],
   providers: [
@@ -74,6 +75,7 @@ import { Request } from 'express';
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
+    TextToSpeechService,
   ],
 })
 export class AppModule implements NestModule {

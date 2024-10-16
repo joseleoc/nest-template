@@ -68,6 +68,12 @@ export class Story {
   @Prop({ required: true, type: Array<string>, default: [] })
   images: string[];
 
+  @Prop({ required: true, type: Array<string>, default: [] })
+  audios: string[];
+
+  @Prop({ required: true, type: Array<string>, default: 0 })
+  readTime: number;
+
   @Prop({
     required: false,
     type: String,

@@ -11,6 +11,7 @@ import { AiStory } from '../../services/ai/schemas/ai-story.schema';
 import { Story } from './schemas/stories.schema';
 import { ChildrenService } from '../children/children.service';
 import { TextToSpeechService } from '../../services/text-to-speech/text-to-speech.service';
+import { StoryContent } from './schemas/stories-content.schema';
 
 @Injectable()
 export class StoriesService {
@@ -34,7 +35,7 @@ export class StoriesService {
   // --------------------------------------------------------------------------------
   create(createStoryDto: CreateStoryDto): Promise<Story> {
     return new Promise((resolve: (value: any) => void, reject) => {
-      // Check if the user has enough credits to create a story
+      // Check if the user has enough credits to create a story and search for the child if it exists.
       Promise.all([
         this.usersService.findUserAndCheckCredits(createStoryDto.userId),
         this.childrenService.findChildById(createStoryDto.childId),
@@ -60,21 +61,30 @@ export class StoriesService {
           this.aiService
             .createStory({ user, prompt: createStoryDto, child })
             .then((story: AiStory) => {
-              // Updates the user credits
               const userCredits = user.credits - 1;
-              const storyText = story.content.join('\n');
-
+              // Returns the story and the audio streams and  updates the user credits.
               return Promise.all([
                 story,
-                this.textToSpeechService.createAudioStreamFromText(storyText),
+                this.textToSpeechService.createAudioStreamFromText({
+                  paragraphs: story.content,
+                }),
                 this.usersService.updateCredits(user.id, userCredits),
               ]);
             })
             .then((res) => {
               const [story, audio] = res;
+              // Creates an array of StoryContent objects with the audio streams and images.
+              const content: StoryContent[] = new Array(story.content.length);
+              for (let i = 0; i < story.content.length; i++) {
+                content[i] = {
+                  paragraph: story.content[i],
+                  audio: audio.fileNames[i],
+                  image: '',
+                };
+              }
               const newStory: Story = {
                 title: story.title,
-                content: story.content,
+                content,
                 summary: story.summary,
                 mainCharacter: createStoryDto.mainCharacter,
                 storyStyle: createStoryDto.storyStyle,
@@ -83,12 +93,10 @@ export class StoriesService {
                 storyHelp: createStoryDto.storyHelp,
                 storyNarrator: createStoryDto.storyNarrator,
                 storyPlace: createStoryDto.storyPlace,
-                images: [],
                 userId: user.id,
                 childId: child?._id,
                 finalDetails: createStoryDto.finalDetails,
-                audios: [audio.fileName],
-                readTime: audio.duration || 0,
+                readingTime: audio.duration || 0,
               };
               return this.storyModel.create(newStory);
             })

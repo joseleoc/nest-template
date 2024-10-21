@@ -1,8 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
 import { ElevenLabsClient } from 'elevenlabs';
-// import { CloudStorageService } from '../cloud-storage/cloud-storage.service';
-// import { createWriteStream } from 'node:fs';
-// import { v4 as uuid } from 'uuid';
+import { Injectable, Logger } from '@nestjs/common';
 import { CloudStorageService } from '../cloud-storage/cloud-storage.service';
 
 @Injectable()
@@ -12,124 +9,91 @@ export class TextToSpeechService {
   // --------------------------------------------------------------------------------
   private readonly elevenLabsClient: ElevenLabsClient;
   private readonly logger = new Logger(TextToSpeechService.name);
-
   // --------------------------------------------------------------------------------
   // Constructor
   // --------------------------------------------------------------------------------
   constructor(private cloudStorageService: CloudStorageService) {
-    // private cloudStorageService: CloudStorageService
     this.elevenLabsClient = new ElevenLabsClient({
       apiKey: process.env.ELEVENLABS_API_KEY,
     });
-
-    // setTimeout(() => {
-    //   this.createAudioFileFromText('Hello, world!').then(async (file) => {
-    //     console.log(file);
-
-    //     const s3path =
-    //       await this.cloudStorageService.uploadAudioStreamToS3(stream);
-    //     const presignedUrl =
-    //       await this.cloudStorageService.generatePresignedUrl(s3path);
-    //     console.log('Presigned URL:', presignedUrl);
-    //   });
-    // }, 3000);
   }
-
   // --------------------------------------------------------------------------------
   // Public methods
   // --------------------------------------------------------------------------------
 
-  // createAudioFileFromText = async (
-  //   text: string,
-  // ): Promise<{ fileName: string; duration: number }> => {
-  //   return new Promise(async (resolve, reject) => {
-  //     this.elevenLabsClient
-  //       .generate({
-  //         voice: 'Rachel',
-  //         model_id: 'eleven_turbo_v2_5',
-  //         text,
-  //       })
-  //       .then((audio) => {
-  //         console.log(audio);
-  //         const fileName = `${uuid()}.mp3`;
-  //         console.log(fileName);
-  //         const fileStream = createWriteStream(fileName);
-  //         audio.pipe(fileStream);
-  //         console.log(audio.readableLength);
-  //         const duration = 0; // duration in seconds
+  /**
+   * Generates an audio stream from a list of paragraphs. The audios are returned in the same order as the paragraphs and are uploaded to the cloud storage.
+   * @param params.paragraphs - The list of paragraphs to generate the audio stream from
+   * @returns A Promise that resolves to an object with the file names and the duration of the audio stream
+   */
+  createAudioStreamFromText = async (params: {
+    paragraphs: string[];
+    narratorIdentifier?: string;
+  }): Promise<{ fileNames: string[]; duration: number }> => {
+    return new Promise(async (resolve) => {
+      const { paragraphs, narratorIdentifier } = params;
+      const audios: { buffer: Buffer; index: number }[] = [];
 
-  //         fileStream.on('finish', () => resolve({ fileName, duration })); // Resolve with the fileName
-  //         fileStream.on('error', reject);
-  //       })
-  //       .catch((error) => {
-  //         this.logger.error(
-  //           '🚀 ~ file: text-to-speech.service.ts:45 ~ TextToSpeechService ~ returnnewPromise<string> ~ error:',
-  //           error,
-  //         );
-  //         reject(error);
-  //       });
-  //   });
-  // };
+      for await (const [i, text] of paragraphs.entries()) {
+        const isFirstParagraph = i === 0;
+        const isLastParagraph = i === paragraphs.length - 1;
 
-  createAudioStreamFromText = async (
-    text: string,
-  ): Promise<{ fileName: string; duration: number }> => {
-    return new Promise(async (resolve, reject) => {
-      console.log(text);
-      this.elevenLabsClient
-        .generate({
-          voice: 'Bill',
-          model_id: 'eleven_turbo_v2_5',
+        // Generates the audio stream for the current paragraph. Giving the previous and next paragraphs as context.
+        const audioStream = await this.elevenLabsClient.generate({
           text,
-        })
-        .then(async (audioStream) => {
-          console.error('ELEVENLABS AUDIO STREAM', audioStream);
-          // const chunks: Buffer[] = [];
-          try {
-            const chunks: Buffer[] = [];
-            for await (const chunk of audioStream) {
-              chunks.push(chunk);
-            }
+          previous_text: isFirstParagraph ? '' : paragraphs[i - 1],
+          next_text: isLastParagraph ? '' : paragraphs[i + 1],
+          voice: narratorIdentifier || 'Bill',
+          model_id: 'eleven_turbo_v2_5',
+        });
 
-            const content = Buffer.concat(chunks);
+        // Concatenates the audio stream chunks into a single buffer
+        const chunks: Buffer[] = [];
+        try {
+          for await (const chunk of audioStream) {
+            chunks.push(chunk);
+          }
+
+          const content = Buffer.concat(chunks);
+          audios.push({ buffer: content, index: i });
+        } catch (error) {
+          this.logger.error(error);
+        }
+      }
+
+      // Creates an array of promises, one for each audio, where each promise uploads the audio to the cloud storage
+      const uploadPromises = audios.map(({ buffer, index }) => {
+        return new Promise(
+          (
+            resolve: (value: { fileName: string; index: number }) => void,
+            reject,
+          ) => {
             this.cloudStorageService
-              .uploadAudioStreamToS3(content)
+              .uploadAudioStreamToS3(buffer)
               .then((res) => {
-                resolve({ fileName: res, duration: 0 });
+                resolve({ fileName: res, index });
               })
               .catch((err) => {
                 this.logger.error(err);
                 reject(err);
               });
-          } catch (error) {
-            this.logger.error(error);
-            reject(error);
-          }
-          // audioStream.on('data', (chunk) => {
-          //   chunks.push(chunk);
-          // });
-          // audioStream.on('end', () => {
-          //   const content = Buffer.concat(chunks);
-          //   this.logger.log(content);
-          //   this.cloudStorageService
-          //     .uploadAudioStreamToS3(content)
-          //     .then((fileName) => {
-          //       resolve({ fileName, duration: 0 });
-          //     })
-          //     .catch((error) => {
-          //       this.logger.error(error);
-          //       reject(error);
-          //     });
-          // });
+          },
+        );
+      });
 
-          // audioStream.on('error', (error) => {
-          //   this.logger.error(error);
-          //   reject(error);
-          // });
+      // Executes the upload promises in parallel
+      Promise.all(uploadPromises)
+        .then((uploadRes) => {
+          const fileNames = new Array(paragraphs.length);
+
+          uploadRes.forEach((res) => {
+            fileNames[res.index] = res.fileName;
+          });
+          // Resolves the promise with the file names and duration
+          resolve({ fileNames, duration: 0 });
         })
         .catch((error) => {
           this.logger.error(error);
-          reject(error);
         });
     });
   };

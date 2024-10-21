@@ -11,6 +11,6 @@ import { ConfigService } from '@nestjs/config';
     CloudStorageService,
     ConfigService,
   ],
-  exports: [AiService, TextToSpeechService],
+  exports: [AiService, TextToSpeechService, CloudStorageService],
 })
 export class ServicesModule {}

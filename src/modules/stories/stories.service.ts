@@ -63,17 +63,15 @@ export class StoriesService {
               // Updates the user credits
               const userCredits = user.credits - 1;
               const storyText = story.content.join('\n');
-              this.logger.log({ storyText: storyText.length });
 
               return Promise.all([
                 story,
-                this.textToSpeechService.createAudioFileFromText(storyText),
+                this.textToSpeechService.createAudioStreamFromText(storyText),
                 this.usersService.updateCredits(user.id, userCredits),
               ]);
             })
             .then((res) => {
               const [story, audio] = res;
-              this.logger.log({ audio });
               const newStory: Story = {
                 title: story.title,
                 content: story.content,

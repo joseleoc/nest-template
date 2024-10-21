@@ -15,18 +15,18 @@ export class CloudStorageService {
   // --------------------------------------------------------------------------------
   private readonly s3Client: S3Client;
   private logger = new Logger(CloudStorageService.name);
-  private bucketName = this.configService.get('S3_BUCKET_NAME');
+  private bucketName = this.configService.get('AWS_S3_BUCKET_NAME');
   // --------------------------------------------------------------------------------
   // Constructor
   // --------------------------------------------------------------------------------
   constructor(private readonly configService: ConfigService) {
     this.checkEnvVariables();
 
-    const s3_region = this.configService.get('S3_REGION');
+    const s3_region = this.configService.get('AWS_REGION_NAME');
     this.s3Client = new S3Client({
       credentials: {
-        accessKeyId: this.configService.get('S3_ACCESS_KEY'),
-        secretAccessKey: this.configService.get('S3_SECRET_ACCESS_KEY'),
+        accessKeyId: this.configService.get('AWS_ACCESS_KEY_ID'),
+        secretAccessKey: this.configService.get('AWS_SECRET_ACCESS_KEY'),
       },
       region: s3_region,
       forcePathStyle: true,
@@ -45,7 +45,7 @@ export class CloudStorageService {
   uploadAudioStreamToS3(audioStream: Buffer) {
     return new Promise<string>(async (resolve, reject) => {
       const remotePath = `${uuid()}.mp3`;
-      await this.s3Client
+      this.s3Client
         .send(
           new PutObjectCommand({
             Bucket: this.bucketName,

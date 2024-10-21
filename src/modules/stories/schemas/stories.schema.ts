@@ -1,11 +1,13 @@
-import { Character } from '@/modules/characters/schemas/character.schema';
-import { Child } from '@/modules/children/schemas/child.schema';
-import { StoryPlace } from '@/modules/stories-places/schemas/story-place.schema';
-import { User } from '@/modules/users/schemas/user.schema';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+
 import { StoryPurpose } from './story-purpose.schema';
+import { StoryContent } from './stories-content.schema';
+import { User } from '@/modules/users/schemas/user.schema';
+import { Child } from '@/modules/children/schemas/child.schema';
 import { Narrator } from '@/modules/narrators/schemas/narrators.schema';
+import { Character } from '@/modules/characters/schemas/character.schema';
+import { StoryPlace } from '@/modules/stories-places/schemas/story-place.schema';
 
 export enum StoryStyle {
   'FICTIONAL' = 'FICTIONAL',
@@ -25,8 +27,8 @@ export class Story {
   @Prop({ required: true, type: String, trim: true })
   title: string;
 
-  @Prop({ required: true, type: Array<string>, trim: true, default: [] })
-  content: string[];
+  @Prop({ required: true, type: Array<StoryContent> })
+  content: StoryContent[];
 
   @Prop({ required: true, type: String, trim: true })
   summary: string;
@@ -64,15 +66,6 @@ export class Story {
     trim: true,
   })
   storyPlace: StoryPlace;
-
-  @Prop({ required: true, type: Array<string>, default: [] })
-  images: string[];
-
-  @Prop({ required: true, type: Array<string>, default: [] })
-  audios: string[];
-
-  @Prop({ required: true, type: Array<string>, default: 0 })
-  readTime: number;
 
   @Prop({
     required: false,

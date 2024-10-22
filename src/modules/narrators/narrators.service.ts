@@ -111,12 +111,12 @@ export class NarratorsService {
   findOneByGenderAndAge(params: {
     gender: Gender;
     ageCategory: NarratorAgeCategory;
-  }): Promise<Narrator | null> {
+  }): Promise<PublicNarrator | null> {
     return new Promise((resolve, reject) => {
       const { gender, ageCategory } = params;
       this.narratorModel.find({ gender, ageCategory }).then((narrators) => {
         if (narrators.length > 0) {
-          resolve(narrators[0]);
+          resolve(new PublicNarrator(narrators[0]));
         } else {
           reject(null);
         }

@@ -75,7 +75,12 @@ export class StoriesService {
               code: HttpStatus.PAYMENT_REQUIRED,
             });
           }
-          //Creates the story
+          if (narrator == null) {
+            return reject({
+              message: 'Narrator not found',
+              code: HttpStatus.NOT_FOUND,
+            });
+          } //Creates the story
           this.aiService
             .createStory({ user, prompt: createStoryDto, child })
             .then((story: AiStory) => {
@@ -101,6 +106,7 @@ export class StoriesService {
                   image: '',
                 };
               }
+
               const newStory: Story = {
                 title: story.title,
                 content,
@@ -110,14 +116,19 @@ export class StoriesService {
                 solveProblem: solveProblem,
                 teachSomething: teachSomething,
                 storyHelp: storyHelp,
-                storyNarrator: storyNarrator,
+                narratorId: narrator.id,
                 storyPlace: storyPlace,
                 userId: user.id,
                 childId: child?._id,
                 finalDetails: finalDetails,
                 readingTime: audio.duration || 0,
               };
-              return this.storyModel.create(newStory);
+              try {
+                return this.storyModel.create(newStory);
+              } catch (error) {
+                this.logger.error(error);
+                reject(error);
+              }
             })
             .then((story) => resolve(story.toJSON()))
             .catch((error) => {

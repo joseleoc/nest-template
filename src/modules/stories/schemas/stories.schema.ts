@@ -1,5 +1,6 @@
 import { HydratedDocument } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Schema as MongooseSchema } from 'mongoose';
 
 import { StoryPurpose } from './story-purpose.schema';
 import { StoryContent } from './stories-content.schema';
@@ -57,8 +58,14 @@ export class Story {
   @Prop({ required: true, type: String, trim: true, default: '' })
   storyHelp: string;
 
-  @Prop({ required: true, type: Narrator, trim: true })
-  storyNarrator: Narrator;
+  @Prop({
+    required: true,
+    type: MongooseSchema.Types.ObjectId,
+    trim: true,
+    ref: Narrator.name,
+    index: true,
+  })
+  narratorId: string;
 
   @Prop({
     required: true,

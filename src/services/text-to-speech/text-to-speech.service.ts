@@ -1,6 +1,7 @@
 import { ElevenLabsClient } from 'elevenlabs';
 import { Injectable, Logger } from '@nestjs/common';
 import { CloudStorageService } from '../cloud-storage/cloud-storage.service';
+import { Narrator } from '@/modules/narrators/schemas/narrators.schema';
 
 @Injectable()
 export class TextToSpeechService {
@@ -28,10 +29,10 @@ export class TextToSpeechService {
    */
   createAudioStreamFromText = async (params: {
     paragraphs: string[];
-    narratorIdentifier?: string;
+    narrator?: Narrator;
   }): Promise<{ fileNames: string[]; duration: number }> => {
     return new Promise(async (resolve) => {
-      const { paragraphs, narratorIdentifier } = params;
+      const { paragraphs, narrator } = params;
       const audios: { buffer: Buffer; index: number }[] = [];
 
       for await (const [i, text] of paragraphs.entries()) {
@@ -43,7 +44,8 @@ export class TextToSpeechService {
           text,
           previous_text: isFirstParagraph ? '' : paragraphs[i - 1],
           next_text: isLastParagraph ? '' : paragraphs[i + 1],
-          voice: narratorIdentifier || 'Bill',
+          voice: narrator?.name || 'Bill',
+
           model_id: 'eleven_turbo_v2_5',
         });
 

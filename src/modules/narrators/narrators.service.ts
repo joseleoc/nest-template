@@ -108,6 +108,22 @@ export class NarratorsService {
     });
   }
 
+  findOneByGenderAndAge(params: {
+    gender: Gender;
+    ageCategory: NarratorAgeCategory;
+  }): Promise<Narrator | null> {
+    return new Promise((resolve, reject) => {
+      const { gender, ageCategory } = params;
+      this.narratorModel.find({ gender, ageCategory }).then((narrators) => {
+        if (narrators.length > 0) {
+          resolve(narrators[0]);
+        } else {
+          reject(null);
+        }
+      });
+    });
+  }
+
   /**
    * This method is used to save the narrators to the database for the first time only.
    * It checks if the narrators exist in the database, if not, it creates them.

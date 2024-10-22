@@ -37,13 +37,29 @@ export class StoriesService {
   // --------------------------------------------------------------------------------
   create(createStoryDto: CreateStoryDto): Promise<Story> {
     return new Promise((resolve: (value: any) => void, reject) => {
+      const {
+        userId,
+        childId,
+        storyNarrator,
+        mainCharacter,
+        solveProblem,
+        teachSomething,
+        storyHelp,
+        storyStyle,
+        storyPlace,
+        finalDetails,
+      } = createStoryDto;
       // Check if the user has enough credits to create a story and search for the child if it exists.
       Promise.all([
-        this.usersService.findUserAndCheckCredits(createStoryDto.userId),
-        this.childrenService.findChildById(createStoryDto.childId),
+        this.usersService.findUserAndCheckCredits(userId),
+        this.childrenService.findChildById(childId),
+        this.narratorService.findOneByGenderAndAge({
+          gender: storyNarrator.gender,
+          ageCategory: storyNarrator.ageCategory,
+        }),
       ])
         .then((res) => {
-          const [{ canCreateStory, user }, child] = res;
+          const [{ canCreateStory, user }, child, narrator] = res;
           if (user == null) {
             // Reject if the user is not found or deleted
             return reject({
@@ -69,6 +85,7 @@ export class StoriesService {
                 story,
                 this.textToSpeechService.createAudioStreamFromText({
                   paragraphs: story.content,
+                  narrator,
                 }),
                 this.usersService.updateCredits(user.id, userCredits),
               ]);
@@ -88,16 +105,16 @@ export class StoriesService {
                 title: story.title,
                 content,
                 summary: story.summary,
-                mainCharacter: createStoryDto.mainCharacter,
-                storyStyle: createStoryDto.storyStyle,
-                solveProblem: createStoryDto.solveProblem,
-                teachSomething: createStoryDto.teachSomething,
-                storyHelp: createStoryDto.storyHelp,
-                storyNarrator: createStoryDto.storyNarrator,
-                storyPlace: createStoryDto.storyPlace,
+                mainCharacter: mainCharacter,
+                storyStyle: storyStyle,
+                solveProblem: solveProblem,
+                teachSomething: teachSomething,
+                storyHelp: storyHelp,
+                storyNarrator: storyNarrator,
+                storyPlace: storyPlace,
                 userId: user.id,
                 childId: child?._id,
-                finalDetails: createStoryDto.finalDetails,
+                finalDetails: finalDetails,
                 readingTime: audio.duration || 0,
               };
               return this.storyModel.create(newStory);

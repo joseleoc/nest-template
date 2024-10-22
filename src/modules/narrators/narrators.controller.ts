@@ -1,45 +1,76 @@
+import { Response } from 'express';
 import {
   Controller,
   Get,
-  Post,
-  Body,
-  Patch,
+  HttpStatus,
+  NotFoundException,
   Param,
-  Delete,
+  Res,
 } from '@nestjs/common';
 import { NarratorsService } from './narrators.service';
-import { CreateNarratorDto } from './dto/create-narrator.dto';
-import { UpdateNarratorDto } from './dto/update-narrator.dto';
 
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
+
+@ApiTags('Narrators')
 @Controller('narrators')
 export class NarratorsController {
   constructor(private readonly narratorsService: NarratorsService) {}
 
-  @Post()
-  create(@Body() createNarratorDto: CreateNarratorDto) {
-    return this.narratorsService.create(createNarratorDto);
-  }
-
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Retrieves all narrators',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description:
+      'Internal server error, could be caused by a database error, such as a duplicated narrator name or voiceId',
+  })
   @Get()
-  findAll() {
-    return this.narratorsService.findAll();
+  findAll(@Res() res: Response) {
+    try {
+      this.narratorsService
+        .findAll()
+        .then((narrators) => {
+          res.status(HttpStatus.OK).json(narrators);
+        })
+        .catch((error) => {
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+        });
+    } catch (error) {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+    }
   }
 
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Retrieves a single narrator by a given id.',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description:
+      'Internal server error, could be caused by a database error, such as a duplicated narrator name or voiceId',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Narrator not found',
+  })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.narratorsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateNarratorDto: UpdateNarratorDto,
-  ) {
-    return this.narratorsService.update(+id, updateNarratorDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.narratorsService.remove(+id);
+  findOneById(@Param('id') id: string, @Res() res: Response) {
+    try {
+      this.narratorsService
+        .findOneById(id)
+        .then((narrator) => {
+          if (narrator != null) {
+            res.status(HttpStatus.OK).json(narrator);
+          } else {
+            throw new NotFoundException();
+          }
+        })
+        .catch((error) => {
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+        });
+    } catch (error) {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+    }
   }
 }

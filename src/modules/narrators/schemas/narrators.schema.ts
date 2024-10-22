@@ -20,24 +20,27 @@ export type NarratorDocument = HydratedDocument<Narrator>;
   },
 })
 export class Narrator {
+  @Prop({ required: true, type: String, trim: true, unique: true })
+  name: string;
+
+  @Prop({ required: true, type: String, trim: true, unique: true })
+  voiceId: string;
+
   @Prop({
-    required: false,
+    required: true,
     type: String,
     enum: Object.values(NarratorAgeCategory),
     default: NarratorAgeCategory.ADULT,
   })
-  ageCategory?: NarratorAgeCategory;
+  ageCategory: NarratorAgeCategory;
 
   @Prop({
-    required: false,
+    required: true,
     type: String,
     trim: true,
     enum: Object.values(Gender),
   })
-  gender?: Gender;
-
-  @Prop({ required: false, type: String, trim: true, default: '' })
-  description?: string;
+  gender: Gender;
 }
 
 export const NarratorSchema = SchemaFactory.createForClass(Narrator);

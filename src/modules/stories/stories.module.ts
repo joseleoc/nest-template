@@ -7,12 +7,14 @@ import { User, UserSchema } from '../users/schemas/user.schema';
 import { UsersModule } from '../users';
 import { ChildrenModule } from '../children/children.module';
 import { ServicesModule } from '@/services/services.module';
+import { NarratorsModule } from '../narrators/narrators.module';
 
 @Module({
   imports: [
     UsersModule,
     ServicesModule,
     ChildrenModule,
+    NarratorsModule,
     MongooseModule.forFeature([{ name: Story.name, schema: StorySchema }]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],

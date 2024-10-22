@@ -12,6 +12,7 @@ import { Story } from './schemas/stories.schema';
 import { ChildrenService } from '../children/children.service';
 import { TextToSpeechService } from '../../services/text-to-speech/text-to-speech.service';
 import { StoryContent } from './schemas/stories-content.schema';
+import { NarratorsService } from '../narrators/narrators.service';
 
 @Injectable()
 export class StoriesService {
@@ -28,6 +29,7 @@ export class StoriesService {
     private aiService: AiService,
     private childrenService: ChildrenService,
     private textToSpeechService: TextToSpeechService,
+    private narratorService: NarratorsService,
   ) {}
 
   // --------------------------------------------------------------------------------

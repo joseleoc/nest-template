@@ -43,11 +43,6 @@ export class TextToSpeechService {
         const next_text = isLastParagraph
           ? ''
           : paragraphs.slice(i + 1, paragraphs.length).join(' ');
-        console.log({
-          previous_text,
-          current_text: text,
-          next_text,
-        });
         // Generates the audio stream for the current paragraph. Giving the previous and next paragraphs as context.
         const audioStream = await this.elevenLabsClient.generate({
           text,

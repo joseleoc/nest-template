@@ -48,8 +48,8 @@ export class CloudStorageService {
       this.s3Client
         .send(
           new PutObjectCommand({
-            Bucket: this.bucketName,
-            Key: remotePath,
+            Bucket: `${this.bucketName}`,
+            Key: `audios/${remotePath}`,
             Body: audioStream,
             ContentType: 'audio/mpeg',
           }),
@@ -71,10 +71,12 @@ export class CloudStorageService {
    * @returns A Promise that resolves to the pre-signed URL, allowing temporary access
    *          to the object for a limited time.
    */
-  generatePresignedUrl = async (objectKey: string) => {
+  generatePresignedUrl = async (
+    objectKey: string,
+    expiresIn = 60 * 60 * 24,
+  ) => {
     return new Promise<string>(async (resolve, reject) => {
       // Set the expiration time for the pre-signed URL to 3 days.
-      const expiresIn = 60 * 60 * 24 * 3;
       const getObjectParams = {
         Bucket: this.bucketName,
         Key: objectKey,

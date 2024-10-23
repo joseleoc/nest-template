@@ -214,21 +214,4 @@ export class UsersService {
     const salt = await genSalt(+this.configService.getOrThrow('APP_SALT'));
     return hashSync(password, salt);
   }
-
-  // private checkPlanLimit(userPlan: PlanNames): Promise<number> {
-  //   return new Promise((resolve, reject) => {
-  //     this.plansService
-  //       .findAll()
-  //       .then((plans) => {
-  //         const plan = plans.find((plan) => plan.name === userPlan);
-  //         console.log({ plan });
-  //         if (plan != null) {
-  //           resolve(plan.creditsLimit);
-  //         } else {
-  //           resolve(0);
-  //         }
-  //       })
-  //       .catch((error) => reject(error));
-  //   });
-  // }
 }

@@ -7,6 +7,9 @@ export class StoryContent {
   @Prop({ required: true, type: String, default: '' })
   audio: string;
 
+  @Prop({ required: false, type: String, default: '' })
+  audioUrl?: string;
+
   @Prop({ required: true, type: String, default: '' })
   image: string;
 }

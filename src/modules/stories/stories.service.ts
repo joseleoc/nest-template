@@ -1,18 +1,22 @@
 //TODO: Remove this line
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+
+import { UsersService } from '../users';
+import { AiService } from '@/services/ai/ai.service';
+import { AiStory } from '@/services/ai/schemas/ai-story.schema';
+import { ChildrenService } from '@/modules/children/children.service';
+import { NarratorsService } from '@/modules/narrators/narrators.service';
+import { TextToSpeechService } from '@/services/text-to-speech/text-to-speech.service';
+
+import { Story } from './schemas/stories.schema';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { UpdateStoryDto } from './dto/update-story.dto';
-import { UsersService } from '../users';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { AiService } from '../../services/ai/ai.service';
-import { AiStory } from '../../services/ai/schemas/ai-story.schema';
-import { Story } from './schemas/stories.schema';
-import { ChildrenService } from '../children/children.service';
-import { TextToSpeechService } from '../../services/text-to-speech/text-to-speech.service';
 import { StoryContent } from './schemas/stories-content.schema';
-import { NarratorsService } from '../narrators/narrators.service';
+import { CloudStorageService } from '../../services/cloud-storage/cloud-storage.service';
+import { PublicStory } from './stories.types';
 
 @Injectable()
 export class StoriesService {
@@ -30,6 +34,7 @@ export class StoriesService {
     private childrenService: ChildrenService,
     private textToSpeechService: TextToSpeechService,
     private narratorService: NarratorsService,
+    private cloudStorageService: CloudStorageService,
   ) {}
 
   // --------------------------------------------------------------------------------
@@ -130,7 +135,11 @@ export class StoriesService {
                 reject(error);
               }
             })
-            .then((story) => resolve(story.toJSON()))
+            .then((story) => {
+              const newStory = new PublicStory(story);
+              return newStory.generateAudiosUrls(this.cloudStorageService);
+            })
+            .then((story) => resolve(story))
             .catch((error) => {
               this.logger.error(error);
               reject(error);

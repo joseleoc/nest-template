@@ -155,8 +155,7 @@ export class UsersController {
   })
   @ApiResponse({
     status: HttpStatus.INTERNAL_SERVER_ERROR,
-    description:
-      'Internal server error, could be caused by a database error, such as a duplicated userName or email',
+    description: 'Internal server error, could be caused by a database error.',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,

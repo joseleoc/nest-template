@@ -10,3 +10,9 @@ export class PublicUser extends User {
     this.id = _id.toString();
   }
 }
+
+export type ChangePasswordParams = {
+  oldPassword: string;
+  newPassword: string;
+  userEmail: string;
+};

@@ -1,17 +1,19 @@
 import { Model } from 'mongoose';
 import { genSalt, hashSync } from 'bcrypt';
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-import { PublicUser } from './types/users.types';
-import { User, UserDocument } from './schemas/user.schema';
-import { PlansService } from '../plans/plans.service';
-import { PlanNames } from '../plans/schemas/plan.schema';
+import { PlansService } from '@/modules/plans/plans.service';
+
 import { Language } from '@/general.types';
+import { User, UserDocument } from './schemas/user.schema';
+import { PlanNames } from '@/modules/plans/schemas/plan.schema';
+import { ChangePasswordParams, PublicUser } from './types/users.types';
+import { UtilsService } from '@/services/utils/utils.service';
 
 @Injectable()
 export class UsersService {
@@ -26,6 +28,7 @@ export class UsersService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     private configService: ConfigService,
     private plansService: PlansService,
+    private utilsService: UtilsService,
   ) {}
 
   // --------------------------------------------------------------------------------
@@ -138,6 +141,7 @@ export class UsersService {
 
   update(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
     return new Promise((resolve: (value: User) => void, reject) => {
+      delete updateUserDto.password;
       this.userModel
         .findByIdAndUpdate(id, updateUserDto, { new: true })
         .then((res) => {
@@ -204,6 +208,75 @@ export class UsersService {
             message: 'Error checking if the user can create a story',
           }),
         );
+    });
+  }
+
+  changePassword({
+    oldPassword,
+    newPassword,
+    userEmail,
+  }: ChangePasswordParams) {
+    return new Promise((resolve, reject) => {
+      console.log({
+        oldPassword,
+        newPassword,
+        userEmail,
+      });
+      this.userModel
+        .findOne({ email: userEmail })
+        .then((user) => {
+          if (user == null || user.deleted === true) {
+            reject({
+              message: 'User not found',
+              code: HttpStatus.NOT_FOUND,
+            });
+            return;
+          }
+          if (oldPassword.length === 0 || newPassword.length === 0) {
+            reject({
+              message: 'Passwords cannot be empty',
+              code: HttpStatus.BAD_REQUEST,
+            });
+            return;
+          }
+
+          return this.utilsService.validatePassword({
+            strLiteral: oldPassword,
+            userPassword: user.password,
+          });
+        })
+        .then((isValid) => {
+          console.log({ isValid });
+          if (isValid == false) {
+            reject({
+              message: 'User password is wrong',
+              code: HttpStatus.UNAUTHORIZED,
+            });
+            return;
+          }
+          console.log('asd');
+          return this.hashPassword(newPassword);
+        })
+        .then((hashedPassword) => {
+          return this.userModel.findOneAndUpdate(
+            { email: userEmail },
+            { password: hashedPassword },
+          );
+        })
+        .then((updatedUser) => {
+          console.log({ updatedUser });
+          if (updatedUser == null) {
+            reject({
+              message: 'User not found',
+              code: HttpStatus.NOT_FOUND,
+            });
+          }
+          if (updatedUser != null) resolve(new PublicUser(updatedUser));
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
     });
   }
 

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { compare } from 'bcrypt';
 
 @Injectable()
 export class UtilsService {
@@ -31,6 +32,34 @@ export class UtilsService {
         chunkSize,
         results,
       );
+    });
+  }
+
+  /**
+   * Validates a password against a string literal
+   *
+   * @param strLiteral - The string literal to compare the password against
+   * @param userPassword - The hashed password to compare
+   * @returns A promise that resolves to a boolean indicating whether the password is valid or not
+   */
+  validatePassword({
+    strLiteral,
+    userPassword,
+  }: {
+    strLiteral: string;
+    userPassword: string;
+  }) {
+    return new Promise((resolve, reject) => {
+      console.log({ strLiteral, userPassword });
+      compare(strLiteral, userPassword)
+        .then((isValid) => {
+          if (isValid) {
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        })
+        .catch((error) => reject(error));
     });
   }
 }

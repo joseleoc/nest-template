@@ -5,7 +5,14 @@ import { HydratedDocument } from 'mongoose';
 
 export type UserDocument = HydratedDocument<User>;
 
-@Schema()
+@Schema({
+  toObject: {
+    versionKey: false,
+  },
+  toJSON: {
+    versionKey: false,
+  },
+})
 export class User {
   @Prop({ required: true, type: String, trim: true, unique: true })
   userName: string;

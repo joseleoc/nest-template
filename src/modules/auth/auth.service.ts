@@ -1,4 +1,3 @@
-import { compare } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Injectable } from '@nestjs/common';
 
@@ -6,12 +5,14 @@ import { UsersService } from '@/modules/users';
 import { UserDocument } from '../users/schemas/user.schema';
 import { ValidateUserDTO } from './dto/auth.dto';
 import { PublicUser } from '../users/types/users.types';
+import { UtilsService } from '@/services/utils/utils.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private utilsService: UtilsService,
   ) {}
 
   async login(
@@ -38,7 +39,11 @@ export class AuthService {
               return;
             }
 
-            compare(password, user.password)
+            this.utilsService
+              .validatePassword({
+                strLiteral: password,
+                userPassword: user.password,
+              })
               .then((valid) => {
                 if (valid) {
                   delete user.password;

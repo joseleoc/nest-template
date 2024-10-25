@@ -13,10 +13,10 @@ import { TextToSpeechService } from '@/services/text-to-speech/text-to-speech.se
 
 import { Story } from './schemas/stories.schema';
 import { CreateStoryDto } from './dto/create-story.dto';
-import { UpdateStoryDto } from './dto/update-story.dto';
 import { StoryContent } from './schemas/stories-content.schema';
 import { CloudStorageService } from '../../services/cloud-storage/cloud-storage.service';
 import { PublicStory } from './stories.types';
+import { StoriesLikes } from './schemas/stories-likes.schema';
 
 @Injectable()
 export class StoriesService {
@@ -29,6 +29,8 @@ export class StoriesService {
   // --------------------------------------------------------------------------------
   constructor(
     @InjectModel(Story.name) private readonly storyModel: Model<Story>,
+    @InjectModel(StoriesLikes.name)
+    private readonly storiesLikesModel: Model<StoriesLikes>,
     private usersService: UsersService,
     private aiService: AiService,
     private childrenService: ChildrenService,
@@ -171,23 +173,60 @@ export class StoriesService {
     });
   }
 
-  findAll() {
-    return `This action returns all stories`;
-  }
+  /**  */
+  toggleLike(params: {
+    storyId: string;
+    userId: string;
+  }): Promise<{ likesCount: number } | null> {
+    return new Promise((resolve, reject) => {
+      const { storyId, userId } = params;
 
-  findOne(id: number) {
-    return `This action returns a #${id} story`;
-  }
+      // Find if the user already liked the story
+      this.storiesLikesModel
+        .findOne({ userId, storyId })
+        .then((like) => {
+          //  Operations to perform:
+          // 1. Updates the likesCount of the story, subtracting or adding 1 based on the user's like.
+          const updateOperation = like
+            ? { $inc: { likesCount: -1 } }
+            : { $inc: { likesCount: 1 } };
+          // 2. Deletes the like if the user already liked the story. Otherwise resolves undefined.
+          const deleteOperation = like
+            ? this.storiesLikesModel.deleteOne({ userId, storyId })
+            : Promise.resolve();
+          // 3. Creates a new like if the user did not like the story. Otherwise resolves undefined.
+          const createOperation = !like
+            ? this.storiesLikesModel.create({ userId, storyId })
+            : Promise.resolve();
 
-  update(id: number, updateStoryDto: UpdateStoryDto) {
-    return `This action updates a #${id} story`;
+          Promise.all([
+            this.storyModel.updateOne({ _id: storyId }, updateOperation),
+            deleteOperation,
+            createOperation,
+          ])
+            .then(([updateRes, deleteRes, createRes]) => {
+              if (updateRes.modifiedCount === 0) {
+                reject(null);
+                return null;
+              }
+              return this.storyModel.findById(storyId);
+            })
+            .then((story) => {
+              if (story != null && story.deleted === false) {
+                resolve({ likesCount: story.likesCount });
+              } else {
+                reject(null);
+              }
+            })
+            .catch((error) => {
+              this.logger.error(error);
+              reject(error);
+            });
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
   }
-
-  remove(id: number) {
-    return `This action removes a #${id} story`;
-  }
-
-  // --------------------------------------------------------------------------------
-  // Private methods
-  // --------------------------------------------------------------------------------
 }

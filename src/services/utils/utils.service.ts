@@ -50,7 +50,6 @@ export class UtilsService {
     userPassword: string;
   }) {
     return new Promise((resolve, reject) => {
-      console.log({ strLiteral, userPassword });
       compare(strLiteral, userPassword)
         .then((isValid) => {
           if (isValid) {

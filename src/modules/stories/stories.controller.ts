@@ -7,11 +7,14 @@ import {
   Res,
   HttpStatus,
   Logger,
+  NotFoundException,
+  Patch,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { StoriesService } from './stories.service';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { LikeStoryDto } from './dto/like-story.dto';
 
 @ApiTags('Stories')
 @ApiBearerAuth()
@@ -82,23 +85,36 @@ export class StoriesController {
     }
   }
 
-  // @Get()
-  // findAll() {
-  //   return this.storiesService.findAll();
-  // }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.storiesService.findOne(+id);
-  // }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateStoryDto: UpdateStoryDto) {
-  //   return this.storiesService.update(+id, updateStoryDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.storiesService.remove(+id);
-  // }
+  @Patch('/toggleLike')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Likes a story',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error, could be caused by a database error.',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Story not found',
+  })
+  toggleLike(@Body() body: LikeStoryDto, @Res() res: Response) {
+    try {
+      this.storiesService
+        .toggleLike(body)
+        .then((story) => {
+          if (story != null) {
+            res.status(HttpStatus.OK).json({ likesCount: story.likesCount });
+          } else {
+            throw new NotFoundException();
+          }
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+        });
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
 }

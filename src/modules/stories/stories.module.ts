@@ -8,6 +8,10 @@ import { UsersModule } from '../users';
 import { ChildrenModule } from '../children/children.module';
 import { ServicesModule } from '@/services/services.module';
 import { NarratorsModule } from '../narrators/narrators.module';
+import {
+  StoriesLikes,
+  StoriesLikesSchema,
+} from './schemas/stories-likes.schema';
 
 @Module({
   imports: [
@@ -17,6 +21,9 @@ import { NarratorsModule } from '../narrators/narrators.module';
     NarratorsModule,
     MongooseModule.forFeature([{ name: Story.name, schema: StorySchema }]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: StoriesLikes.name, schema: StoriesLikesSchema },
+    ]),
   ],
   controllers: [StoriesController],
   providers: [StoriesService],

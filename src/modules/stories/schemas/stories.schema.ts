@@ -93,6 +93,12 @@ export class Story {
 
   @Prop({ required: false, type: Number, default: 0 })
   readingTime?: number;
+
+  @Prop({ required: false, type: Number, default: 0 })
+  likesCount?: number;
+
+  @Prop({ required: false, type: Boolean, default: false })
+  deleted?: boolean;
 }
 
 export const StorySchema = SchemaFactory.createForClass(Story);

@@ -217,11 +217,6 @@ export class UsersService {
     userEmail,
   }: ChangePasswordParams) {
     return new Promise((resolve, reject) => {
-      console.log({
-        oldPassword,
-        newPassword,
-        userEmail,
-      });
       this.userModel
         .findOne({ email: userEmail })
         .then((user) => {
@@ -246,7 +241,6 @@ export class UsersService {
           });
         })
         .then((isValid) => {
-          console.log({ isValid });
           if (isValid == false) {
             reject({
               message: 'User password is wrong',
@@ -254,7 +248,6 @@ export class UsersService {
             });
             return;
           }
-          console.log('asd');
           return this.hashPassword(newPassword);
         })
         .then((hashedPassword) => {
@@ -264,7 +257,6 @@ export class UsersService {
           );
         })
         .then((updatedUser) => {
-          console.log({ updatedUser });
           if (updatedUser == null) {
             reject({
               message: 'User not found',

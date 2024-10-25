@@ -158,8 +158,13 @@ export class StoriesService {
         .find({ userId: id })
         .sort({ createdAt: -1 })
         .then((stories) => {
-          resolve(stories);
+          const promises = stories.map((story) =>
+            new PublicStory(story).generateAudiosUrls(this.cloudStorageService),
+          );
+
+          return Promise.all(promises);
         })
+        .then((stories) => resolve(stories))
         .catch((error) => {
           reject(error);
         });

@@ -95,7 +95,7 @@ export class StoriesService {
               // Returns the story and the audio streams and  updates the user credits.
               return Promise.all([
                 story,
-                this.textToSpeechService.createAudioStreamFromText({
+                this.textToSpeechService.createAudioFromText({
                   paragraphs: story.content,
                   narrator,
                 }),

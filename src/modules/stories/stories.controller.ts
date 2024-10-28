@@ -85,10 +85,20 @@ export class StoriesController {
     }
   }
 
-  @Patch('/toggleLike')
+  @Post('/toggleLike')
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Likes a story',
+    description: 'Toggles the like of a story',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            likesCount: { type: 'number' },
+          },
+        },
+      },
+    },
   })
   @ApiResponse({
     status: HttpStatus.INTERNAL_SERVER_ERROR,

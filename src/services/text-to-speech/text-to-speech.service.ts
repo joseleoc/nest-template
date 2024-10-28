@@ -27,7 +27,7 @@ export class TextToSpeechService {
    * @param params.paragraphs - The list of paragraphs to generate the audio stream from
    * @returns A Promise that resolves to an object with the file names and the duration of the audio stream
    */
-  createAudioStreamFromText = async (params: {
+  createAudioFromText = async (params: {
     paragraphs: string[];
     narrator: Narrator;
   }): Promise<{ fileNames: string[]; duration: number }> => {
@@ -38,25 +38,24 @@ export class TextToSpeechService {
         const isFirstParagraph = i === 0;
         const isLastParagraph = i === paragraphs.length - 1;
         const previous_text = isFirstParagraph
-          ? ''
+          ? 'This is the beginning of the story.'
           : paragraphs.slice(0, i).join(' ');
         const next_text = isLastParagraph
-          ? ''
+          ? 'This is the end of the story.'
           : paragraphs.slice(i + 1, paragraphs.length).join(' ');
         // Generates the audio stream for the current paragraph. Giving the previous and next paragraphs as context.
-        const audioStream = await this.elevenLabsClient.generate({
+        const audio = await this.elevenLabsClient.generate({
           text,
           previous_text,
           next_text,
-          voice: narrator?.name || 'Bill',
+          voice: narrator?.voiceId || 'Bill',
           model_id: 'eleven_turbo_v2_5',
-          stream: true,
         });
-
+        console.log(audio);
         // Concatenates the audio stream chunks into a single buffer
         const chunks: Buffer[] = [];
         try {
-          for await (const chunk of audioStream) {
+          for await (const chunk of audio) {
             chunks.push(chunk);
           }
 

@@ -86,7 +86,7 @@ export class Story {
   childId?: string;
 
   @Prop({ required: true, type: String, trim: true, ref: User.name })
-  userId?: string;
+  userId: string;
 
   @Prop({ required: false, type: String, default: '' })
   finalDetails?: string;

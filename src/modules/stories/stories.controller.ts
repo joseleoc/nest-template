@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Logger,
   NotFoundException,
+  UsePipes,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { StoriesService } from './stories.service';
@@ -19,7 +20,11 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { StoryCounterDto } from './dto/story-counter.dto';
-import { GetAllStoriesDto } from './dto/get-all-stories.dto';
+import {
+  GetAllStoriesDto,
+  GetAllStoriesDtoSchema,
+} from './dto/get-all-stories.dto';
+import { ZodValidationPipe } from 'nestjs-zod';
 
 @ApiTags('Stories')
 @ApiBearerAuth()
@@ -73,6 +78,7 @@ export class StoriesController {
   }
 
   @Post('getAllStories')
+  @UsePipes(new ZodValidationPipe(GetAllStoriesDtoSchema))
   @ApiOperation({
     summary: 'Get all stories',
     description: `Returns an array of paginated stories. 

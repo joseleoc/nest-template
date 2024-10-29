@@ -1,3 +1,6 @@
-import { PaginationDto } from '@/general.dto';
+import { PaginationDtoSchema } from '@/general.dto';
+import { createZodDto } from 'nestjs-zod';
 
-export class GetAllStoriesDto extends PaginationDto {}
+export const GetAllStoriesDtoSchema = PaginationDtoSchema;
+
+export class GetAllStoriesDto extends createZodDto(PaginationDtoSchema) {}

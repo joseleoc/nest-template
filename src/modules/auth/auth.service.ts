@@ -28,8 +28,8 @@ export class AuthService {
   async validateUser({
     username,
     password,
-  }: ValidateUserDTO): Promise<PublicUser> {
-    return new Promise(async (resolve: (value: PublicUser) => void, reject) => {
+  }: ValidateUserDTO): Promise<PublicUser | null> {
+    return new Promise(async (resolve, reject) => {
       try {
         this.usersService
           .findUserDocumentByUserName(username)
@@ -39,10 +39,11 @@ export class AuthService {
               return;
             }
 
+            const userPassword = user.password ?? '';
             this.utilsService
               .validatePassword({
                 strLiteral: password,
-                userPassword: user.password,
+                userPassword,
               })
               .then((valid) => {
                 if (valid) {

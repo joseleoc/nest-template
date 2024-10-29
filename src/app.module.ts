@@ -56,7 +56,9 @@ import { ServicesModule } from './services/services.module';
         },
       },
     }),
-    MongooseModule.forRoot(process.env.DB_URL, { dbName: process.env.DB_NAME }),
+    MongooseModule.forRoot(process.env.DB_URL || '', {
+      dbName: process.env.DB_NAME,
+    }),
     AuthModule,
     UsersModule,
     ChildrenModule,

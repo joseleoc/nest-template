@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Narrator, NarratorAgeCategory } from './schemas/narrators.schema';
 import { Model } from 'mongoose';
 import { Gender } from '@/general.types';
-import { PublicNarrator } from './schemas/types/narrators.types';
+import { PublicNarrator } from './types/narrators.types';
 
 @Injectable()
 export class NarratorsService {

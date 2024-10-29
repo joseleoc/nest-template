@@ -2,6 +2,7 @@ import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { patchNestJsSwagger } from 'nestjs-zod';
 
 import { PlansService } from './modules/plans/plans.service';
 import { NarratorsService } from './modules/narrators/narrators.service';
@@ -9,6 +10,7 @@ import { NarratorsService } from './modules/narrators/narrators.service';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useLogger(app.get(Logger));
+  patchNestJsSwagger();
 
   // Swagger config
   const swaggerConfig = new DocumentBuilder()
@@ -27,6 +29,7 @@ async function bootstrap() {
   const narratorsService = app.get(NarratorsService);
   narratorsService.createDefaultNarrators();
 
-  await app.listen(process.env.PORT);
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
 }
 bootstrap();

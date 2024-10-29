@@ -75,7 +75,7 @@ export class ChildrenService {
     });
   }
 
-  remove(id: string): Promise<{ id: string; deleted: boolean }> {
+  remove(id: string): Promise<{ id: string; deleted: boolean } | null> {
     return new Promise((resolve, reject) => {
       this.childModel
         .findByIdAndUpdate(id, { deleted: true })

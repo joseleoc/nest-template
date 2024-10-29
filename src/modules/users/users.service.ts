@@ -105,8 +105,8 @@ export class UsersService {
     });
   }
 
-  findOneById(id: string): Promise<PublicUser> {
-    return new Promise((resolve: (value: PublicUser) => void, reject) => {
+  findOneById(id: string): Promise<PublicUser | null> {
+    return new Promise((resolve, reject) => {
       this.userModel
         .findOne({ _id: id, deleted: false })
         .then((user) => {
@@ -124,8 +124,8 @@ export class UsersService {
   }
 
   /** Returns a user document by its username */
-  findUserDocumentByUserName(userName: string): Promise<UserDocument> {
-    return new Promise((resolve: (value: UserDocument) => void, reject) => {
+  findUserDocumentByUserName(userName: string): Promise<UserDocument | null> {
+    return new Promise((resolve, reject) => {
       this.userModel
         .findOne({ userName })
         .then((user) => {
@@ -140,13 +140,17 @@ export class UsersService {
   }
 
   update(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
-    return new Promise((resolve: (value: User) => void, reject) => {
+    return new Promise((resolve, reject) => {
       delete updateUserDto.password;
       this.userModel
         .findByIdAndUpdate(id, updateUserDto, { new: true })
         .then((res) => {
-          const updatedUser = new PublicUser(res);
-          resolve(updatedUser);
+          if (res != null) {
+            const updatedUser = new PublicUser(res);
+            resolve(updatedUser);
+          } else {
+            resolve(null);
+          }
         })
         .catch((error) => reject(error));
     });
@@ -158,8 +162,12 @@ export class UsersService {
       this.userModel
         .findByIdAndUpdate(id, { credits: credits })
         .then((res) => {
-          const updatedUser = new PublicUser(res);
-          resolve(updatedUser);
+          if (res != null) {
+            const updatedUser = new PublicUser(res);
+            resolve(updatedUser);
+          } else {
+            resolve(null);
+          }
         })
         .catch((error) => reject(error));
     });
@@ -234,10 +242,10 @@ export class UsersService {
             });
             return;
           }
-
+          const userPassword = user.password ?? '';
           return this.utilsService.validatePassword({
             strLiteral: oldPassword,
-            userPassword: user.password,
+            userPassword,
           });
         })
         .then((isValid) => {

@@ -1,53 +1,33 @@
-import { Character } from '@/modules/characters/schemas/character.schema';
-import { StoryPlace } from '@/modules/stories-places/schemas/story-place.schema';
-import { ApiProperty } from '@nestjs/swagger';
-import { Schema } from 'mongoose';
-import { Narrator } from '@/modules/narrators/schemas/narrators.schema';
 import { StoryStyle } from '../schemas/stories.schema';
+import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod';
+import { Gender, Language } from '@/general.types';
+import { CharacterDtoSchema } from '@/modules/characters/dto/character.dto';
+import { NarratorAgeCategory } from '@/modules/narrators/schemas/narrators.schema';
 
-export class CreateStoryDto {
-  @ApiProperty({ required: true, type: Schema.Types.ObjectId })
-  userId: string;
+export const CreateStoryDtoSchema = z.object({
+  userId: z.string(),
+  childId: z.string(),
+  mainCharacter: CharacterDtoSchema,
+  storyStyle: z.nativeEnum(StoryStyle),
+  solveProblem: z.object({
+    selectedOption: z.string(),
+    inputValue: z.string(),
+  }),
+  teachSomething: z.object({
+    selectedOption: z.string(),
+    inputValue: z.string(),
+  }),
+  storyHelp: z.string(),
+  storyNarrator: z.object({
+    ageCategory: z.nativeEnum(NarratorAgeCategory),
+    gender: z.nativeEnum(Gender),
+  }),
+  storyPlace: z.object({
+    description: z.string(),
+  }),
+  finalDetails: z.string(),
+  language: z.nativeEnum(Language),
+});
 
-  @ApiProperty({ required: true, type: Schema.Types.ObjectId })
-  childId: string;
-
-  @ApiProperty({ required: true, type: Character })
-  mainCharacter: Character;
-
-  @ApiProperty({ required: true, type: StoryPlace })
-  storyPlace: StoryPlace;
-
-  @ApiProperty({
-    required: false,
-    type: Object,
-    default: { inputValue: '', selectedOption: '' },
-  })
-  solveProblem?: { inputValue: string; selectedOption: string };
-
-  @ApiProperty({
-    required: false,
-    type: Object,
-    default: { inputValue: '', selectedOption: '' },
-  })
-  teachSomething?: { inputValue: string; selectedOption: string };
-
-  @ApiProperty({ required: true, type: String, default: '' })
-  storyHelp: string;
-
-  @ApiProperty({ required: true, type: Narrator })
-  storyNarrator: Narrator;
-
-  @ApiProperty({ required: false, type: String, default: '' })
-  finalDetails?: string;
-
-  @ApiProperty({
-    required: false,
-    type: String,
-    enum: Object.values(StoryStyle),
-  })
-  storyStyle: StoryStyle;
-
-  @ApiProperty({ required: false, type: String, default: '' })
-  language: string;
-}
+export class CreateStoryDto extends createZodDto(CreateStoryDtoSchema) {}

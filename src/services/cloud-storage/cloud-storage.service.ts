@@ -21,12 +21,19 @@ export class CloudStorageService {
   // --------------------------------------------------------------------------------
   constructor(private readonly configService: ConfigService) {
     this.checkEnvVariables();
+    const accessKeyId = this.configService.get<string>('AWS_ACCESS_KEY_ID');
+    const secretAccessKey = this.configService.get<string>(
+      'AWS_SECRET_ACCESS_KEY',
+    );
 
+    if (!accessKeyId || !secretAccessKey) {
+      throw new Error('AWS credentials are not set in the environment');
+    }
     const s3_region = this.configService.get('AWS_REGION_NAME');
     this.s3Client = new S3Client({
       credentials: {
-        accessKeyId: this.configService.get('AWS_ACCESS_KEY_ID'),
-        secretAccessKey: this.configService.get('AWS_SECRET_ACCESS_KEY'),
+        accessKeyId,
+        secretAccessKey,
       },
       region: s3_region,
       forcePathStyle: true,

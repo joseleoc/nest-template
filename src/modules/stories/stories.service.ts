@@ -150,6 +150,9 @@ export class StoriesService {
               }
             })
             .then((story) => {
+              if (!story) {
+                throw new Error('Story creation failed, story is undefined.');
+              }
               const newStory = new PublicStory(story);
               newStory.liked = false;
               return newStory.generateAudiosUrls(this.cloudStorageService);
@@ -260,7 +263,7 @@ export class StoriesService {
             })
             .then((story) => {
               if (story != null && story.deleted === false) {
-                resolve({ likesCount: story.likesCount });
+                resolve({ likesCount: story.likesCount || 0 });
               } else {
                 reject(null);
               }
@@ -306,7 +309,7 @@ export class StoriesService {
 
           this.storyModel.findById(storyId).then((story) => {
             if (story != null && story.deleted === false) {
-              resolve({ viewsCount: story.viewsCount });
+              resolve({ viewsCount: story.viewsCount || 0 });
             } else {
               reject(null);
             }
@@ -348,7 +351,7 @@ export class StoriesService {
 
           this.storyModel.findById(storyId).then((story) => {
             if (story != null && story.deleted === false) {
-              resolve({ sharesCount: story.sharesCount });
+              resolve({ sharesCount: story.sharesCount || 0 });
             } else {
               reject(null);
             }
@@ -410,7 +413,11 @@ export class StoriesService {
         .then(([likes, storiesWithAudiosURLs]) => {
           // Adds the liked property to the stories
           const storiesWithLikes = storiesWithAudiosURLs.map((story) => {
-            const liked = likes.find((like) => like.storyId === story.id).liked;
+            let liked = false;
+            if (likes) {
+              const like = likes.find((like) => like?.storyId === story.id);
+              liked = like?.liked ?? false;
+            }
             story.liked = liked;
             return story;
           });

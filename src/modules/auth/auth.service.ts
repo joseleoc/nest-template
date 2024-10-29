@@ -3,9 +3,10 @@ import { Injectable } from '@nestjs/common';
 
 import { UsersService } from '@/modules/users';
 import { UserDocument } from '../users/schemas/user.schema';
-import { ValidateUserDTO } from './dto/auth.dto';
+
 import { PublicUser } from '../users/types/users.types';
 import { UtilsService } from '@/services/utils/utils.service';
+import { ValidateUser } from './types/auth.types';
 
 @Injectable()
 export class AuthService {
@@ -28,7 +29,7 @@ export class AuthService {
   async validateUser({
     username,
     password,
-  }: ValidateUserDTO): Promise<PublicUser | null> {
+  }: ValidateUser): Promise<PublicUser | null> {
     return new Promise(async (resolve, reject) => {
       try {
         this.usersService

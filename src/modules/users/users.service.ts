@@ -141,7 +141,6 @@ export class UsersService {
 
   update(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
     return new Promise((resolve, reject) => {
-      delete updateUserDto.password;
       this.userModel
         .findByIdAndUpdate(id, updateUserDto, { new: true })
         .then((res) => {

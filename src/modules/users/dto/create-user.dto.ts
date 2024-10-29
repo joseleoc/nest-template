@@ -1,31 +1,14 @@
-import { ApiProperty } from '@nestjs/swagger';
-
 import { PlanNames } from '@/modules/plans/schemas/plan.schema';
 import { Language } from '@/general.types';
+import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod';
 
-export class CreateUserDto {
-  @ApiProperty({ example: 'john', required: true, type: 'string' })
-  userName: string;
-  @ApiProperty({
-    example: 'johndoea@email.com',
-    required: true,
-    type: 'string',
-  })
-  email: string;
-  @ApiProperty({ example: 'changeme', required: true, type: 'string' })
-  password: string;
-  @ApiProperty({
-    example: PlanNames.MAGIC_TALES,
-    required: true,
-    enum: Object.values(PlanNames),
-  })
-  plan: PlanNames;
+export const CreateUserDtoSchema = z.object({
+  userName: z.string().trim(),
+  email: z.string().email().trim(),
+  password: z.string().trim().min(6),
+  plan: z.nativeEnum(PlanNames).default(PlanNames.MAGIC_TALES),
+  language: z.nativeEnum(Language).default(Language.EN),
+});
 
-  @ApiProperty({
-    example: 'en',
-    required: false,
-    default: Language.EN,
-    enum: Object.values(Language),
-  })
-  language?: Language;
-}
+export class CreateUserDto extends createZodDto(CreateUserDtoSchema) {}

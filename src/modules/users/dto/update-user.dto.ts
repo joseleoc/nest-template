@@ -1,4 +1,11 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateUserDto } from './create-user.dto';
+import { z } from 'zod';
+import { CreateUserDtoSchema } from './create-user.dto';
+import { createZodDto } from 'nestjs-zod';
 
-export class UpdateUserDto extends PartialType(CreateUserDto) {}
+export const UpdateUserDtoSchema = CreateUserDtoSchema.omit({ password: true })
+  .partial()
+  .extend({
+    userId: z.string(),
+  });
+
+export class UpdateUserDto extends createZodDto(UpdateUserDtoSchema) {}

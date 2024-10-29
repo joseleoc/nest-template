@@ -12,14 +12,17 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { StoriesService } from './stories.service';
-import { CreateStoryDto } from './dto/create-story.dto';
+import { CreateStoryDto, CreateStoryDtoSchema } from './dto/create-story.dto';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { StoryCounterDto } from './dto/story-counter.dto';
+import {
+  StoryCounterDto,
+  StoryCounterDtoSchema,
+} from './dto/story-counter.dto';
 import {
   GetAllStoriesDto,
   GetAllStoriesDtoSchema,
@@ -44,6 +47,7 @@ export class StoriesController {
   // Public methods
   // --------------------------------------------------------------------------------
   @Post()
+  @UsePipes(new ZodValidationPipe(CreateStoryDtoSchema))
   @ApiOperation({
     summary: 'Create a story',
     description:
@@ -142,6 +146,7 @@ export class StoriesController {
   }
 
   @Post('/toggleLike')
+  @UsePipes(new ZodValidationPipe(StoryCounterDtoSchema))
   @ApiOperation({
     summary: 'Toggles the like of a story',
     description:
@@ -190,6 +195,7 @@ export class StoriesController {
   }
 
   @Post('/countView')
+  @UsePipes(new ZodValidationPipe(StoryCounterDtoSchema))
   @ApiOperation({
     summary: 'Counts the view of a story',
     description:
@@ -238,6 +244,7 @@ export class StoriesController {
   }
 
   @Post('/countShare')
+  @UsePipes(new ZodValidationPipe(StoryCounterDtoSchema))
   @ApiOperation({
     summary: 'Counts the share of a story',
     description:

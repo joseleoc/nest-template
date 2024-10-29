@@ -16,6 +16,7 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 export class NarratorsController {
   constructor(private readonly narratorsService: NarratorsService) {}
 
+  @Get()
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Retrieves all narrators',
@@ -25,7 +26,6 @@ export class NarratorsController {
     description:
       'Internal server error, could be caused by a database error, such as a duplicated narrator name or voiceId',
   })
-  @Get()
   findAll(@Res() res: Response) {
     try {
       this.narratorsService
@@ -41,6 +41,7 @@ export class NarratorsController {
     }
   }
 
+  @Get(':id')
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Retrieves a single narrator by a given id.',
@@ -54,7 +55,6 @@ export class NarratorsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Narrator not found',
   })
-  @Get(':id')
   findOneById(@Param('id') id: string, @Res() res: Response) {
     try {
       this.narratorsService

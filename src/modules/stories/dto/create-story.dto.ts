@@ -10,14 +10,18 @@ export const CreateStoryDtoSchema = z.object({
   childId: z.string(),
   mainCharacter: CharacterDtoSchema,
   storyStyle: z.nativeEnum(StoryStyle),
-  solveProblem: z.object({
-    selectedOption: z.string(),
-    inputValue: z.string(),
-  }),
-  teachSomething: z.object({
-    selectedOption: z.string(),
-    inputValue: z.string(),
-  }),
+  solveProblem: z
+    .object({
+      selectedOption: z.string(),
+      inputValue: z.string(),
+    })
+    .optional(),
+  teachSomething: z
+    .object({
+      selectedOption: z.string(),
+      inputValue: z.string(),
+    })
+    .optional(),
   storyHelp: z.string(),
   storyNarrator: z.object({
     ageCategory: z.nativeEnum(NarratorAgeCategory),
@@ -26,7 +30,7 @@ export const CreateStoryDtoSchema = z.object({
   storyPlace: z.object({
     description: z.string(),
   }),
-  finalDetails: z.string(),
+  finalDetails: z.string().optional().default(''),
   language: z.nativeEnum(Language),
 });
 

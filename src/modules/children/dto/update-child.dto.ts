@@ -1,6 +1,9 @@
-import { PartialType, OmitType } from '@nestjs/swagger';
-import { CreateChildDto } from './create-child.dto';
+import { z } from 'zod';
+import { CreateChildDtoSchema } from './create-child.dto';
+import { createZodDto } from 'nestjs-zod';
 
-export class UpdateChildDto extends OmitType(PartialType(CreateChildDto), [
-  'parentId',
-]) {}
+export const UpdateChildDtoSchema = CreateChildDtoSchema.partial().extend({
+  childId: z.string(),
+});
+
+export class UpdateChildDto extends createZodDto(UpdateChildDtoSchema) {}

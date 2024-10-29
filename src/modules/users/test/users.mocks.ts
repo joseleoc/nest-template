@@ -31,7 +31,6 @@ export const UsersServiceMock = {
         return new Promise((resolve) =>
           resolve({
             userName: updateUserDto.userName,
-            password: updateUserDto.password,
           }),
         );
       },

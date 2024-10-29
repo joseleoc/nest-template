@@ -1,9 +1,12 @@
-import { PickType } from '@nestjs/swagger';
-import { CreateUserDto } from './create-user.dto';
+import { CreateUserDtoSchema } from './create-user.dto';
+import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod';
 
-export class ChangePasswordDto extends PickType(CreateUserDto, [
-  'password',
-  'email',
-]) {
-  newPassword: string;
-}
+export const ChangePasswordDtoSchema = CreateUserDtoSchema.pick({
+  password: true,
+  email: true,
+}).extend({
+  newPassword: z.string().trim().min(6),
+});
+
+export class ChangePasswordDto extends createZodDto(ChangePasswordDtoSchema) {}

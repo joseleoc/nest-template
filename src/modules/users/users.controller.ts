@@ -12,15 +12,25 @@ import {
   Res,
   NotFoundException,
   Logger,
+  UsePipes,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 import { SkipAuth } from '@/decorators/index';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto, CreateUserDtoSchema } from './dto/create-user.dto';
+import { UpdateUserDto, UpdateUserDtoSchema } from './dto/update-user.dto';
 import { CreateUserResponse } from './users.constants';
-import { ChangePasswordDto } from './dto/change-password.dto';
+import {
+  ChangePasswordDto,
+  ChangePasswordDtoSchema,
+} from './dto/change-password.dto';
+import { ZodValidationPipe } from 'nestjs-zod';
 
 @ApiTags('Users')
 @Controller('users')
@@ -40,7 +50,12 @@ export class UsersController {
 
   @SkipAuth()
   @Post('/create')
-  @ApiResponse(CreateUserResponse)
+  @UsePipes(new ZodValidationPipe(CreateUserDtoSchema))
+  @ApiOperation(CreateUserResponse)
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'When the user is created successfully',
+  })
   @ApiResponse({
     status: HttpStatus.INTERNAL_SERVER_ERROR,
     description:
@@ -67,8 +82,17 @@ export class UsersController {
 
   @Get(':id')
   @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Finds a user by id',
+    description: 'Returns a user with non-sensitive info',
+  })
   @ApiResponse({
-    description: `Retrieves an existing use's non sensitive info `,
+    status: HttpStatus.OK,
+    description: 'When the user is found',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'User not found',
   })
   async findOne(@Param('id') id: string, @Res() res: Response) {
     this.usersService
@@ -86,20 +110,30 @@ export class UsersController {
       });
   }
 
-  @Patch(':id')
-  @ApiBearerAuth()
-  @ApiResponse({
+  @Patch('/update')
+  @UsePipes(new ZodValidationPipe(UpdateUserDtoSchema))
+  @ApiOperation({
+    summary: 'Updates an existing user',
     description:
       'Updates an existing user. cannot update the password, to change the password use the changePassword endpoint',
   })
-  update(
-    @Param('id') id: string,
-    @Body() updateUserDto: UpdateUserDto,
-    @Res() res: Response,
-  ) {
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'When the user is updated successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error, could be caused by a database error.',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'User not found',
+  })
+  @ApiBearerAuth()
+  update(@Body() updateUserDto: UpdateUserDto, @Res() res: Response) {
     try {
       this.usersService
-        .update(id, updateUserDto)
+        .update(updateUserDto.userId, updateUserDto)
         .then((user) => {
           if (user != null) {
             res.status(HttpStatus.OK).json(user);
@@ -120,9 +154,22 @@ export class UsersController {
 
   @Delete(':id')
   @ApiBearerAuth()
-  @ApiResponse({
+  @ApiOperation({
+    summary: 'Deletes an existing user',
     description:
       'Performs a lazy deletion to an user document, updating the "deleted" field to true, so it is treated as deleted element',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'When the user is deleted successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error, could be caused by a database error.',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'User not found',
   })
   remove(@Param('id') id: string, @Res() res: Response) {
     try {
@@ -149,6 +196,7 @@ export class UsersController {
 
   @SkipAuth()
   @Post('/changePassword')
+  @UsePipes(new ZodValidationPipe(ChangePasswordDtoSchema))
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Changes the password of a user',

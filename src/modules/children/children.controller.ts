@@ -11,13 +11,20 @@ import {
   Res,
   NotFoundException,
   Logger,
+  UsePipes,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 import { ChildrenService } from './children.service';
-import { UpdateChildDto } from './dto/update-child.dto';
-import { CreateChildDto } from './dto/create-child.dto';
+import { UpdateChildDto, UpdateChildDtoSchema } from './dto/update-child.dto';
+import { CreateChildDto, CreateChildDtoSchema } from './dto/create-child.dto';
+import { ZodValidationPipe } from 'nestjs-zod';
 
 @ApiTags('Children')
 @ApiBearerAuth()
@@ -37,6 +44,7 @@ export class ChildrenController {
   // Public methods
   // --------------------------------------------------------------------------------
   @Post()
+  @UsePipes(new ZodValidationPipe(CreateChildDtoSchema))
   @ApiResponse({
     description:
       'Creates a new child document. Links the child to the parentId and returns the new child instance',
@@ -117,19 +125,29 @@ export class ChildrenController {
     }
   }
 
-  @Patch(':id')
-  @ApiResponse({
+  @Patch('/update')
+  @UsePipes(new ZodValidationPipe(UpdateChildDtoSchema))
+  @ApiOperation({
+    summary: 'Update a child',
     description:
       'Finds a child by id and updates the fields from the body. Returns the new instance of the child. The parentId is immutable. The child could be updated in the "deleted" field to false.',
   })
-  update(
-    @Param('id') id: string,
-    @Body() updateChildDto: UpdateChildDto,
-    @Res() res: Response,
-  ) {
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'When the child is updated successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error, could be caused by a database error.',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Child not found',
+  })
+  update(@Body() updateChildDto: UpdateChildDto, @Res() res: Response) {
     try {
       this.childrenService
-        .update(id, updateChildDto)
+        .update(updateChildDto.childId, updateChildDto)
         .then((child) => {
           if (child != null) {
             res.status(HttpStatus.OK).json({ child });

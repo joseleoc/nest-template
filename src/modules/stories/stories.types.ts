@@ -3,6 +3,7 @@ import { CloudStorageService } from '@/services/cloud-storage/cloud-storage.serv
 
 export class PublicStory extends Story {
   id: string;
+  liked?: boolean;
   constructor(story: StoryDocument) {
     const data = story.toObject();
     super();
@@ -30,3 +31,8 @@ export class PublicStory extends Story {
     );
   }
 }
+
+export type StoryCounterParams = {
+  storyId: string;
+  userId: string;
+};

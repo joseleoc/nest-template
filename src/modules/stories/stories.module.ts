@@ -12,6 +12,14 @@ import {
   StoriesLikes,
   StoriesLikesSchema,
 } from './schemas/stories-likes.schema';
+import {
+  StoriesViews,
+  StoriesViewsSchema,
+} from './schemas/stories-views.schema';
+import {
+  StoriesShare,
+  StoriesShareSchema,
+} from './schemas/stories-share.schema';
 
 @Module({
   imports: [
@@ -23,6 +31,12 @@ import {
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([
       { name: StoriesLikes.name, schema: StoriesLikesSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: StoriesViews.name, schema: StoriesViewsSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: StoriesShare.name, schema: StoriesShareSchema },
     ]),
   ],
   controllers: [StoriesController],

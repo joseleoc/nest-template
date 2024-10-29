@@ -14,9 +14,11 @@ import { TextToSpeechService } from '@/services/text-to-speech/text-to-speech.se
 import { Story } from './schemas/stories.schema';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { StoryContent } from './schemas/stories-content.schema';
-import { CloudStorageService } from '../../services/cloud-storage/cloud-storage.service';
-import { PublicStory } from './stories.types';
+import { CloudStorageService } from '@/services/cloud-storage/cloud-storage.service';
+import { PublicStory, StoryCounterParams } from './stories.types';
 import { StoriesLikes } from './schemas/stories-likes.schema';
+import { StoriesViews } from './schemas/stories-views.schema';
+import { StoriesShare } from './schemas/stories-share.schema';
 
 @Injectable()
 export class StoriesService {
@@ -31,6 +33,10 @@ export class StoriesService {
     @InjectModel(Story.name) private readonly storyModel: Model<Story>,
     @InjectModel(StoriesLikes.name)
     private readonly storiesLikesModel: Model<StoriesLikes>,
+    @InjectModel(StoriesViews.name)
+    private readonly storiesViewsModel: Model<StoriesViews>,
+    @InjectModel(StoriesShare.name)
+    private readonly storiesShareModel: Model<StoriesShare>,
     private usersService: UsersService,
     private aiService: AiService,
     private childrenService: ChildrenService,
@@ -42,6 +48,11 @@ export class StoriesService {
   // --------------------------------------------------------------------------------
   // Public methods
   // --------------------------------------------------------------------------------
+  /**
+   * Creates a story.
+   * @param createStoryDto - The story data to create.
+   * @returns A promise that resolves to the created story.
+   */
   create(createStoryDto: CreateStoryDto): Promise<Story> {
     return new Promise((resolve: (value: any) => void, reject) => {
       const {
@@ -139,6 +150,7 @@ export class StoriesService {
             })
             .then((story) => {
               const newStory = new PublicStory(story);
+              newStory.liked = false;
               return newStory.generateAudiosUrls(this.cloudStorageService);
             })
             .then((story) => resolve(story))
@@ -154,30 +166,54 @@ export class StoriesService {
     });
   }
 
-  findUserStories(id: string): Promise<Story[]> {
+  /**
+   * Finds all stories created by a user.
+   * @param id - The id of the user to find the stories of.
+   * @returns A promise that resolves to an array of stories.
+   */
+  findUserStories(id: string): Promise<PublicStory[]> {
     return new Promise((resolve, reject) => {
       this.storyModel
         .find({ userId: id })
         .sort({ createdAt: -1 })
         .then((stories) => {
-          const promises = stories.map((story) =>
-            new PublicStory(story).generateAudiosUrls(this.cloudStorageService),
+          const publicStories = stories.map((story) => new PublicStory(story));
+
+          const audiosURLsPromises = publicStories.map((story) =>
+            story.generateAudiosUrls(this.cloudStorageService),
           );
 
-          return Promise.all(promises);
+          const likesPromises = publicStories.map((story) =>
+            this.checkUserStoryLike({ userId: id, storyId: story.id }),
+          );
+
+          return Promise.all([
+            Promise.all(likesPromises),
+            Promise.all(audiosURLsPromises),
+          ]);
         })
-        .then((stories) => resolve(stories))
+        .then(([likes, storiesWithAudiosURLs]) => {
+          const stories = storiesWithAudiosURLs.map((story) => {
+            const liked = likes.find((like) => like.storyId === story.id).liked;
+            story.liked = liked;
+            return story;
+          });
+          resolve(stories);
+        })
         .catch((error) => {
           reject(error);
         });
     });
   }
 
-  /**  */
-  toggleLike(params: {
-    storyId: string;
-    userId: string;
-  }): Promise<{ likesCount: number } | null> {
+  /**
+   * Toggles the like of a story.
+   * @param params - The storyId and userId of the story to toggle the like of.
+   * @returns A promise that resolves to an object with the likesCount of the story.
+   */
+  toggleLike(
+    params: StoryCounterParams,
+  ): Promise<{ likesCount: number } | null> {
     return new Promise((resolve, reject) => {
       const { storyId, userId } = params;
 
@@ -222,6 +258,120 @@ export class StoriesService {
               this.logger.error(error);
               reject(error);
             });
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
+  }
+
+  /**
+   * Counts the view of a story. Always increments the viewsCount by 1 every time it is called.
+   * @param params - The storyId and userId of the story to count the view of.
+   * @returns A promise that resolves to an object with the viewsCount of the story.
+   */
+  countView(
+    params: StoryCounterParams,
+  ): Promise<{ viewsCount: number } | null> {
+    return new Promise((resolve, reject) => {
+      const { storyId, userId } = params;
+      Promise.all([
+        this.storiesViewsModel.findOne({ userId, storyId }),
+        this.storyModel.updateOne(
+          { _id: storyId },
+          { $inc: { viewsCount: 1 } },
+        ),
+      ])
+        .then(([view, updateRes]) => {
+          if (updateRes.modifiedCount === 0) {
+            reject(null);
+            return null;
+          }
+
+          if (view === null) {
+            this.storiesViewsModel.create({ userId, storyId });
+          }
+
+          this.storyModel.findById(storyId).then((story) => {
+            if (story != null && story.deleted === false) {
+              resolve({ viewsCount: story.viewsCount });
+            } else {
+              reject(null);
+            }
+          });
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
+  }
+
+  /**
+   * Counts the share of a story. Always increments the sharesCount by 1 every time it is called.
+   * @param params - The storyId and userId of the story to count the share of.
+   * @returns A promise that resolves to an object with the sharesCount of the story.
+   */
+  countShare(
+    params: StoryCounterParams,
+  ): Promise<{ sharesCount: number } | null> {
+    return new Promise((resolve, reject) => {
+      const { storyId, userId } = params;
+      Promise.all([
+        this.storiesShareModel.findOne({ userId, storyId }),
+        this.storyModel.updateOne(
+          { _id: storyId },
+          { $inc: { sharesCount: 1 } },
+        ),
+      ])
+        .then(([view, updateRes]) => {
+          if (updateRes.modifiedCount === 0) {
+            reject(null);
+            return null;
+          }
+
+          if (view === null) {
+            this.storiesShareModel.create({ userId, storyId });
+          }
+
+          this.storyModel.findById(storyId).then((story) => {
+            if (story != null && story.deleted === false) {
+              resolve({ sharesCount: story.sharesCount });
+            } else {
+              reject(null);
+            }
+          });
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
+  }
+
+  //--------------------------------------------------------------------------------
+  // Private methods
+  //--------------------------------------------------------------------------------
+  /**
+   * Checks if the user has liked a story.
+   * @param params - The storyId and userId of the story to check.
+   * @returns A promise that resolves to an object with the storyId and liked property set to true if the user has liked the story, or false otherwise.
+   */
+  private checkUserStoryLike(params: {
+    userId: string;
+    storyId: string;
+  }): Promise<{ storyId: string; liked: boolean } | null> {
+    return new Promise((resolve, reject) => {
+      const { userId, storyId } = params;
+      this.storiesLikesModel
+        .findOne({ userId, storyId })
+        .then((like) => {
+          if (like != null) {
+            resolve({ storyId: storyId, liked: true });
+          } else {
+            resolve({ storyId: storyId, liked: false });
+          }
         })
         .catch((error) => {
           this.logger.error(error);

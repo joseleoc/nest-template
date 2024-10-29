@@ -3,14 +3,14 @@ import { Story } from './stories.schema';
 import { Prop, SchemaFactory, Schema } from '@nestjs/mongoose';
 import { HydratedDocument, Schema as MongooseSchema } from 'mongoose';
 
-export type StoriesLikesDocument = HydratedDocument<StoriesLikes>;
+export type StoriesViewsDocument = HydratedDocument<StoriesViews>;
 
 @Schema({
   timestamps: true,
   toObject: { versionKey: false },
   toJSON: { versionKey: false },
 })
-export class StoriesLikes {
+export class StoriesViews {
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     ref: User.name,
@@ -26,10 +26,10 @@ export class StoriesLikes {
   storyId: string;
 }
 
-export const StoriesLikesSchema = SchemaFactory.createForClass(StoriesLikes);
+export const StoriesViewsSchema = SchemaFactory.createForClass(StoriesViews);
 
 // Create indexes for efficient querying
-StoriesLikesSchema.index({ userId: 1, storyId: 1 }, { unique: false }); // Compound index for retrieval by user and story
+StoriesViewsSchema.index({ userId: 1, storyId: 1 }, { unique: false }); // Compound index for retrieval by user and story
 
 // Optional: Create an additional index for efficient user-based retrieval
-// StoriesLikesSchema.index({ userId: 1 });  // Index for retrieving views by user
+// StoriesViewsSchema.index({ userId: 1 });  // Index for retrieving views by user

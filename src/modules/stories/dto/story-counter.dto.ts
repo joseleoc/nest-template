@@ -1,4 +1,4 @@
-export class LikeStoryDto {
+export class StoryCounterDto {
   storyId: string;
   userId: string;
 }

@@ -8,13 +8,17 @@ import {
   HttpStatus,
   Logger,
   NotFoundException,
-  Patch,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { StoriesService } from './stories.service';
 import { CreateStoryDto } from './dto/create-story.dto';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { LikeStoryDto } from './dto/like-story.dto';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { StoryCounterDto } from './dto/story-counter.dto';
 
 @ApiTags('Stories')
 @ApiBearerAuth()
@@ -34,6 +38,11 @@ export class StoriesController {
   // Public methods
   // --------------------------------------------------------------------------------
   @Post()
+  @ApiOperation({
+    summary: 'Create a story',
+    description:
+      'Creates a story with IA, saves to the db and returns the story with the audios urls.',
+  })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'When the story is created successfully',
@@ -62,11 +71,23 @@ export class StoriesController {
       });
   }
 
+  @Get('userStories/:id')
+  @ApiOperation({
+    summary: 'Finds all stories created by a user',
+    description: 'Returns an array of stories',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'When the user has stories',
+    description: 'When the user has stories, an array of stories',
   })
-  @Get('userStories/:id')
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error, could be caused by a database error.',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'User not found',
+  })
   findUserStories(@Param('id') id: string, @Res() res: Response) {
     try {
       this.storiesService
@@ -86,6 +107,11 @@ export class StoriesController {
   }
 
   @Post('/toggleLike')
+  @ApiOperation({
+    summary: 'Toggles the like of a story',
+    description:
+      'If the user has already liked the story, it will remove the like. Otherwise, it will add a like. And returns the likesCount of the story.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Toggles the like of a story',
@@ -108,13 +134,109 @@ export class StoriesController {
     status: HttpStatus.NOT_FOUND,
     description: 'Story not found',
   })
-  toggleLike(@Body() body: LikeStoryDto, @Res() res: Response) {
+  toggleLike(@Body() body: StoryCounterDto, @Res() res: Response) {
     try {
       this.storiesService
         .toggleLike(body)
         .then((story) => {
           if (story != null) {
             res.status(HttpStatus.OK).json({ likesCount: story.likesCount });
+          } else {
+            throw new NotFoundException();
+          }
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+        });
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  @Post('/countView')
+  @ApiOperation({
+    summary: 'Counts the view of a story',
+    description:
+      'Always increments the viewsCount by 1 every time it is called.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Counts the view of a story.',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            viewsCount: { type: 'number' },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error, could be caused by a database error.',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Story not found',
+  })
+  countView(@Body() body: StoryCounterDto, @Res() res: Response) {
+    try {
+      this.storiesService
+        .countView(body)
+        .then((story) => {
+          if (story != null) {
+            res.status(HttpStatus.OK).json({ viewsCount: story.viewsCount });
+          } else {
+            throw new NotFoundException();
+          }
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+        });
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  @Post('/countShare')
+  @ApiOperation({
+    summary: 'Counts the share of a story',
+    description:
+      'Always increments the sharesCount by 1 every time it is called.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Counts the share of a story.',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            sharesCount: { type: 'number' },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error, could be caused by a database error.',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Story not found',
+  })
+  countShare(@Body() body: StoryCounterDto, @Res() res: Response) {
+    try {
+      this.storiesService
+        .countShare(body)
+        .then((story) => {
+          if (story != null) {
+            res.status(HttpStatus.OK).json({ sharesCount: story.sharesCount });
           } else {
             throw new NotFoundException();
           }

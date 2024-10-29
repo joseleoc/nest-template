@@ -19,6 +19,7 @@ import { PublicStory, StoryCounterParams } from './stories.types';
 import { StoriesLikes } from './schemas/stories-likes.schema';
 import { StoriesViews } from './schemas/stories-views.schema';
 import { StoriesShare } from './schemas/stories-share.schema';
+import { GetAllStoriesDto } from './dto/get-all-stories.dto';
 
 @Injectable()
 export class StoriesService {
@@ -166,6 +167,32 @@ export class StoriesService {
     });
   }
 
+  getAllStories(params: GetAllStoriesDto): Promise<PublicStory[]> {
+    return new Promise((resolve, reject) => {
+      let { page, limit } = params;
+      limit = limit <= 0 ? 10 : limit;
+      limit = limit > 50 ? 50 : limit;
+      page = page <= 0 ? 0 : page;
+      this.storyModel
+        .find()
+        .sort({ createdAt: -1 })
+        .skip(page * limit)
+        .limit(limit)
+        .then((stories) => {
+          console.log('storiesLength', stories.length);
+          const publicStories = stories.map((story) => new PublicStory(story));
+          return this.generateStoriesMetaParams(publicStories);
+        })
+        .then((publicStories) => {
+          resolve(publicStories);
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
+  }
+
   /**
    * Finds all stories created by a user.
    * @param id - The id of the user to find the stories of.
@@ -179,26 +206,10 @@ export class StoriesService {
         .then((stories) => {
           const publicStories = stories.map((story) => new PublicStory(story));
 
-          const audiosURLsPromises = publicStories.map((story) =>
-            story.generateAudiosUrls(this.cloudStorageService),
-          );
-
-          const likesPromises = publicStories.map((story) =>
-            this.checkUserStoryLike({ userId: id, storyId: story.id }),
-          );
-
-          return Promise.all([
-            Promise.all(likesPromises),
-            Promise.all(audiosURLsPromises),
-          ]);
+          return this.generateStoriesMetaParams(publicStories);
         })
-        .then(([likes, storiesWithAudiosURLs]) => {
-          const stories = storiesWithAudiosURLs.map((story) => {
-            const liked = likes.find((like) => like.storyId === story.id).liked;
-            story.liked = liked;
-            return story;
-          });
-          resolve(stories);
+        .then((publicStories) => {
+          resolve(publicStories);
         })
         .catch((error) => {
           reject(error);
@@ -372,6 +383,38 @@ export class StoriesService {
           } else {
             resolve({ storyId: storyId, liked: false });
           }
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
+  }
+
+  private generateStoriesMetaParams(
+    stories: PublicStory[],
+  ): Promise<PublicStory[]> {
+    return new Promise((resolve, reject) => {
+      // Check if the user has liked the story
+      const likesPromises = stories.map((story) =>
+        this.checkUserStoryLike({ userId: story.userId, storyId: story.id }),
+      );
+
+      // Generates the audios urls
+      const audiosURLsPromises = stories.map((story) =>
+        story.generateAudiosUrls(this.cloudStorageService),
+      );
+
+      // Combines the promises
+      Promise.all([Promise.all(likesPromises), Promise.all(audiosURLsPromises)])
+        .then(([likes, storiesWithAudiosURLs]) => {
+          // Adds the liked property to the stories
+          const storiesWithLikes = storiesWithAudiosURLs.map((story) => {
+            const liked = likes.find((like) => like.storyId === story.id).liked;
+            story.liked = liked;
+            return story;
+          });
+          resolve(storiesWithLikes);
         })
         .catch((error) => {
           this.logger.error(error);

@@ -19,6 +19,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { StoryCounterDto } from './dto/story-counter.dto';
+import { GetAllStoriesDto } from './dto/get-all-stories.dto';
 
 @ApiTags('Stories')
 @ApiBearerAuth()
@@ -68,6 +69,34 @@ export class StoriesController {
         } else {
           res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
         }
+      });
+  }
+
+  @Post('getAllStories')
+  @ApiOperation({
+    summary: 'Get all stories',
+    description: `Returns an array of paginated stories. 
+    The default pagination is page 0 and limit 10. 
+    If the page or limit is set to 0 or less than 0, it will be set to 10. 
+    If the limit is set to greater than 50, it will be set to 50.`,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'When the stories are found, an array of stories',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error, could be caused by a database error.',
+  })
+  getAllStories(@Body() body: GetAllStoriesDto, @Res() res: Response) {
+    this.storiesService
+      .getAllStories(body)
+      .then((stories) => {
+        res.status(HttpStatus.OK).json(stories);
+      })
+      .catch((error) => {
+        this.logger.error(error);
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
       });
   }
 

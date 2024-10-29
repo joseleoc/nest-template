@@ -110,4 +110,5 @@ export class Story {
 export const StorySchema = SchemaFactory.createForClass(Story);
 
 // Create indexes for efficient querying
-StorySchema.index({ userId: 1 }, { unique: false }); // Compound index for retrieval by user
+StorySchema.index({ userId: 1 }, { unique: false }); // Compound index for retrieval by userId
+StorySchema.index({ childId: 1 }, { unique: false }); // Compound index for retrieval by childId

@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 
 import { UsersService } from '../users';
 import { AiService } from '@/services/ai/ai.service';
@@ -20,6 +20,9 @@ import { StoriesLikes } from './schemas/stories-likes.schema';
 import { StoriesViews } from './schemas/stories-views.schema';
 import { StoriesShare } from './schemas/stories-share.schema';
 import { GetAllStoriesDto } from './dto/get-all-stories.dto';
+import { ReportStoryDto } from './dto/report-story.dto';
+import { User } from '../users/schemas/user.schema';
+import { StoriesReports } from './schemas/stories-reports.schema';
 
 @Injectable()
 export class StoriesService {
@@ -38,6 +41,9 @@ export class StoriesService {
     private readonly storiesViewsModel: Model<StoriesViews>,
     @InjectModel(StoriesShare.name)
     private readonly storiesShareModel: Model<StoriesShare>,
+    @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(StoriesReports.name)
+    private readonly storiesReportModel: Model<StoriesReports>,
     private usersService: UsersService,
     private aiService: AiService,
     private childrenService: ChildrenService,
@@ -361,6 +367,48 @@ export class StoriesService {
           this.logger.error(error);
           reject(error);
         });
+    });
+  }
+
+  report(params: ReportStoryDto): Promise<{ reportId: string } | null> {
+    return new Promise((resolve, reject) => {
+      const { storyId, userId, reason } = params;
+      Promise.all([
+        this.storyModel.findById(storyId),
+        this.userModel.findById(userId),
+      ])
+        .then(([story, user]) => {
+          if (story == null || user == null) {
+            resolve(null);
+            return;
+          }
+          console.log({ storyId: story.id, userId: user.id, reason });
+          return this.storiesReportModel.create({
+            storyId: story.id,
+            userId: user.id,
+            reason,
+          });
+        })
+        .then((report) => {
+          if (report == null) {
+            resolve(null);
+            return;
+          }
+          resolve({ reportId: report.id });
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+      // this.storiesReportModel
+      //   .create(params)
+      //   .then(() => {
+      //     resolve();
+      //   })
+      //   .catch((error) => {
+      //     this.logger.error(error);
+      //     reject(error);
+      //   });
     });
   }
 

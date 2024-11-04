@@ -20,6 +20,10 @@ import {
   StoriesShare,
   StoriesShareSchema,
 } from './schemas/stories-share.schema';
+import {
+  StoriesReports,
+  StoriesReportsSchema,
+} from './schemas/stories-reports.schema';
 
 @Module({
   imports: [
@@ -27,16 +31,13 @@ import {
     ServicesModule,
     ChildrenModule,
     NarratorsModule,
-    MongooseModule.forFeature([{ name: Story.name, schema: StorySchema }]),
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([
+      { name: Story.name, schema: StorySchema },
+      { name: User.name, schema: UserSchema },
       { name: StoriesLikes.name, schema: StoriesLikesSchema },
-    ]),
-    MongooseModule.forFeature([
       { name: StoriesViews.name, schema: StoriesViewsSchema },
-    ]),
-    MongooseModule.forFeature([
       { name: StoriesShare.name, schema: StoriesShareSchema },
+      { name: StoriesReports.name, schema: StoriesReportsSchema },
     ]),
   ],
   controllers: [StoriesController],

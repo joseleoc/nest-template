@@ -28,6 +28,7 @@ import {
   GetAllStoriesDtoSchema,
 } from './dto/get-all-stories.dto';
 import { ZodValidationPipe } from 'nestjs-zod';
+import { ReportStoryDto, ReportStoryDtoSchema } from './dto/report-story.dto';
 
 @ApiTags('Stories')
 @ApiBearerAuth()
@@ -290,5 +291,42 @@ export class StoriesController {
     } catch (error) {
       this.logger.error(error);
     }
+  }
+
+  @Post('/report')
+  @UsePipes(new ZodValidationPipe(ReportStoryDtoSchema))
+  @ApiOperation({
+    summary: 'Report a story',
+    description:
+      'Reports a story to the moderators. The reason is limited to 265 characters.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'When the story is reported successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error, could be caused by a database error.',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Story not found',
+  })
+  report(@Body() body: ReportStoryDto, @Res() res: Response) {
+    this.storiesService
+      .report(body)
+      .then((report) => {
+        if (report?.reportId == null) {
+          throw new NotFoundException();
+        }
+        res.status(HttpStatus.OK).json({
+          message: 'Story reported successfully',
+          reportId: report.reportId,
+        });
+      })
+      .catch((error) => {
+        this.logger.error(error);
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+      });
   }
 }

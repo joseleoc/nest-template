@@ -1,5 +1,3 @@
-//TODO: Remove this line
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
@@ -9,21 +7,24 @@ import { AiService } from '@/services/ai/ai.service';
 import { AiStory } from '@/services/ai/schemas/ai-story.schema';
 import { ChildrenService } from '@/modules/children/children.service';
 import { NarratorsService } from '@/modules/narrators/narrators.service';
+import { CloudStorageService } from '@/services/cloud-storage/cloud-storage.service';
 import { TextToSpeechService } from '@/services/text-to-speech/text-to-speech.service';
 
 import { Story } from './schemas/stories.schema';
+import { User } from '../users/schemas/user.schema';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { StoryContent } from './schemas/stories-content.schema';
-import { CloudStorageService } from '@/services/cloud-storage/cloud-storage.service';
-import { PublicReport, PublicStory, StoryCounterParams } from './stories.types';
 import { StoriesLikes } from './schemas/stories-likes.schema';
 import { StoriesViews } from './schemas/stories-views.schema';
 import { StoriesShare } from './schemas/stories-share.schema';
+import { StoriesReports } from './schemas/stories-reports.schema';
+
 import { GetAllStoriesDto } from './dto/get-all-stories.dto';
 import { GetReportsDto, ReportStoryDto } from './dto/report-story.dto';
-import { User } from '../users/schemas/user.schema';
-import { StoriesReports } from './schemas/stories-reports.schema';
-import { PaginatedData } from '@/general.types';
+
+import { PaginatedData, PaginatedResponse } from '@/general.types';
+import { PublicReport, PublicStory, StoryCounterParams } from './stories.types';
+import { GetUserStoriesLikesDto } from './dto/get-user-stories-likes.dto';
 
 @Injectable()
 export class StoriesService {
@@ -177,23 +178,29 @@ export class StoriesService {
     });
   }
 
-  getAllStories(params: GetAllStoriesDto): Promise<PublicStory[]> {
+  /** Gets all the stories. Paginated. */
+  getAllStories(
+    params: GetAllStoriesDto,
+  ): Promise<PaginatedResponse<PublicStory>> {
     return new Promise((resolve, reject) => {
-      let { page, limit } = params;
-      limit = limit <= 0 ? 10 : limit;
-      limit = limit > 50 ? 50 : limit;
-      page = page <= 0 ? 0 : page;
-      this.storyModel
-        .find()
-        .sort({ createdAt: -1 })
-        .skip(page * limit)
-        .limit(limit)
-        .then((stories) => {
+      const { page, limit } = new PaginatedData(params.page, params.limit);
+      Promise.all([
+        this.storyModel
+          .find()
+          .sort({ createdAt: -1 })
+          .skip(page * limit)
+          .limit(limit),
+        this.storyModel.countDocuments({}),
+      ])
+        .then(([stories, totalSearch]) => {
           const publicStories = stories.map((story) => new PublicStory(story));
-          return this.generateStoriesMetaParams(publicStories);
+          return Promise.all([
+            this.generateStoriesMetaParams(publicStories),
+            totalSearch,
+          ]);
         })
-        .then((publicStories) => {
-          resolve(publicStories);
+        .then(([publicStories, totalSearch]) => {
+          resolve({ data: publicStories, totalSearch });
         })
         .catch((error) => {
           this.logger.error(error);
@@ -260,6 +267,7 @@ export class StoriesService {
             deleteOperation,
             createOperation,
           ])
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .then(([updateRes, deleteRes, createRes]) => {
               if (updateRes.modifiedCount === 0) {
                 reject(null);
@@ -370,6 +378,11 @@ export class StoriesService {
     });
   }
 
+  /**
+   * Reports a story to the moderators.
+   * @param params - The storyId, userId and reason of the report.
+   * @returns A promise that resolves to an object with the reportId.
+   */
   report(params: ReportStoryDto): Promise<{ reportId: string } | null> {
     return new Promise((resolve, reject) => {
       const { storyId, userId, reason } = params;
@@ -402,6 +415,7 @@ export class StoriesService {
     });
   }
 
+  /** Gets the reports for a user. Paginated. */
   getReports(params: GetReportsDto): Promise<PublicReport[]> {
     return new Promise((resolve, reject) => {
       const { page, limit } = new PaginatedData(params.page, params.limit);
@@ -415,6 +429,42 @@ export class StoriesService {
             (report) => new PublicReport(report),
           );
           resolve(publicReports);
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
+  }
+
+  getUserStoriesLikes(
+    params: GetUserStoriesLikesDto,
+  ): Promise<PaginatedResponse<PublicStory>> {
+    return new Promise((resolve, reject) => {
+      const { page, limit } = new PaginatedData(params.page, params.limit);
+
+      Promise.all([
+        this.storiesLikesModel
+          .find({ userId: params.userId })
+          .sort({ createdAt: -1 })
+          .skip(page * limit)
+          .limit(limit)
+          .then((likesDocs) => {
+            return this.storyModel.find({
+              _id: { $in: likesDocs.map((like) => like.storyId) },
+            });
+          }),
+        this.storyModel.countDocuments({ userId: params.userId }),
+      ])
+        .then(([stories, likedCount]) => {
+          const publicStories = stories.map((story) => new PublicStory(story));
+          return Promise.all([
+            this.generateStoriesMetaParams(publicStories),
+            likedCount,
+          ]);
+        })
+        .then(([publicStories, likedCount]) => {
+          resolve({ data: publicStories, totalSearch: likedCount });
         })
         .catch((error) => {
           this.logger.error(error);
@@ -453,6 +503,11 @@ export class StoriesService {
     });
   }
 
+  /**
+   * Gets the user name of the creator of a story.
+   * @param storyId The id of the story to get the user name of.
+   * @returns A promise that resolves to an object with the storyId and userName of the creator.
+   */
   private getStoryUserName(
     storyId: string,
   ): Promise<{ storyId: string; userName: string } | null> {
@@ -488,6 +543,11 @@ export class StoriesService {
     });
   }
 
+  /**
+   * Generates the audio urls for the stories.
+   * @param story The story to generate the audio urls for.
+   * @returns A promise that resolves to the story with the audio urls.
+   */
   private generateStoryAudioUrls(params: {
     story: PublicStory;
   }): Promise<PublicStory> {
@@ -511,6 +571,12 @@ export class StoriesService {
     );
   }
 
+  /**
+   * Adds the liked and createdBy properties to the stories.
+   * Also adds the content property to the stories with the audio urls.
+   * @param stories The stories to add the properties to.
+   * @returns A promise that resolves to the stories with the properties added.
+   */
   private generateStoriesMetaParams(
     stories: PublicStory[],
   ): Promise<PublicStory[]> {
@@ -539,12 +605,16 @@ export class StoriesService {
         .then(([likes, storiesWithAudiosURLs, users]) => {
           // Adds the properties to the stories
           const storiesWithProperties = stories.map((story) => {
+            // Adds the liked property to the stories
             const liked = likes.find((like) => like?.storyId === story.id);
             story.liked = liked?.liked ?? false;
+
+            // Adds the createdBy property to the stories
             story.createdBy = users.find(
               (user) => user?.storyId === story.id,
             )?.userName;
 
+            // Adds the content property to the stories with the audio urls
             const content = storiesWithAudiosURLs.find(
               (story) => story.id === story.id,
             )?.content;
@@ -554,16 +624,7 @@ export class StoriesService {
             return story;
           });
 
-          const storiesWithLikes = storiesWithAudiosURLs.map((story) => {
-            let liked = false;
-            if (likes) {
-              const like = likes.find((like) => like?.storyId === story.id);
-              liked = like?.liked ?? false;
-            }
-            story.liked = liked;
-            return story;
-          });
-          resolve(storiesWithLikes);
+          resolve(storiesWithProperties);
         })
         .catch((error) => {
           this.logger.error(error);

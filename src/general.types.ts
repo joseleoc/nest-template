@@ -18,3 +18,8 @@ export class PaginatedData {
     this.limit = limit <= 0 ? 10 : limit;
   }
 }
+
+export type PaginatedResponse<T> = {
+  data: T[];
+  totalSearch: number;
+};

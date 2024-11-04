@@ -34,6 +34,10 @@ import {
   ReportStoryDto,
   ReportStoryDtoSchema,
 } from './dto/report-story.dto';
+import {
+  GetUserStoriesLikesDto,
+  getUserStoriesLikesDtoSchema,
+} from './dto/get-user-stories-likes.dto';
 
 @ApiTags('Stories')
 @ApiBearerAuth()
@@ -90,7 +94,7 @@ export class StoriesController {
   @Post('getAllStories')
   @UsePipes(new ZodValidationPipe(GetAllStoriesDtoSchema))
   @ApiOperation({
-    summary: 'Get all stories',
+    summary: 'Get all stories paginated',
     description: `Returns an array of paginated stories. 
     The default pagination is page 0 and limit 10. 
     If the page or limit is set to 0 or less than 0, it will be set to 10. 
@@ -116,6 +120,7 @@ export class StoriesController {
       });
   }
 
+  //TODO: Pagination in this endpoint
   @Get('userStories/:id')
   @ApiOperation({
     summary: 'Finds all stories created by a user',
@@ -338,7 +343,7 @@ export class StoriesController {
   @Post('/getReports')
   @UsePipes(new ZodValidationPipe(GetReportsDtoSchema))
   @ApiOperation({
-    summary: 'Get reports',
+    summary: 'Get reports paginated',
     description: `Returns an array of reports. 
     The default pagination is page 0 and limit 10. 
     If the page or limit is set to 0 or less than 0, it will be set to 10. 
@@ -357,6 +362,49 @@ export class StoriesController {
       .getReports(body)
       .then((reports) => {
         res.status(HttpStatus.OK).json(reports);
+      })
+      .catch((error) => {
+        this.logger.error(error);
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+      });
+  }
+
+  @Post('/getUserStoriesLikes')
+  @UsePipes(new ZodValidationPipe(getUserStoriesLikesDtoSchema))
+  @ApiOperation({
+    summary: 'Get stories liked by a user paginated',
+    description: `Returns an array of paginated stories liked by a user. 
+    The default pagination is page 0 and limit 10. 
+    If the page or limit is set to 0 or less than 0, it will be set to 10. 
+    If the limit is set to greater than 50, it will be set to 50.`,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'When the stories are found, an array of stories',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            data: { type: 'array', items: { type: 'object' } },
+            totalSearch: { type: 'number' },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error, could be caused by a database error.',
+  })
+  getUserStoriesLikes(
+    @Body() body: GetUserStoriesLikesDto,
+    @Res() res: Response,
+  ) {
+    this.storiesService
+      .getUserStoriesLikes(body)
+      .then((stories) => {
+        res.status(HttpStatus.OK).json(stories);
       })
       .catch((error) => {
         this.logger.error(error);

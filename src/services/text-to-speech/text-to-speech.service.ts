@@ -51,7 +51,6 @@ export class TextToSpeechService {
           voice: narrator?.voiceId || 'Bill',
           model_id: 'eleven_turbo_v2_5',
         });
-        console.log(audio);
         // Concatenates the audio stream chunks into a single buffer
         const chunks: Buffer[] = [];
         try {

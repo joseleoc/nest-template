@@ -1,3 +1,7 @@
+import {
+  StoriesReportDocument,
+  StoriesReports,
+} from './schemas/stories-reports.schema';
 import { Story, StoryDocument } from './schemas/stories.schema';
 import { CloudStorageService } from '@/services/cloud-storage/cloud-storage.service';
 
@@ -36,3 +40,15 @@ export type StoryCounterParams = {
   storyId: string;
   userId: string;
 };
+
+export class PublicReport extends StoriesReports {
+  id: string;
+  constructor(report: StoriesReportDocument) {
+    super();
+    const data = report.toObject();
+    this.storyId = data.storyId;
+    this.userId = data.userId;
+    this.id = data._id.toString();
+    this.reason = data.reason;
+  }
+}

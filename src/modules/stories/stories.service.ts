@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 
 import { UsersService } from '../users';
 import { AiService } from '@/services/ai/ai.service';
@@ -15,14 +15,15 @@ import { Story } from './schemas/stories.schema';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { StoryContent } from './schemas/stories-content.schema';
 import { CloudStorageService } from '@/services/cloud-storage/cloud-storage.service';
-import { PublicStory, StoryCounterParams } from './stories.types';
+import { PublicReport, PublicStory, StoryCounterParams } from './stories.types';
 import { StoriesLikes } from './schemas/stories-likes.schema';
 import { StoriesViews } from './schemas/stories-views.schema';
 import { StoriesShare } from './schemas/stories-share.schema';
 import { GetAllStoriesDto } from './dto/get-all-stories.dto';
-import { ReportStoryDto } from './dto/report-story.dto';
+import { GetReportsDto, ReportStoryDto } from './dto/report-story.dto';
 import { User } from '../users/schemas/user.schema';
 import { StoriesReports } from './schemas/stories-reports.schema';
+import { PaginatedData } from '@/general.types';
 
 @Injectable()
 export class StoriesService {
@@ -188,7 +189,6 @@ export class StoriesService {
         .skip(page * limit)
         .limit(limit)
         .then((stories) => {
-          console.log('storiesLength', stories.length);
           const publicStories = stories.map((story) => new PublicStory(story));
           return this.generateStoriesMetaParams(publicStories);
         })
@@ -382,7 +382,6 @@ export class StoriesService {
             resolve(null);
             return;
           }
-          console.log({ storyId: story.id, userId: user.id, reason });
           return this.storiesReportModel.create({
             storyId: story.id,
             userId: user.id,
@@ -409,6 +408,27 @@ export class StoriesService {
       //     this.logger.error(error);
       //     reject(error);
       //   });
+    });
+  }
+
+  getReports(params: GetReportsDto): Promise<PublicReport[]> {
+    return new Promise((resolve, reject) => {
+      const { page, limit } = new PaginatedData(params.page, params.limit);
+      this.storiesReportModel
+        .find()
+        .sort({ createdAt: -1 })
+        .skip(page * limit)
+        .limit(limit)
+        .then((reports) => {
+          const publicReports = reports.map(
+            (report) => new PublicReport(report),
+          );
+          resolve(publicReports);
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
     });
   }
 

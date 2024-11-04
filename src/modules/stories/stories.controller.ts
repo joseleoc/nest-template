@@ -28,7 +28,12 @@ import {
   GetAllStoriesDtoSchema,
 } from './dto/get-all-stories.dto';
 import { ZodValidationPipe } from 'nestjs-zod';
-import { ReportStoryDto, ReportStoryDtoSchema } from './dto/report-story.dto';
+import {
+  GetReportsDto,
+  GetReportsDtoSchema,
+  ReportStoryDto,
+  ReportStoryDtoSchema,
+} from './dto/report-story.dto';
 
 @ApiTags('Stories')
 @ApiBearerAuth()
@@ -323,6 +328,35 @@ export class StoriesController {
           message: 'Story reported successfully',
           reportId: report.reportId,
         });
+      })
+      .catch((error) => {
+        this.logger.error(error);
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+      });
+  }
+
+  @Post('/getReports')
+  @UsePipes(new ZodValidationPipe(GetReportsDtoSchema))
+  @ApiOperation({
+    summary: 'Get reports',
+    description: `Returns an array of reports. 
+    The default pagination is page 0 and limit 10. 
+    If the page or limit is set to 0 or less than 0, it will be set to 10. 
+    If the limit is set to greater than 50, it will be set to 50.`,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'When the reports are found, an array of reports',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error, could be caused by a database error.',
+  })
+  getReports(@Body() body: GetReportsDto, @Res() res: Response) {
+    this.storiesService
+      .getReports(body)
+      .then((reports) => {
+        res.status(HttpStatus.OK).json(reports);
       })
       .catch((error) => {
         this.logger.error(error);

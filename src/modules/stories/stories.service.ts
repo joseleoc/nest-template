@@ -616,14 +616,13 @@ export class StoriesService {
 
             // Adds the content property to the stories with the audio urls
             const content = storiesWithAudiosURLs.find(
-              (story) => story.id === story.id,
+              (withAudio) => story.id === withAudio.id,
             )?.content;
             if (content != null) {
               story.content = content;
             }
             return story;
           });
-
           resolve(storiesWithProperties);
         })
         .catch((error) => {

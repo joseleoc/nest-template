@@ -162,7 +162,7 @@ export class StoriesService {
               }
               const newStory = new PublicStory(story);
               newStory.liked = false;
-              return newStory.generateAudiosUrls(this.cloudStorageService);
+              return this.generateStoryAudioUrls({ story: newStory });
             })
             .then((story) => resolve(story))
             .catch((error) => {
@@ -399,15 +399,6 @@ export class StoriesService {
           this.logger.error(error);
           reject(error);
         });
-      // this.storiesReportModel
-      //   .create(params)
-      //   .then(() => {
-      //     resolve();
-      //   })
-      //   .catch((error) => {
-      //     this.logger.error(error);
-      //     reject(error);
-      //   });
     });
   }
 
@@ -462,6 +453,64 @@ export class StoriesService {
     });
   }
 
+  private getStoryUserName(
+    storyId: string,
+  ): Promise<{ storyId: string; userName: string } | null> {
+    return new Promise((resolve, reject) => {
+      this.storyModel
+        .findById(storyId)
+        .then((story) => {
+          if (story != null) {
+            this.userModel
+              .findById(story.userId)
+              .then((user) => {
+                if (user != null) {
+                  resolve({
+                    storyId: story.id,
+                    userName: user.userName,
+                  });
+                } else {
+                  resolve(null);
+                }
+              })
+              .catch((error) => {
+                this.logger.error(error);
+                reject(error);
+              });
+          } else {
+            resolve(null);
+          }
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
+  }
+
+  private generateStoryAudioUrls(params: {
+    story: PublicStory;
+  }): Promise<PublicStory> {
+    return new Promise(
+      async (resolve: (value: PublicStory) => void, reject) => {
+        const { story } = params;
+        const promises = story.content.map((content) =>
+          this.cloudStorageService.generatePresignedUrl(
+            `audios/${content.audio}`,
+          ),
+        );
+        Promise.all(promises)
+          .then((urls) => {
+            story.content.forEach((content, index) => {
+              content.audioUrl = urls[index];
+            });
+            resolve(story);
+          })
+          .catch((error) => reject(error));
+      },
+    );
+  }
+
   private generateStoriesMetaParams(
     stories: PublicStory[],
   ): Promise<PublicStory[]> {
@@ -473,13 +522,38 @@ export class StoriesService {
 
       // Generates the audios urls
       const audiosURLsPromises = stories.map((story) =>
-        story.generateAudiosUrls(this.cloudStorageService),
+        this.generateStoryAudioUrls({ story }),
+      );
+
+      // Gets the creator name of the story
+      const usersPromises = stories.map((story) =>
+        this.getStoryUserName(story.id),
       );
 
       // Combines the promises
-      Promise.all([Promise.all(likesPromises), Promise.all(audiosURLsPromises)])
-        .then(([likes, storiesWithAudiosURLs]) => {
-          // Adds the liked property to the stories
+      Promise.all([
+        Promise.all(likesPromises),
+        Promise.all(audiosURLsPromises),
+        Promise.all(usersPromises),
+      ])
+        .then(([likes, storiesWithAudiosURLs, users]) => {
+          // Adds the properties to the stories
+          const storiesWithProperties = stories.map((story) => {
+            const liked = likes.find((like) => like?.storyId === story.id);
+            story.liked = liked?.liked ?? false;
+            story.createdBy = users.find(
+              (user) => user?.storyId === story.id,
+            )?.userName;
+
+            const content = storiesWithAudiosURLs.find(
+              (story) => story.id === story.id,
+            )?.content;
+            if (content != null) {
+              story.content = content;
+            }
+            return story;
+          });
+
           const storiesWithLikes = storiesWithAudiosURLs.map((story) => {
             let liked = false;
             if (likes) {

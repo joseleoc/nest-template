@@ -43,23 +43,28 @@ export class TextToSpeechService {
         const next_text = isLastParagraph
           ? 'This is the end of the story.'
           : paragraphs.slice(i + 1, paragraphs.length).join(' ');
-        // Generates the audio stream for the current paragraph. Giving the previous and next paragraphs as context.
-        const audio = await this.elevenLabsClient.generate({
-          text,
-          previous_text,
-          next_text,
-          voice: narrator?.voiceId || 'Bill',
-          model_id: 'eleven_turbo_v2_5',
-        });
-        // Concatenates the audio stream chunks into a single buffer
-        const chunks: Buffer[] = [];
-        try {
-          for await (const chunk of audio) {
-            chunks.push(chunk);
-          }
 
-          const content = Buffer.concat(chunks);
-          audios.push({ buffer: content, index: i });
+        try {
+          // Generates the audio stream for the current paragraph. Giving the previous and next paragraphs as context.
+          const audio = await this.elevenLabsClient.generate({
+            text,
+            previous_text,
+            next_text,
+            voice: narrator?.voiceId || 'Bill',
+            model_id: 'eleven_turbo_v2_5',
+          });
+          // Concatenates the audio stream chunks into a single buffer
+          const chunks: Buffer[] = [];
+          try {
+            for await (const chunk of audio) {
+              chunks.push(chunk);
+            }
+
+            const content = Buffer.concat(chunks);
+            audios.push({ buffer: content, index: i });
+          } catch (error) {
+            this.logger.error(error);
+          }
         } catch (error) {
           this.logger.error(error);
         }
@@ -75,7 +80,7 @@ export class TextToSpeechService {
             this.cloudStorageService
               .uploadAudioStreamToS3(buffer)
               .then((res) => {
-                resolve({ fileName: res, index });
+                resolve({ fileName: res || '', index });
               })
               .catch((err) => {
                 this.logger.error(err);

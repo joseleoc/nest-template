@@ -554,11 +554,12 @@ export class StoriesService {
     return new Promise(
       async (resolve: (value: PublicStory) => void, reject) => {
         const { story } = params;
-        const promises = story.content.map((content) =>
-          this.cloudStorageService.generatePresignedUrl(
+        const promises = story.content.map((content) => {
+          if (content.audioUrl == null) return Promise.resolve('');
+          return this.cloudStorageService.generatePresignedUrl(
             `audios/${content.audio}`,
-          ),
-        );
+          );
+        });
         Promise.all(promises)
           .then((urls) => {
             story.content.forEach((content, index) => {

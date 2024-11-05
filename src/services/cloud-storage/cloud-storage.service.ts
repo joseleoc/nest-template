@@ -50,7 +50,8 @@ export class CloudStorageService {
    * @returns A Promise that resolves to the unique key of the uploaded object in the S3 bucket.
    */
   uploadAudioStreamToS3(audioStream: Buffer) {
-    return new Promise<string>(async (resolve, reject) => {
+    return new Promise<string | null>(async (resolve, reject) => {
+      if (audioStream.length === 0) return resolve(null);
       const remotePath = `${uuid()}.mp3`;
       this.s3Client
         .send(

@@ -555,7 +555,6 @@ export class StoriesService {
       async (resolve: (value: PublicStory) => void, reject) => {
         const { story } = params;
         const promises = story.content.map((content) => {
-          console.log(content.audio);
           if (content.audio == null) return Promise.resolve('');
           return this.cloudStorageService.generatePresignedUrl(
             `audios/${content.audio}`,

@@ -38,6 +38,7 @@ import {
   GetUserStoriesLikesDto,
   getUserStoriesLikesDtoSchema,
 } from './dto/get-user-stories-likes.dto';
+import { SkipAuth } from '@/decorators/index';
 
 @ApiTags('Stories')
 @ApiBearerAuth()
@@ -92,6 +93,7 @@ export class StoriesController {
   }
 
   @Post('getAllStories')
+  @SkipAuth()
   @UsePipes(new ZodValidationPipe(GetAllStoriesDtoSchema))
   @ApiOperation({
     summary: 'Get all stories paginated',

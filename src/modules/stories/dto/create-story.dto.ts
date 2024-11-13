@@ -32,6 +32,9 @@ export const CreateStoryDtoSchema = z.object({
   }),
   finalDetails: z.string().optional().default(''),
   language: z.nativeEnum(Language),
+  generateAudios: z.boolean().optional().default(true),
+  generateImages: z.boolean().optional().default(true),
+  paragraphsLength: z.number().optional().default(5),
 });
 
 export class CreateStoryDto extends createZodDto(CreateStoryDtoSchema) {}

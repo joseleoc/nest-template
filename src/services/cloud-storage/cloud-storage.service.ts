@@ -90,6 +90,10 @@ export class CloudStorageService {
         Key: objectKey,
         Expires: expiresIn,
       };
+
+      if (objectKey.split('/')[1].length < 1) {
+        return resolve('');
+      }
       const command = new GetObjectCommand(getObjectParams);
       getSignedUrl(this.s3Client, command, { expiresIn })
         .then((url) => {

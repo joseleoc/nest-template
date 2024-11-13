@@ -12,6 +12,7 @@ export class PublicStory extends Story {
     const data = story.toObject();
     super();
     this.id = data._id.toString();
+    delete (data as any)._id;
     Object.assign(this, data);
   }
 }

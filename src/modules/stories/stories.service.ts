@@ -68,13 +68,13 @@ export class StoriesService {
         userId,
         childId,
         storyNarrator,
-        mainCharacter,
         solveProblem,
         teachSomething,
         storyHelp,
         storyStyle,
-        storyPlace,
         finalDetails,
+        generateAudios,
+        generateImages,
       } = createStoryDto;
       // Check if the user has enough credits to create a story and search for the child if it exists.
       Promise.all([
@@ -112,39 +112,68 @@ export class StoriesService {
             .createStory({ user, prompt: createStoryDto, child })
             .then((story: AiStory) => {
               const userCredits = user.credits - 1;
+              // Audios promises
+              const audiosPromises = generateAudios
+                ? this.textToSpeechService.createAudioFromText({
+                    paragraphs: story.content,
+                    narrator,
+                  })
+                : {
+                    fileNames: new Array(story.content.length).fill(''),
+                    duration: 0,
+                  };
+
+              // Images promises
+              const imagesPromises = generateImages
+                ? this.aiService.generateStoryImages({ story })
+                : Array(story.content.length).fill('');
+
               // Returns the story and the audio streams and  updates the user credits.
               return Promise.all([
                 story,
-                this.textToSpeechService.createAudioFromText({
-                  paragraphs: story.content,
-                  narrator,
-                }),
+                audiosPromises,
+                imagesPromises,
                 this.usersService.updateCredits(user.id, userCredits),
               ]);
             })
             .then((res) => {
-              const [story, audio] = res;
+              const [story, audio, images] = res;
+
               // Creates an array of StoryContent objects with the audio streams and images.
               const content: StoryContent[] = new Array(story.content.length);
               for (let i = 0; i < story.content.length; i++) {
+                // Calculates the index of the image to display for the current paragraph
+                let imgInd = Math.floor(
+                  (i * images.length) / story.content.length,
+                );
+                if (imgInd < 0) imgInd = 0;
+                if (imgInd >= images.length) imgInd = images.length - 1;
+
                 content[i] = {
                   paragraph: story.content[i],
-                  audio: audio.fileNames[i],
-                  image: '',
+                  audio: audio?.fileNames[i] || '',
+                  image: images[imgInd] || '',
                 };
+
+                // if (
+                //   i >= contentIndex * imgLength &&
+                //   i < (contentIndex + 1) * imgLength
+                // ) {
+                //   imgInd += 1;
+                // }
               }
 
               const newStory: Story = {
                 title: story.title,
                 content,
                 summary: story.summary,
-                mainCharacter: mainCharacter,
+                character: story.character,
                 storyStyle: storyStyle,
                 solveProblem: solveProblem,
                 teachSomething: teachSomething,
                 storyHelp: storyHelp,
                 narratorId: narrator.id,
-                storyPlace: storyPlace,
+                place: story.place,
                 userId: user.id,
                 childId: child?._id,
                 finalDetails: finalDetails,
@@ -163,7 +192,9 @@ export class StoriesService {
               }
               const newStory = new PublicStory(story);
               newStory.liked = false;
-              return this.generateStoryAudioUrls({ story: newStory });
+              return this.generateStoriesMetaParams([newStory], {
+                generateAudios,
+              });
             })
             .then((story) => resolve(story))
             .catch((error) => {
@@ -555,7 +586,12 @@ export class StoriesService {
       async (resolve: (value: PublicStory) => void, reject) => {
         const { story } = params;
         const promises = story.content.map((content) => {
-          if (content.audio == null) return Promise.resolve('');
+          if (
+            content.audio == '' ||
+            content.audio == null ||
+            content.audio == undefined
+          )
+            return Promise.resolve('');
           return this.cloudStorageService.generatePresignedUrl(
             `audios/${content.audio}`,
           );
@@ -580,17 +616,22 @@ export class StoriesService {
    */
   private generateStoriesMetaParams(
     stories: PublicStory[],
+    options?: {
+      generateAudios: boolean;
+    },
   ): Promise<PublicStory[]> {
     return new Promise((resolve, reject) => {
+      const { generateAudios = true } = options || {};
+
       // Check if the user has liked the story
       const likesPromises = stories.map((story) =>
         this.checkUserStoryLike({ userId: story.userId, storyId: story.id }),
       );
 
       // Generates the audios urls
-      const audiosURLsPromises = stories.map((story) =>
-        this.generateStoryAudioUrls({ story }),
-      );
+      const audiosURLsPromises = generateAudios
+        ? stories.map((story) => this.generateStoryAudioUrls({ story }))
+        : new Array(stories.length).fill(Promise.resolve(''));
 
       // Gets the creator name of the story
       const usersPromises = stories.map((story) =>

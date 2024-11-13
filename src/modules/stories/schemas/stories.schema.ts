@@ -7,8 +7,6 @@ import { StoryContent } from './stories-content.schema';
 import { User } from '@/modules/users/schemas/user.schema';
 import { Child } from '@/modules/children/schemas/child.schema';
 import { Narrator } from '@/modules/narrators/schemas/narrators.schema';
-import { Character } from '@/modules/characters/schemas/character.schema';
-import { StoryPlace } from '@/modules/stories-places/schemas/story-place.schema';
 
 export enum StoryStyle {
   'FICTIONAL' = 'FICTIONAL',
@@ -36,10 +34,10 @@ export class Story {
 
   @Prop({
     required: true,
-    type: Character,
+    type: String,
     trim: true,
   })
-  mainCharacter: Character;
+  character: string;
 
   @Prop({
     required: true,
@@ -69,10 +67,10 @@ export class Story {
 
   @Prop({
     required: true,
-    type: StoryPlace,
+    type: String,
     trim: true,
   })
-  storyPlace: StoryPlace;
+  place: string;
 
   @Prop({
     required: false,

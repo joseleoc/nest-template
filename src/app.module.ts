@@ -4,7 +4,6 @@ import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
-import { AppService } from './app.service';
 import { AppController } from './app.controller';
 
 import { UsersModule } from './modules/users';
@@ -71,7 +70,6 @@ import { ServicesModule } from './services/services.module';
   ],
   controllers: [AppController],
   providers: [
-    AppService,
     // Make all the endpoints guarded by JwtAuthGuard
     {
       provide: APP_GUARD,

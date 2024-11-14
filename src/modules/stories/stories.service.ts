@@ -187,6 +187,7 @@ export class StoriesService {
               newStory.liked = false;
               return this.generateStoriesMetaParams([newStory], {
                 generateAudios,
+                generateImages,
               });
             })
             .then((story) => resolve(story))
@@ -583,8 +584,9 @@ export class StoriesService {
             content.audio == '' ||
             content.audio == null ||
             content.audio == undefined
-          )
+          ) {
             return Promise.resolve('');
+          }
           return this.cloudStorageService.generatePresignedUrl(
             `audios/${content.audio}`,
           );
@@ -601,6 +603,35 @@ export class StoriesService {
     );
   }
 
+  private generateStoryImageUrls(params: {
+    story: PublicStory;
+  }): Promise<PublicStory> {
+    return new Promise((resolve, reject) => {
+      const { story } = params;
+      const promises = story.content.map((content) => {
+        if (
+          content.image == '' ||
+          content.image == null ||
+          content.image == undefined
+        ) {
+          return Promise.resolve('');
+        }
+        return this.cloudStorageService.generatePresignedUrl(
+          `images/${content.image}`,
+        );
+      });
+
+      Promise.all(promises)
+        .then((urls) => {
+          story.content.forEach((content, index) => {
+            content.imageUrl = urls[index];
+          });
+          resolve(story);
+        })
+        .catch((error) => reject(error));
+    });
+  }
+
   /**
    * Adds the liked and createdBy properties to the stories.
    * Also adds the content property to the stories with the audio urls.
@@ -610,11 +641,12 @@ export class StoriesService {
   private generateStoriesMetaParams(
     stories: PublicStory[],
     options?: {
-      generateAudios: boolean;
+      generateAudios?: boolean;
+      generateImages?: boolean;
     },
   ): Promise<PublicStory[]> {
     return new Promise((resolve, reject) => {
-      const { generateAudios = true } = options || {};
+      const { generateAudios = true, generateImages = true } = options || {};
 
       // Check if the user has liked the story
       const likesPromises = stories.map((story) =>
@@ -622,44 +654,62 @@ export class StoriesService {
       );
 
       // Generates the audios urls
-      const audiosURLsPromises = generateAudios
+      const audiosURLsPromises: Promise<PublicStory>[] = generateAudios
         ? stories.map((story) => this.generateStoryAudioUrls({ story }))
-        : new Array(stories.length).fill(Promise.resolve(''));
+        : new Array(stories.length).fill(Promise.resolve(stories));
 
       // Gets the creator name of the story
       const usersPromises = stories.map((story) =>
         this.getStoryUserName(story.id),
       );
 
+      const ImagesURLsPromises: Promise<PublicStory>[] = generateImages
+        ? stories.map((story) => this.generateStoryImageUrls({ story }))
+        : new Array(stories.length).fill(Promise.resolve(stories));
+
       // Combines the promises
       Promise.all([
         Promise.all(likesPromises),
         Promise.all(audiosURLsPromises),
         Promise.all(usersPromises),
+        Promise.all(ImagesURLsPromises),
       ])
-        .then(([likes, storiesWithAudiosURLs, users]) => {
-          // Adds the properties to the stories
-          const storiesWithProperties = stories.map((story) => {
-            // Adds the liked property to the stories
-            const liked = likes.find((like) => like?.storyId === story.id);
-            story.liked = liked?.liked ?? false;
+        .then(
+          ([likes, storiesWithAudiosURLs, users, storiesWithImagesURLs]) => {
+            // Adds the properties to the stories
+            const storiesWithProperties = stories.map((story) => {
+              // Adds the liked property to the stories
+              const liked = likes.find((like) => like?.storyId === story.id);
+              story.liked = liked?.liked ?? false;
 
-            // Adds the createdBy property to the stories
-            story.createdBy = users.find(
-              (user) => user?.storyId === story.id,
-            )?.userName;
+              // Adds the createdBy property to the stories
+              story.createdBy =
+                users.find((user) => user?.storyId === story.id)?.userName ||
+                '';
 
-            // Adds the content property to the stories with the audio urls
-            const content = storiesWithAudiosURLs.find(
-              (withAudio) => story.id === withAudio.id,
-            )?.content;
-            if (content != null) {
+              const audios =
+                storiesWithAudiosURLs.find(
+                  (withAudio) => story.id === withAudio.id,
+                )?.content || story.content;
+
+              const images =
+                storiesWithImagesURLs.find(
+                  (withAudio) => story.id === withAudio.id,
+                )?.content || story.content;
+
+              const content = audios;
+              images.forEach((withImage, i) => {
+                content[i].image = withImage.image;
+                content[i].imageUrl = withImage.imageUrl;
+              });
               story.content = content;
-            }
-            return story;
-          });
-          resolve(storiesWithProperties);
-        })
+
+              return story;
+            });
+
+            resolve(storiesWithProperties);
+          },
+        )
         .catch((error) => {
           this.logger.error(error);
           reject(error);

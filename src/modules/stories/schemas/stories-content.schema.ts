@@ -10,6 +10,9 @@ export class StoryContent {
   @Prop({ required: false, type: String, default: '' })
   audioUrl?: string;
 
+  @Prop({ required: false, type: String, default: '' })
+  imageUrl?: string;
+
   @Prop({ required: true, type: String, default: '' })
   image: string;
 }

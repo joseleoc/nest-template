@@ -7,6 +7,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { v4 as uuid } from 'uuid';
 import { ConfigService } from '@nestjs/config';
+import * as mime from 'mime-types';
 
 @Injectable()
 export class CloudStorageService {
@@ -16,6 +17,8 @@ export class CloudStorageService {
   private readonly s3Client: S3Client;
   private logger = new Logger(CloudStorageService.name);
   private bucketName = this.configService.get('AWS_S3_BUCKET_NAME');
+  private imagesFolderName = 'images';
+  private audiosFolderName = 'audios';
   // --------------------------------------------------------------------------------
   // Constructor
   // --------------------------------------------------------------------------------
@@ -57,13 +60,48 @@ export class CloudStorageService {
         .send(
           new PutObjectCommand({
             Bucket: `${this.bucketName}`,
-            Key: `audios/${remotePath}`,
+            Key: `${this.audiosFolderName}/${remotePath}`,
             Body: audioStream,
             ContentType: 'audio/mpeg',
           }),
         )
         .then(() => {
           resolve(remotePath);
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
+  }
+
+  uploadImageToS3(base64String: string): Promise<string> {
+    return new Promise(async (resolve, reject) => {
+      if (
+        base64String == null ||
+        base64String == undefined ||
+        base64String.length === 0
+      ) {
+        return resolve('');
+      }
+      const base64Data = Buffer.from(
+        base64String.replace(/^data:\w+\/[a-zA-Z+\-.]+;base64,/, ''),
+        'base64',
+      );
+      const imgType = 'png';
+      const imageKey = `${uuid()}.${imgType}`;
+      this.s3Client
+        .send(
+          new PutObjectCommand({
+            Bucket: this.bucketName,
+            Key: `${this.imagesFolderName}/${imageKey}`,
+            Body: base64Data,
+            ContentEncoding: 'base64',
+            ContentType: mime.lookup(imageKey) || 'application/octet-stream', //We add 'application/octet-stream' in case mym-types can't read our file typee,
+          }),
+        )
+        .then(() => {
+          resolve(imageKey);
         })
         .catch((error) => {
           this.logger.error(error);

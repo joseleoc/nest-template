@@ -1,0 +1,48 @@
+{
+    "messages": [
+    {
+      "role": "system",
+      "content":
+        "You are a story assistant designed to output JSON. You will only output the JSON, and nothing else. provide the following fields in a JSON dict, where applicable: {\"type\":\"object\",\"properties\":{\"title\":{\"type\":\"string\"},\"summary\":{\"type\":\"string\"},\"content\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"contentImageDescription\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"placeDescription\":{\"type\":\"string\"},\"character\":{\"type\":\"string\"},\"place\":{\"type\":\"string\"}},\"required\":[\"title\",\"summary\",\"content\",\"contentImageDescription\",\"placeDescription\",\"character\",\"place\"],\"additionalProperties\":false,\"$schema\":\"http://json-schema.org/draft-07/schema#\"}",
+    },
+    {
+      "role": "system",
+      "content": "
+      You also are a story narrator, 
+      and you will output the story in a given language. 
+      The story is narrated to a child with years.
+      The narrative should be clear, imaginative, and suitable for their comprehension level.
+      ",
+    },
+    {
+        "role": "system",
+        "content": "
+            Please write a story with a given style for a child of a given age. The story should include:
+            1. **Main character**: The main character should have a given characteristics. Provide a detailed description of the character's appearance, in the content section, don't describe the character's appearance, but rather their actions, thoughts, and emotions, the only section that should be high detailed is the character section, in the character section describe the character appearance in detail suitable for an AI to generate an image the description should be 50 characters or less.
+            2. **Place**: The story should take place in a setting with a given characteristics. Provide a detailed and vivid description of the place, including the atmosphere, surroundings, and key features that set the scene. In the content section, don't describe the setting's appearance, the only section that should be high detailed is the place section, in the place section describe the setting in detail suitable for an AI to generate an image the description should be 50 characters or less.
+            3. **Story elements**: The story should revolve around:
+            - A problem to be solved, which could be related to a given problem.
+            - A lesson or teaching something, such as a given lesson.
+            - The story should help with a given help.
+             
+            4. **Tone and style**: Ensure the tone of the story is age-appropriate and simple enough for a child. The complexity should match their cognitive and emotional understanding, and the story should be enjoyable, imaginative, and fun.
+                The story should be positive and educational, free from inappropriate content. Do not include:
+                - Any offensive language, references to violence, drugs, or illegal activities.
+                - Any sexual content, disturbing themes, or political discussions.
+                - Any inappropriate references or unsuitable material for children.
+            
+            5. **ContentImageDescription**: Provide an array of strings that describe the images in the content section. The images should be described in detail, including vibrant colors, soft lighting, and cozy atmosphere. Ensure that the descriptions are clear and easy to understand for a image generation AI model, The descriptions should not exced the character limit of 500 characters.
+
+            6. **Final details**: Ensure the story is safe, uplifting, and wholesome for young audiences. Take in graeat consideration the given final details.
+        "
+    }
+    {
+        "role":"user",
+        "content": "- **storyStyle**: 'FICTIONAL' - **childAge**: 7 - **mainCharacter**: 'A male Hero.' - **storyPlace**: 'Wizarding School.' - **solveProblem**: 'Behavior - Anger problems' - **teachSomething**: '' - **storyHelp**: 'Solve Problem'. - **finalDetails**: ''",,
+    },
+    {
+        "role":"assistant",
+        "content":"`{\"title\":\"Max's Magical Anger Adventure\",\"summary\":\"Max learns to control his anger at a wizarding school.\",\"content\":[\"Max, a brave young wizard, felt a storm brewing inside him every time someone teased him about his spells. Today, he was determined to show everyone that he could cast the most amazing magic at the Wizarding School, but every little thing got under his skin. When his friend Leo accidentally knocked over his potion, Max's feelings erupted like a fiery dragon!\",\"Instead of yelling, Max remembered the wise words of his teacher: \\\"When angry, count to ten and take a deep breath.\\\" He closed his eyes and took a big breath of sweet lavender. It was as if the colors around him swirled with brightness. His anger began to melt away like snow under the sun. \\n\\nFeeling calmer, Max decided to help Leo fix the potion instead. Together, they found a way to create a shimmering bubble potion that sparkled with magic. Soon, their classmates gathered, excited to see what they had brewed! \\n\\nMax felt proud as he shared the bubbles with everyone, who squealed with delight. Instead of clenching his fists, Max had opened his heart to friendship, and his anger simply vanished. From that day on, Max knew that with a little patience and a deep breath, he could turn his anger into friendship and fun!\",\"He learned that it's okay to feel angry; it¡s all about how to channel that energy positively.\"],\"contentImageDescription\":[\"A bright, cheerful wizarding classroom with colorful potions on the shelves, where young wizards are experimenting with magic.\",\"Max and Leo work together at a table, surrounded by swirling sparkles, with expressions of determination and joy on their faces.\",\"A vibrant scene outside the classroom, where kids are laughing and playing with magical bubbles in the air, radiating joy and happiness.\"],\"placeDescription\":\"A colorful, bustling school filled with magic and laughter.\",\"character\":\"A brave male wizard with sparkling blue eyes and messy brown hair.\",\"place\":\"A lively wizarding school with colorful magic.\"}`"
+    }
+  ],
+}

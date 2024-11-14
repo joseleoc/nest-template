@@ -154,13 +154,6 @@ export class StoriesService {
                   audio: audio?.fileNames[i] || '',
                   image: images[imgInd] || '',
                 };
-
-                // if (
-                //   i >= contentIndex * imgLength &&
-                //   i < (contentIndex + 1) * imgLength
-                // ) {
-                //   imgInd += 1;
-                // }
               }
 
               const newStory: Story = {

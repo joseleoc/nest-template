@@ -23,15 +23,23 @@ export type StoryDocument = HydratedDocument<Story>;
   toJSON: { versionKey: false },
 })
 export class Story {
+  /** The title of the story */
   @Prop({ required: true, type: String, trim: true })
   title: string;
 
+  /** The content of the story, containing the audios, images and text of each paragraph */
   @Prop({ required: true, type: Array<StoryContent> })
   content: StoryContent[];
 
+  /** The description of the images in the content section, each element is related to the same index in the content array */
+  @Prop({ required: true, type: Array<string>, default: [] })
+  contentImageDescription: string[];
+
+  /** The summary of the story */
   @Prop({ required: true, type: String, trim: true })
   summary: string;
 
+  /** The character of the story */
   @Prop({
     required: true,
     type: String,
@@ -39,6 +47,7 @@ export class Story {
   })
   character: string;
 
+  /** The style of the story */
   @Prop({
     required: true,
     type: String,
@@ -47,15 +56,19 @@ export class Story {
   })
   storyStyle: keyof typeof StoryStyle;
 
+  /** The purpose of solving a problem */
   @Prop({ required: false, type: StoryPurpose })
   solveProblem?: StoryPurpose;
 
+  /** The purpose of teaching something */
   @Prop({ required: false, type: StoryPurpose })
   teachSomething?: StoryPurpose;
 
+  /** The help the story needs */
   @Prop({ required: true, type: String, trim: true, default: '' })
   storyHelp: string;
 
+  /** The id of the narrator */
   @Prop({
     required: true,
     type: MongooseSchema.Types.ObjectId,
@@ -65,6 +78,7 @@ export class Story {
   })
   narratorId: string;
 
+  /** The place of the story */
   @Prop({
     required: true,
     type: String,
@@ -72,6 +86,7 @@ export class Story {
   })
   place: string;
 
+  /** The thumbnail of the story */
   @Prop({
     required: false,
     type: String,
@@ -80,27 +95,35 @@ export class Story {
   })
   thumbnail?: string;
 
+  /** The id of the child */
   @Prop({ required: false, type: String, trim: true, ref: Child.name })
   childId?: string;
 
+  /** The id of the user */
   @Prop({ required: true, type: String, trim: true, ref: User.name })
   userId: string;
 
+  /** The final details of the story */
   @Prop({ required: false, type: String, default: '' })
   finalDetails?: string;
 
+  /** The reading time of the story */
   @Prop({ required: false, type: Number, default: 0 })
   readingTime?: number;
 
+  /** The number of likes of the story */
   @Prop({ required: false, type: Number, default: 0 })
   likesCount?: number;
 
+  /** The number of views of the story */
   @Prop({ required: false, type: Number, default: 0 })
   viewsCount?: number;
 
+  /** The number of shares of the story */
   @Prop({ required: false, type: Number, default: 0 })
   sharesCount?: number;
 
+  /** Whether the story is deleted or not */
   @Prop({ required: false, type: Boolean, default: false })
   deleted?: boolean;
 }

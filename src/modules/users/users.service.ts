@@ -192,21 +192,48 @@ export class UsersService {
    * @param userId the user id to check
    * @returns a promise that resolves to an object with the user and a boolean indicating if the user can create a story
    */
-  findUserAndCheckCredits(
-    userId: string,
-  ): Promise<{ canCreateStory: boolean; user: PublicUser | null }> {
+  findUserAndCheckCredits(userId: string): Promise<{
+    user: PublicUser | null;
+    canCreateStory: boolean;
+    canAddAudio: boolean;
+    canAddImage: boolean;
+    canAddText: boolean;
+  }> {
     return new Promise((resolve, reject) => {
       this.findOneById(userId)
         .then((user) => {
           if (user != null && user.deleted === false) {
-            if (user.credits > 0) {
-              resolve({ canCreateStory: true, user: user });
-              return;
-            } else {
-              resolve({ canCreateStory: false, user: user });
-            }
+            this.plansService.findPlanByName(user.plan).then((plan) => {
+              const canAddAudio = plan?.accessToVoice ?? false;
+              const canAddImage = plan?.accessToImage ?? false;
+              const canAddText = plan?.accessToText ?? false;
+              if (user.credits > 0) {
+                resolve({
+                  canCreateStory: true,
+                  user: user,
+                  canAddAudio,
+                  canAddImage,
+                  canAddText,
+                });
+                return;
+              } else {
+                resolve({
+                  canCreateStory: false,
+                  user: user,
+                  canAddAudio: false,
+                  canAddImage: false,
+                  canAddText: false,
+                });
+              }
+            });
           } else {
-            resolve({ canCreateStory: false, user: null });
+            resolve({
+              canCreateStory: false,
+              user: user,
+              canAddAudio: false,
+              canAddImage: false,
+              canAddText: false,
+            });
           }
         })
         .catch((error) =>

@@ -86,7 +86,11 @@ export class StoriesService {
         }),
       ])
         .then((res) => {
-          const [{ canCreateStory, user }, child, narrator] = res;
+          const [
+            { canCreateStory, user, canAddAudio, canAddImage },
+            child,
+            narrator,
+          ] = res;
           if (user == null) {
             // Reject if the user is not found or deleted
             return reject({
@@ -97,7 +101,7 @@ export class StoriesService {
           if (canCreateStory === false) {
             // Reject if the user does not have enough credits
             return reject({
-              message: "User doesn't have enough credits to create a story",
+              message: "User doesn't have enough credits to create a story ",
               canCreate: canCreateStory,
               code: HttpStatus.PAYMENT_REQUIRED,
             });
@@ -107,13 +111,15 @@ export class StoriesService {
               message: 'Narrator not found',
               code: HttpStatus.NOT_FOUND,
             });
-          } //Creates the story
+          }
+          //Creates the story
           this.aiService
             .createStory({ user, prompt: createStoryDto, child })
             .then((story: AiStory) => {
               const userCredits = user.credits - 1;
               // Audios promises
-              const audiosPromises = generateAudios
+              const addAudios = generateAudios ? canAddAudio : false;
+              const audiosPromises = addAudios
                 ? this.textToSpeechService.createAudioFromText({
                     paragraphs: story.content,
                     narrator,
@@ -124,7 +130,8 @@ export class StoriesService {
                   };
 
               // Images promises
-              const imagesPromises = generateImages
+              const addImages = generateImages ? canAddImage : false;
+              const imagesPromises = addImages
                 ? this.aiService.generateStoryImages({ story })
                 : Array(story.content.length).fill('');
 
@@ -159,6 +166,7 @@ export class StoriesService {
               const newStory: Story = {
                 title: story.title,
                 content,
+                contentImageDescription: story.contentImageDescription,
                 summary: story.summary,
                 character: story.character,
                 storyStyle: storyStyle,

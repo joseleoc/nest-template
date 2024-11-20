@@ -179,6 +179,7 @@ export class StoriesService {
                 childId: child?._id,
                 finalDetails: finalDetails,
                 readingTime: audio.duration || 0,
+                deleted: false,
               };
               try {
                 return this.storyModel.create(newStory);
@@ -475,21 +476,29 @@ export class StoriesService {
   ): Promise<PaginatedResponse<PublicStory>> {
     return new Promise((resolve, reject) => {
       const { page, limit } = new PaginatedData(params.page, params.limit);
-
-      Promise.all([
-        this.storiesLikesModel
-          .find({ userId: params.userId })
-          .sort({ createdAt: -1 })
-          .skip(page * limit)
-          .limit(limit)
-          .then((likesDocs) => {
-            return this.storyModel.find({
+      this.storiesLikesModel
+        .find({ userId: params.userId })
+        .sort({ createdAt: -1 })
+        .skip(page * limit)
+        .limit(limit)
+        .then((likesDocs) => {
+          console.log(likesDocs.map((like) => like.storyId));
+          // Finds the stories and counts the likes
+          return Promise.all([
+            this.storyModel
+              .find({
+                _id: { $in: likesDocs.map((like) => like.storyId) },
+                deleted: false,
+              })
+              .sort({ createdAt: -1 }),
+            this.storyModel.countDocuments({
               _id: { $in: likesDocs.map((like) => like.storyId) },
-            });
-          }),
-        this.storyModel.countDocuments({ userId: params.userId }),
-      ])
-        .then(([stories, likedCount]) => {
+              deleted: false,
+            }),
+          ]);
+        })
+        .then((response) => {
+          const [stories, likedCount] = response;
           const publicStories = stories.map((story) => new PublicStory(story));
           return Promise.all([
             this.generateStoriesMetaParams(publicStories),

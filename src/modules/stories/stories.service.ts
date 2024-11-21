@@ -1,6 +1,7 @@
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { ObjectId } from 'mongodb';
 
 import { UsersService } from '../users';
 import { AiService } from '@/services/ai/ai.service';
@@ -10,7 +11,7 @@ import { NarratorsService } from '@/modules/narrators/narrators.service';
 import { CloudStorageService } from '@/services/cloud-storage/cloud-storage.service';
 import { TextToSpeechService } from '@/services/text-to-speech/text-to-speech.service';
 
-import { Story } from './schemas/stories.schema';
+import { Story, StoryDocument } from './schemas/stories.schema';
 import { User } from '../users/schemas/user.schema';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { StoryContent } from './schemas/stories-content.schema';
@@ -474,37 +475,74 @@ export class StoriesService {
   getUserStoriesLikes(
     params: GetUserStoriesLikesDto,
   ): Promise<PaginatedResponse<PublicStory>> {
-    return new Promise((resolve, reject) => {
-      const { page, limit } = new PaginatedData(params.page, params.limit);
+    return new Promise(async (resolve, reject) => {
+      const { userId, page: paramPage, limit: paramLimit } = params;
+      const { page, limit } = new PaginatedData(paramPage, paramLimit);
+
       this.storiesLikesModel
-        .find({ userId: params.userId })
-        .sort({ createdAt: -1 })
-        .skip(page * limit)
-        .limit(limit)
-        .then((likesDocs) => {
-          console.log(likesDocs.map((like) => like.storyId));
-          // Finds the stories and counts the likes
-          return Promise.all([
-            this.storyModel
-              .find({
-                _id: { $in: likesDocs.map((like) => like.storyId) },
-                deleted: false,
-              })
-              .sort({ createdAt: -1 }),
-            this.storyModel.countDocuments({
-              _id: { $in: likesDocs.map((like) => like.storyId) },
-              deleted: false,
-            }),
-          ]);
-        })
-        .then((response) => {
-          const [stories, likedCount] = response;
-          const publicStories = stories.map((story) => new PublicStory(story));
-          return Promise.all([
-            this.generateStoriesMetaParams(publicStories),
-            likedCount,
-          ]);
-        })
+        .aggregate([
+          {
+            $facet: {
+              stories: [
+                { $match: { userId: new ObjectId(userId) } },
+                {
+                  $group: {
+                    _id: '$storyId',
+                    likes: { $push: '$$ROOT' },
+                  },
+                },
+                {
+                  $lookup: {
+                    from: 'stories',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'story',
+                  },
+                },
+                {
+                  $unwind: '$story',
+                },
+                {
+                  $sort: { 'likes.createdAt': -1 },
+                },
+                { $skip: page * limit },
+                { $limit: limit },
+              ],
+              totalCount: [
+                { $match: { userId: new ObjectId(userId) } },
+                {
+                  $count: 'count',
+                },
+              ],
+            },
+          },
+        ])
+        .then(
+          (
+            res: [
+              {
+                stories: { story: StoryDocument }[];
+                totalCount: [{ count: number }];
+              },
+            ],
+          ) => {
+            const publicStories: PublicStory[] = res[0].stories.map(
+              (storyContainer) => {
+                const story = storyContainer.story;
+                story.id = story._id.toString();
+                delete (story as any).contentImageDescription;
+                delete (story as any)._id;
+
+                return story as PublicStory;
+              },
+            );
+            const likedCount = res[0].totalCount[0].count;
+            return Promise.all([
+              this.generateStoriesMetaParams(publicStories),
+              likedCount,
+            ]);
+          },
+        )
         .then(([publicStories, likedCount]) => {
           resolve({ data: publicStories, totalSearch: likedCount });
         })

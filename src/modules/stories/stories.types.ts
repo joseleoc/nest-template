@@ -13,6 +13,7 @@ export class PublicStory extends Story {
     super();
     this.id = data._id.toString();
     delete (data as any)._id;
+    delete (data as any).contentImageDescription;
     Object.assign(this, data);
   }
 }

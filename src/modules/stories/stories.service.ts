@@ -200,7 +200,7 @@ export class StoriesService {
                 generateImages,
               });
             })
-            .then((story) => resolve(story))
+            .then((story) => resolve(story[0]))
             .catch((error) => {
               this.logger.error(error);
               reject(error);

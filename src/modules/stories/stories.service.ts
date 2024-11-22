@@ -761,7 +761,9 @@ export class StoriesService {
 
               return story;
             });
-
+            storiesWithProperties.forEach((story) => {
+              story.thumbnail = story.content[0].imageUrl || '';
+            });
             resolve(storiesWithProperties);
           },
         )

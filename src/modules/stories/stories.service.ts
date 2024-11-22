@@ -476,7 +476,7 @@ export class StoriesService {
     params: GetUserStoriesLikesDto,
   ): Promise<PaginatedResponse<PublicStory>> {
     return new Promise(async (resolve, reject) => {
-      const { userId, page: paramPage, limit: paramLimit } = params;
+      const { userId, page: paramPage, limit: paramLimit, sort } = params;
       const { page, limit } = new PaginatedData(paramPage, paramLimit);
 
       this.storiesLikesModel
@@ -503,7 +503,7 @@ export class StoriesService {
                   $unwind: '$story',
                 },
                 {
-                  $sort: { 'likes.createdAt': -1 },
+                  $sort: { 'likes.createdAt': sort === 'asc' ? 1 : -1 },
                 },
                 { $skip: page * limit },
                 { $limit: limit },

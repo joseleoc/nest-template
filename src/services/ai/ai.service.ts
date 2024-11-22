@@ -67,7 +67,7 @@ export class AiService {
                 - Any sexual content, disturbing themes, or political discussions.
                 - Any inappropriate references or unsuitable material for children.
             
-            5. **ContentImageDescription**: Provide an array of prompts, one for each content paragraph, to use in a AI image generation model describing each of the contents in a format suitable for a prompt. The prompt should include the fantastic style of a child's story, vibrant colors and a fantastic style; describe the main character using the main character's description with high detail; describe the scene using the place's description with high detail. Each prompt in the array should describe in high details the character, scene and style. The prompt should be in english.
+            5. **ContentImageDescription**: Provide an array of prompts, one for each content paragraph, to use in a AI image generation model describing each of the contents in a format suitable for a prompt. The prompt should include a similar disney style of a child's story, vibrant colors and should be in hight definition and realistic; describe the main character using the main character's description with high detail; describe the scene using the place's description with high detail. Each prompt in the array should describe in high details the character, scene and style. The prompt should be in english. The promt must specify that each character must be the same, without being modified in each scene, each prompt should not exceed the 700 characters limit.
 
             6. **Final details**: Ensure the story is safe, uplifting, and wholesome for young audiences. Take in great consideration the given final details.`,
             },

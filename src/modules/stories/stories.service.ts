@@ -55,6 +55,227 @@ export class StoriesService {
     private cloudStorageService: CloudStorageService,
   ) {}
 
+  //--------------------------------------------------------------------------------
+  // Private methods
+  //--------------------------------------------------------------------------------
+  /**
+   * Checks if the user has liked a story.
+   * @param params - The storyId and userId of the story to check.
+   * @returns A promise that resolves to an object with the storyId and liked property set to true if the user has liked the story, or false otherwise.
+   */
+  private checkUserStoryLike(params: {
+    userId: string;
+    storyId: string;
+  }): Promise<{ storyId: string; liked: boolean } | null> {
+    return new Promise((resolve, reject) => {
+      const { userId, storyId } = params;
+      this.storiesLikesModel
+        .findOne({ userId, storyId })
+        .then((like) => {
+          if (like != null) {
+            resolve({ storyId: storyId, liked: true });
+          } else {
+            resolve({ storyId: storyId, liked: false });
+          }
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
+  }
+
+  /**
+   * Gets the user name of the creator of a story.
+   * @param storyId The id of the story to get the user name of.
+   * @returns A promise that resolves to an object with the storyId and userName of the creator.
+   */
+  private getStoryUserName(
+    storyId: string,
+  ): Promise<{ storyId: string; userName: string } | null> {
+    return new Promise((resolve, reject) => {
+      this.storyModel
+        .findById(storyId)
+        .then((story) => {
+          if (story != null) {
+            this.userModel
+              .findById(story.userId)
+              .then((user) => {
+                if (user != null) {
+                  resolve({
+                    storyId: story.id,
+                    userName: user.userName,
+                  });
+                } else {
+                  resolve(null);
+                }
+              })
+              .catch((error) => {
+                this.logger.error(error);
+                reject(error);
+              });
+          } else {
+            resolve(null);
+          }
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
+  }
+
+  /**
+   * Generates the audio urls for the stories.
+   * @param story The story to generate the audio urls for.
+   * @returns A promise that resolves to the story with the audio urls.
+   */
+  private generateStoryAudioUrls(params: {
+    story: PublicStory;
+  }): Promise<PublicStory> {
+    return new Promise(
+      async (resolve: (value: PublicStory) => void, reject) => {
+        const { story } = params;
+        const promises = story.content.map((content) => {
+          if (
+            content.audio == '' ||
+            content.audio == null ||
+            content.audio == undefined
+          ) {
+            return Promise.resolve('');
+          }
+          return this.cloudStorageService.generatePresignedUrl(
+            `audios/${content.audio}`,
+          );
+        });
+        Promise.all(promises)
+          .then((urls) => {
+            story.content.forEach((content, index) => {
+              content.audioUrl = urls[index];
+            });
+            resolve(story);
+          })
+          .catch((error) => reject(error));
+      },
+    );
+  }
+
+  private generateStoryImageUrls(params: {
+    story: PublicStory;
+  }): Promise<PublicStory> {
+    return new Promise((resolve, reject) => {
+      const { story } = params;
+      const promises = story.content.map((content) => {
+        if (
+          content.image == '' ||
+          content.image == null ||
+          content.image == undefined
+        ) {
+          return Promise.resolve('');
+        }
+        return this.cloudStorageService.generatePresignedUrl(
+          `images/${content.image}`,
+        );
+      });
+
+      Promise.all(promises)
+        .then((urls) => {
+          story.content.forEach((content, index) => {
+            content.imageUrl = urls[index];
+          });
+          resolve(story);
+        })
+        .catch((error) => reject(error));
+    });
+  }
+
+  /**
+   * Adds the liked and createdBy properties to the stories.
+   * Also adds the content property to the stories with the audio urls.
+   * @param stories The stories to add the properties to.
+   * @returns A promise that resolves to the stories with the properties added.
+   */
+  private generateStoriesMetaParams(
+    stories: PublicStory[],
+    options?: {
+      generateAudios?: boolean;
+      generateImages?: boolean;
+    },
+  ): Promise<PublicStory[]> {
+    return new Promise((resolve, reject) => {
+      const { generateAudios = true, generateImages = true } = options || {};
+
+      // Check if the user has liked the story
+      const likesPromises = stories.map((story) =>
+        this.checkUserStoryLike({ userId: story.userId, storyId: story.id }),
+      );
+
+      // Generates the audios urls
+      const audiosURLsPromises: Promise<PublicStory>[] = generateAudios
+        ? stories.map((story) => this.generateStoryAudioUrls({ story }))
+        : new Array(stories.length).fill(Promise.resolve(stories));
+
+      // Gets the creator name of the story
+      const usersPromises = stories.map((story) =>
+        this.getStoryUserName(story.id),
+      );
+
+      const ImagesURLsPromises: Promise<PublicStory>[] = generateImages
+        ? stories.map((story) => this.generateStoryImageUrls({ story }))
+        : new Array(stories.length).fill(Promise.resolve(stories));
+
+      // Combines the promises
+      Promise.all([
+        Promise.all(likesPromises),
+        Promise.all(audiosURLsPromises),
+        Promise.all(usersPromises),
+        Promise.all(ImagesURLsPromises),
+      ])
+        .then(
+          ([likes, storiesWithAudiosURLs, users, storiesWithImagesURLs]) => {
+            // Adds the properties to the stories
+            const storiesWithProperties = stories.map((story) => {
+              // Adds the liked property to the stories
+              const liked = likes.find((like) => like?.storyId === story.id);
+              story.liked = liked?.liked ?? false;
+
+              // Adds the createdBy property to the stories
+              story.createdBy =
+                users.find((user) => user?.storyId === story.id)?.userName ||
+                '';
+
+              const audios =
+                storiesWithAudiosURLs.find(
+                  (withAudio) => story.id === withAudio.id,
+                )?.content || story.content;
+
+              const images =
+                storiesWithImagesURLs.find(
+                  (withAudio) => story.id === withAudio.id,
+                )?.content || story.content;
+
+              const content = audios;
+              images.forEach((withImage, i) => {
+                content[i].image = withImage.image;
+                content[i].imageUrl = withImage.imageUrl;
+              });
+              story.content = content;
+
+              return story;
+            });
+            storiesWithProperties.forEach((story) => {
+              story.thumbnail = story.content[0].imageUrl || '';
+            });
+            resolve(storiesWithProperties);
+          },
+        )
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
+  }
+
   // --------------------------------------------------------------------------------
   // Public methods
   // --------------------------------------------------------------------------------
@@ -546,227 +767,6 @@ export class StoriesService {
         .then(([publicStories, likedCount]) => {
           resolve({ data: publicStories, totalSearch: likedCount });
         })
-        .catch((error) => {
-          this.logger.error(error);
-          reject(error);
-        });
-    });
-  }
-
-  //--------------------------------------------------------------------------------
-  // Private methods
-  //--------------------------------------------------------------------------------
-  /**
-   * Checks if the user has liked a story.
-   * @param params - The storyId and userId of the story to check.
-   * @returns A promise that resolves to an object with the storyId and liked property set to true if the user has liked the story, or false otherwise.
-   */
-  private checkUserStoryLike(params: {
-    userId: string;
-    storyId: string;
-  }): Promise<{ storyId: string; liked: boolean } | null> {
-    return new Promise((resolve, reject) => {
-      const { userId, storyId } = params;
-      this.storiesLikesModel
-        .findOne({ userId, storyId })
-        .then((like) => {
-          if (like != null) {
-            resolve({ storyId: storyId, liked: true });
-          } else {
-            resolve({ storyId: storyId, liked: false });
-          }
-        })
-        .catch((error) => {
-          this.logger.error(error);
-          reject(error);
-        });
-    });
-  }
-
-  /**
-   * Gets the user name of the creator of a story.
-   * @param storyId The id of the story to get the user name of.
-   * @returns A promise that resolves to an object with the storyId and userName of the creator.
-   */
-  private getStoryUserName(
-    storyId: string,
-  ): Promise<{ storyId: string; userName: string } | null> {
-    return new Promise((resolve, reject) => {
-      this.storyModel
-        .findById(storyId)
-        .then((story) => {
-          if (story != null) {
-            this.userModel
-              .findById(story.userId)
-              .then((user) => {
-                if (user != null) {
-                  resolve({
-                    storyId: story.id,
-                    userName: user.userName,
-                  });
-                } else {
-                  resolve(null);
-                }
-              })
-              .catch((error) => {
-                this.logger.error(error);
-                reject(error);
-              });
-          } else {
-            resolve(null);
-          }
-        })
-        .catch((error) => {
-          this.logger.error(error);
-          reject(error);
-        });
-    });
-  }
-
-  /**
-   * Generates the audio urls for the stories.
-   * @param story The story to generate the audio urls for.
-   * @returns A promise that resolves to the story with the audio urls.
-   */
-  private generateStoryAudioUrls(params: {
-    story: PublicStory;
-  }): Promise<PublicStory> {
-    return new Promise(
-      async (resolve: (value: PublicStory) => void, reject) => {
-        const { story } = params;
-        const promises = story.content.map((content) => {
-          if (
-            content.audio == '' ||
-            content.audio == null ||
-            content.audio == undefined
-          ) {
-            return Promise.resolve('');
-          }
-          return this.cloudStorageService.generatePresignedUrl(
-            `audios/${content.audio}`,
-          );
-        });
-        Promise.all(promises)
-          .then((urls) => {
-            story.content.forEach((content, index) => {
-              content.audioUrl = urls[index];
-            });
-            resolve(story);
-          })
-          .catch((error) => reject(error));
-      },
-    );
-  }
-
-  private generateStoryImageUrls(params: {
-    story: PublicStory;
-  }): Promise<PublicStory> {
-    return new Promise((resolve, reject) => {
-      const { story } = params;
-      const promises = story.content.map((content) => {
-        if (
-          content.image == '' ||
-          content.image == null ||
-          content.image == undefined
-        ) {
-          return Promise.resolve('');
-        }
-        return this.cloudStorageService.generatePresignedUrl(
-          `images/${content.image}`,
-        );
-      });
-
-      Promise.all(promises)
-        .then((urls) => {
-          story.content.forEach((content, index) => {
-            content.imageUrl = urls[index];
-          });
-          resolve(story);
-        })
-        .catch((error) => reject(error));
-    });
-  }
-
-  /**
-   * Adds the liked and createdBy properties to the stories.
-   * Also adds the content property to the stories with the audio urls.
-   * @param stories The stories to add the properties to.
-   * @returns A promise that resolves to the stories with the properties added.
-   */
-  private generateStoriesMetaParams(
-    stories: PublicStory[],
-    options?: {
-      generateAudios?: boolean;
-      generateImages?: boolean;
-    },
-  ): Promise<PublicStory[]> {
-    return new Promise((resolve, reject) => {
-      const { generateAudios = true, generateImages = true } = options || {};
-
-      // Check if the user has liked the story
-      const likesPromises = stories.map((story) =>
-        this.checkUserStoryLike({ userId: story.userId, storyId: story.id }),
-      );
-
-      // Generates the audios urls
-      const audiosURLsPromises: Promise<PublicStory>[] = generateAudios
-        ? stories.map((story) => this.generateStoryAudioUrls({ story }))
-        : new Array(stories.length).fill(Promise.resolve(stories));
-
-      // Gets the creator name of the story
-      const usersPromises = stories.map((story) =>
-        this.getStoryUserName(story.id),
-      );
-
-      const ImagesURLsPromises: Promise<PublicStory>[] = generateImages
-        ? stories.map((story) => this.generateStoryImageUrls({ story }))
-        : new Array(stories.length).fill(Promise.resolve(stories));
-
-      // Combines the promises
-      Promise.all([
-        Promise.all(likesPromises),
-        Promise.all(audiosURLsPromises),
-        Promise.all(usersPromises),
-        Promise.all(ImagesURLsPromises),
-      ])
-        .then(
-          ([likes, storiesWithAudiosURLs, users, storiesWithImagesURLs]) => {
-            // Adds the properties to the stories
-            const storiesWithProperties = stories.map((story) => {
-              // Adds the liked property to the stories
-              const liked = likes.find((like) => like?.storyId === story.id);
-              story.liked = liked?.liked ?? false;
-
-              // Adds the createdBy property to the stories
-              story.createdBy =
-                users.find((user) => user?.storyId === story.id)?.userName ||
-                '';
-
-              const audios =
-                storiesWithAudiosURLs.find(
-                  (withAudio) => story.id === withAudio.id,
-                )?.content || story.content;
-
-              const images =
-                storiesWithImagesURLs.find(
-                  (withAudio) => story.id === withAudio.id,
-                )?.content || story.content;
-
-              const content = audios;
-              images.forEach((withImage, i) => {
-                content[i].image = withImage.image;
-                content[i].imageUrl = withImage.imageUrl;
-              });
-              story.content = content;
-
-              return story;
-            });
-            storiesWithProperties.forEach((story) => {
-              story.thumbnail = story.content[0].imageUrl || '';
-            });
-            resolve(storiesWithProperties);
-          },
-        )
         .catch((error) => {
           this.logger.error(error);
           reject(error);

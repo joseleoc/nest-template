@@ -255,7 +255,7 @@ export class UsersController {
   @ApiOperation({
     summary: 'Forgot password',
     description:
-      'Sends a forgot password email to the user with the given email. If the user exists, it updates the password to the new one.',
+      'Sends a forgot password email to the user with the given email. If the user exists, it updates the password to the new one. This method should only be used when the user is verified to be owner of the account.',
   })
   @ApiResponse({
     status: HttpStatus.OK,

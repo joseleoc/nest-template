@@ -26,6 +26,7 @@ import { GetReportsDto, ReportStoryDto } from './dto/report-story.dto';
 import { PaginatedData, PaginatedResponse } from '@/general.types';
 import { PublicReport, PublicStory, StoryCounterParams } from './stories.types';
 import { GetUserStoriesLikesDto } from './dto/get-user-stories-likes.dto';
+import { FilterStoriesDto } from './dto/filter-stories.dto';
 
 @Injectable()
 export class StoriesService {
@@ -693,6 +694,7 @@ export class StoriesService {
     });
   }
 
+  /** Gets the stories liked by a user. Paginated. */
   getUserStoriesLikes(
     params: GetUserStoriesLikesDto,
   ): Promise<PaginatedResponse<PublicStory>> {
@@ -771,6 +773,12 @@ export class StoriesService {
           this.logger.error(error);
           reject(error);
         });
+    });
+  }
+
+  filterStories(params: FilterStoriesDto): Promise<PublicStory[]> {
+    return new Promise((resolve, reject) => {
+      resolve([]);
     });
   }
 }

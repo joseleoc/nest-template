@@ -1,25 +1,26 @@
-import { StoryStyle } from '../schemas/stories.schema';
 import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 import { Gender, Language } from '@/general.types';
-import { CharacterDtoSchema } from '@/modules/characters/dto/character.dto';
 import { NarratorAgeCategory } from '@/modules/narrators/schemas/narrators.schema';
+import {
+  StoryCore,
+  StoryPurpose,
+  StoryScenario,
+  StoryStyle,
+} from '../types/stories.types';
 
 export const CreateStoryDtoSchema = z.object({
   userId: z.string(),
   childId: z.string(),
-  mainCharacter: CharacterDtoSchema,
+  mainCharacter: z.string(),
   storyStyle: z.nativeEnum(StoryStyle),
-  solveProblem: z.string().optional(),
-  teachSomething: z.string().optional(),
-  storyHelp: z.string(),
+  core: z.nativeEnum(StoryCore),
+  purpose: z.nativeEnum(StoryPurpose),
   storyNarrator: z.object({
     ageCategory: z.nativeEnum(NarratorAgeCategory),
     gender: z.nativeEnum(Gender),
   }),
-  storyPlace: z.object({
-    description: z.string(),
-  }),
+  scenario: z.nativeEnum(StoryScenario),
   finalDetails: z.string().optional().default(''),
   language: z.nativeEnum(Language),
   generateAudios: z.boolean().optional().default(true),

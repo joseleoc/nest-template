@@ -55,11 +55,9 @@ export class AiService {
               role: 'system',
               content: `Please write a story with a given style for a child of a given age. The story should be at least a given length of paragraphs long. Each paragraph should be between 20 words and 65 words. The story should include:
             1. **Main character**: The main character should have a given characteristics. Provide a detailed description of the character's appearance, in the content section, don't describe the character's appearance, but rather their actions, thoughts, and emotions, the only section that should be high detailed is the character section, in the character section describe the character appearance in detail suitable for an AI to generate an image the description should be 50 characters or less.
-            2. **Place**: The story should take place in a setting with a given characteristics. Provide a detailed and vivid description of the place, including the atmosphere, surroundings, and key features that set the scene. In the content section, don't describe the setting's appearance, the only section that should be high detailed is the place section, in the place section describe the setting in detail suitable for an AI to generate an image the description should be 50 characters or less.
+            2. **Scenario**: The story should take place in a setting with a given characteristics. Provide a detailed and vivid description of the place, including the atmosphere, surroundings, and key features that set the scene. In the content section, don't describe the setting's appearance, the only section that should be high detailed is the place section, in the place section describe the setting in detail suitable for an AI to generate an image the description should be 50 characters or less.
             3. **Story elements**: The story should revolve around:
-            - A problem to be solved, which could be related to a given problem.
-            - A lesson or teaching something, such as a given lesson.
-            - The story should help with a given help.
+            - I will provide the core of the story that will be the main idea of the story. The core should be related to a given problem.
              
             4. **Tone and style**: ${this.childAgeConsiderations(child?.age || 7)} and the story should be enjoyable, imaginative, and fun.
                 The story should be positive and educational, free from inappropriate content. Do not include:
@@ -77,10 +75,9 @@ export class AiService {
               - **storyStyle**: ${prompt.storyStyle}
               - **childAge**: ${child?.age || 9} 
               - **mainCharacter**: ${JSON.stringify(prompt.mainCharacter)} 
-              - **storyPlace**: ${JSON.stringify(prompt.storyPlace)}
-              - **solveProblem**: ${prompt.solveProblem ? `${prompt.solveProblem}` : 'a general childhood problem'}.
-              - **teachSomething**: ${prompt.teachSomething ? `${prompt.teachSomething}` : 'a valuable life lesson'}.
-              - **storyHelp**: ${prompt.storyHelp}
+              - **scenario**: ${JSON.stringify(prompt.scenario)}
+              - **storyCore**: ${prompt.core}
+              - **storyPurpose**: ${prompt.purpose}
               - **finalDetails**: ${prompt.finalDetails}
               - **language**: ${prompt.language || user.language}
               - **paragraphLength**: ${prompt.paragraphsLength}

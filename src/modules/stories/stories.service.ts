@@ -24,9 +24,10 @@ import { GetAllStoriesDto } from './dto/get-all-stories.dto';
 import { GetReportsDto, ReportStoryDto } from './dto/report-story.dto';
 
 import { PaginatedData, PaginatedResponse } from '@/general.types';
-import { PublicReport, PublicStory, StoryCounterParams } from './stories.types';
+import { PublicReport, StoryCounterParams } from './types/stories.types';
 import { GetUserStoriesLikesDto } from './dto/get-user-stories-likes.dto';
 import { FilterStoriesDto } from './dto/filter-stories.dto';
+import { PublicStory } from './types/public-story.type';
 
 @Injectable()
 export class StoriesService {
@@ -291,13 +292,13 @@ export class StoriesService {
         userId,
         childId,
         storyNarrator,
-        solveProblem,
-        teachSomething,
-        storyHelp,
+        core,
+        purpose,
         storyStyle,
         finalDetails,
         generateAudios,
         generateImages,
+        scenario,
       } = createStoryDto;
       // Check if the user has enough credits to create a story and search for the child if it exists.
       Promise.all([
@@ -393,11 +394,11 @@ export class StoriesService {
                 summary: story.summary,
                 character: story.character,
                 storyStyle: storyStyle,
-                solveProblem: solveProblem,
-                teachSomething: teachSomething,
-                storyHelp: storyHelp,
+                core,
+                purpose,
                 narratorId: narrator.id,
-                place: story.place,
+                scenario,
+                scenarioDescription: story.scenarioDescription,
                 userId: user.id,
                 childId: child?._id,
                 finalDetails: finalDetails,
@@ -777,7 +778,7 @@ export class StoriesService {
   }
 
   filterStories(params: FilterStoriesDto): Promise<PublicStory[]> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       resolve([]);
     });
   }

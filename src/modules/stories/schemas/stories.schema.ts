@@ -6,11 +6,12 @@ import { StoryContent } from './stories-content.schema';
 import { User } from '@/modules/users/schemas/user.schema';
 import { Child } from '@/modules/children/schemas/child.schema';
 import { Narrator } from '@/modules/narrators/schemas/narrators.schema';
-
-export enum StoryStyle {
-  'FICTIONAL' = 'FICTIONAL',
-  'NON_FICTIONAL' = 'NON_FICTIONAL',
-}
+import {
+  StoryCore,
+  StoryPurpose,
+  StoryScenario,
+  StoryStyle,
+} from '../types/stories.types';
 
 export const StoryDefaultThumbnail = 'story-default-thumbnail.png';
 
@@ -55,17 +56,22 @@ export class Story {
   })
   storyStyle: keyof typeof StoryStyle;
 
-  /** The purpose of solving a problem */
-  @Prop({ required: false, type: String })
-  solveProblem?: string;
+  /** The core of the story */
+  @Prop({
+    required: true,
+    type: String,
+    trim: true,
+    enum: Object.values(StoryCore),
+  })
+  core: keyof typeof StoryCore;
 
-  /** The purpose of teaching something */
-  @Prop({ required: false, type: String })
-  teachSomething?: string;
-
-  /** The help the story needs */
-  @Prop({ required: true, type: String, trim: true, default: '' })
-  storyHelp: string;
+  @Prop({
+    required: true,
+    type: String,
+    trim: true,
+    enum: Object.values(StoryPurpose),
+  })
+  purpose: keyof typeof StoryPurpose;
 
   /** The id of the narrator */
   @Prop({
@@ -77,13 +83,17 @@ export class Story {
   })
   narratorId: string;
 
-  /** The place of the story */
+  /** The scenario of the story */
   @Prop({
     required: true,
     type: String,
     trim: true,
+    enum: Object.values(StoryScenario),
   })
-  place: string;
+  scenario: keyof typeof StoryScenario;
+
+  @Prop({ required: false, type: String, trim: true })
+  scenarioDescription?: string;
 
   /** The thumbnail of the story */
   @Prop({

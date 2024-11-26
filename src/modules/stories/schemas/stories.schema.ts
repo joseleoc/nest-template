@@ -2,7 +2,6 @@ import { HydratedDocument } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Schema as MongooseSchema } from 'mongoose';
 
-import { StoryPurpose } from './story-purpose.schema';
 import { StoryContent } from './stories-content.schema';
 import { User } from '@/modules/users/schemas/user.schema';
 import { Child } from '@/modules/children/schemas/child.schema';
@@ -57,12 +56,12 @@ export class Story {
   storyStyle: keyof typeof StoryStyle;
 
   /** The purpose of solving a problem */
-  @Prop({ required: false, type: StoryPurpose })
-  solveProblem?: StoryPurpose;
+  @Prop({ required: false, type: String })
+  solveProblem?: string;
 
   /** The purpose of teaching something */
-  @Prop({ required: false, type: StoryPurpose })
-  teachSomething?: StoryPurpose;
+  @Prop({ required: false, type: String })
+  teachSomething?: string;
 
   /** The help the story needs */
   @Prop({ required: true, type: String, trim: true, default: '' })

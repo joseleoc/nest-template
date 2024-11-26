@@ -78,8 +78,8 @@ export class AiService {
               - **childAge**: ${child?.age || 9} 
               - **mainCharacter**: ${JSON.stringify(prompt.mainCharacter)} 
               - **storyPlace**: ${JSON.stringify(prompt.storyPlace)}
-              - **solveProblem**: ${prompt.solveProblem?.selectedOption ? `${prompt.solveProblem?.selectedOption}, concerning ${prompt.solveProblem?.inputValue}` : 'a general childhood problem'}.
-              - **teachSomething**: ${prompt.teachSomething?.selectedOption ? `${prompt.teachSomething?.selectedOption}, related to ${prompt.teachSomething?.inputValue}` : 'a valuable life lesson'}.
+              - **solveProblem**: ${prompt.solveProblem ? `${prompt.solveProblem}` : 'a general childhood problem'}.
+              - **teachSomething**: ${prompt.teachSomething ? `${prompt.teachSomething}` : 'a valuable life lesson'}.
               - **storyHelp**: ${prompt.storyHelp}
               - **finalDetails**: ${prompt.finalDetails}
               - **language**: ${prompt.language || user.language}

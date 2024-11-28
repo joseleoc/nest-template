@@ -103,14 +103,15 @@ export class Story {
 
   /** The focus of the story */
   @Prop({
-    required: true,
+    required: false,
     type: String,
     trim: true,
     enum: Object.values(Focus),
+    default: '',
   })
-  focus: keyof typeof Focus;
+  focus?: keyof typeof Focus;
 
-  @Prop({ required: false, type: String, trim: true })
+  @Prop({ required: false, type: String, trim: true, default: '' })
   focusDescription?: string;
 
   /** The thumbnail of the story */

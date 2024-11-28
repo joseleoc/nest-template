@@ -80,6 +80,11 @@ export class StoriesController {
     status: HttpStatus.NOT_FOUND,
     description: 'When the user does not exist, is deleted or is not found',
   })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description:
+      'When the request is not valid. For if the request body is not valid. The error should contain a message and a code that represents where is the error.',
+  })
   create(@Body() createStoryDto: CreateStoryDto, @Res() res: Response) {
     this.storiesService
       .create(createStoryDto)

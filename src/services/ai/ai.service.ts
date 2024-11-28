@@ -8,6 +8,12 @@ import { User } from '../../modules/users/schemas/user.schema';
 import { PublicUser } from '../../modules/users/types/users.types';
 import { PublicChild } from '../../modules/children/types/children.types';
 import { CloudStorageService } from '../cloud-storage/cloud-storage.service';
+import {
+  Focus,
+  GeneralPurpose,
+  MainCharacter,
+  StoryScenario,
+} from '@/modules/stories/types/stories.types';
 @Injectable()
 export class AiService {
   // --------------------------------------------------------------------------------
@@ -58,6 +64,8 @@ export class AiService {
             2. **Scenario**: The story should take place in a setting with a given characteristics. Provide a detailed and vivid description of the place, including the atmosphere, surroundings, and key features that set the scene. In the content section, don't describe the setting's appearance, the only section that should be high detailed is the place section, in the place section describe the setting in detail suitable for an AI to generate an image the description should be 50 characters or less.
             3. **Story elements**: The story should revolve around:
             - I will provide the core of the story that will be the main idea of the story. The core should be related to a given problem.
+            - I will provide the purpose of the story that will be the main idea of the story. The purpose should be related to solve the given problem.
+            - I will provide the story focus that will be the main idea of the story. The focus is the main idea of the story that the story should be round about.
              
             4. **Tone and style**: ${this.childAgeConsiderations(child?.age || 7)} and the story should be enjoyable, imaginative, and fun.
                 The story should be positive and educational, free from inappropriate content. Do not include:
@@ -74,10 +82,11 @@ export class AiService {
               content: `
               - **storyStyle**: ${prompt.storyStyle}
               - **childAge**: ${child?.age || 9} 
-              - **mainCharacter**: ${JSON.stringify(prompt.mainCharacter)} 
-              - **scenario**: ${JSON.stringify(prompt.scenario)}
+              - **mainCharacter**: ${prompt.mainCharacter != MainCharacter.OTHER ? prompt.mainCharacter : ''} ${prompt.mainCharacterDescription != '' ? prompt.mainCharacterDescription : ''}
+              - **scenario**: ${prompt.scenario != StoryScenario.OTHER ? prompt.scenario : ''} ${prompt.scenarioDescription != '' ? prompt.scenarioDescription : ''}
               - **storyCore**: ${prompt.core}
-              - **storyPurpose**: ${prompt.purpose}
+              - **storyPurpose**: ${prompt.purpose != GeneralPurpose.OTHER ? prompt.purpose : ''} ${prompt.purposeDescription != '' ? prompt.purposeDescription : ''}
+              - **storyFOcus**: ${prompt.focus != Focus.OTHER ? prompt.focus : ''} ${prompt.focusDescription != '' ? prompt.focusDescription : ''}
               - **finalDetails**: ${prompt.finalDetails}
               - **language**: ${prompt.language || user.language}
               - **paragraphLength**: ${prompt.paragraphsLength}
@@ -130,6 +139,7 @@ export class AiService {
           // ],
         })
         .then((completion) => {
+          console.log({ completion: completion.object });
           let story: AiStory;
 
           if (typeof completion.choices[0].message.content === 'string') {

@@ -7,10 +7,11 @@ import { User } from '@/modules/users/schemas/user.schema';
 import { Child } from '@/modules/children/schemas/child.schema';
 import { Narrator } from '@/modules/narrators/schemas/narrators.schema';
 import {
-  StoryCore,
-  StoryPurpose,
+  GeneralPurpose,
   StoryScenario,
+  StoryCore,
   StoryStyle,
+  Focus,
 } from '../types/stories.types';
 
 export const StoryDefaultThumbnail = 'story-default-thumbnail.png';
@@ -47,6 +48,9 @@ export class Story {
   })
   character: string;
 
+  @Prop({ required: false, type: String, trim: true })
+  characterDescription?: string;
+
   /** The style of the story */
   @Prop({
     required: true,
@@ -68,10 +72,12 @@ export class Story {
   @Prop({
     required: true,
     type: String,
-    trim: true,
-    enum: Object.values(StoryPurpose),
+    enum: GeneralPurpose,
   })
-  purpose: keyof typeof StoryPurpose;
+  purpose: keyof typeof GeneralPurpose;
+
+  @Prop({ required: false, type: String, trim: true })
+  purposeDescription?: string;
 
   /** The id of the narrator */
   @Prop({
@@ -94,6 +100,18 @@ export class Story {
 
   @Prop({ required: false, type: String, trim: true })
   scenarioDescription?: string;
+
+  /** The focus of the story */
+  @Prop({
+    required: true,
+    type: String,
+    trim: true,
+    enum: Object.values(Focus),
+  })
+  focus: keyof typeof Focus;
+
+  @Prop({ required: false, type: String, trim: true })
+  focusDescription?: string;
 
   /** The thumbnail of the story */
   @Prop({

@@ -31,18 +31,6 @@ export enum StoryCore {
   'OTHER' = 'OTHER',
 }
 
-export enum StoryPurpose {
-  'FRIENDS' = 'FRIENDS',
-  'FAMILY' = 'FAMILY',
-  'BEHAVIOR' = 'BEHAVIOR',
-  'SIBLINGS' = 'SIBLINGS',
-  'PARENTS' = 'PARENTS',
-  'VALUES' = 'VALUES',
-  'EMOTIONS' = 'EMOTIONS',
-  'ACADEMICS' = 'ACADEMICS',
-  'OTHER' = 'OTHER',
-}
-
 export enum StoryScenario {
   'FOREST_KINGDOM' = 'FOREST_KINGDOM',
   'WIZARDING_SCHOOL' = 'WIZARDING_SCHOOL',
@@ -50,5 +38,66 @@ export enum StoryScenario {
   'RESTAURANT' = 'RESTAURANT',
   'HOUSE' = 'HOUSE',
   'SCHOOL' = 'SCHOOL',
+  'OTHER' = 'OTHER',
+}
+
+// export enum SolveProblemPurpose {
+//   'FRIENDS' = 'FRIENDS',
+//   'FAMILY' = 'FAMILY',
+//   'BEHAVIOR' = 'BEHAVIOR',
+//   'SIBLINGS' = 'SIBLINGS',
+//   'PARENTS' = 'PARENTS',
+//   'OTHER' = 'OTHER',
+// }
+
+// export enum TeachSomethingPurpose {
+//   'VALUES' = 'VALUES',
+//   'EMOTIONS' = 'EMOTIONS',
+//   'ACADEMICS' = 'ACADEMICS',
+//   'OTHER' = 'OTHER',
+// }
+
+export enum GeneralPurpose {
+  'VALUES' = 'VALUES',
+  'EMOTIONS' = 'EMOTIONS',
+  'ACADEMICS' = 'ACADEMICS',
+  'FRIENDS' = 'FRIENDS',
+  'FAMILY' = 'FAMILY',
+  'BEHAVIOR' = 'BEHAVIOR',
+  'SIBLINGS' = 'SIBLINGS',
+  'PARENTS' = 'PARENTS',
+  'OTHER' = 'OTHER',
+}
+
+export enum Focus {
+  'RESPECT' = 'RESPECT',
+  'KINDNESS' = 'KINDNESS',
+  'HONESTY' = 'HONESTY',
+  'RESPONSIBILITY' = 'RESPONSIBILITY',
+  'EMPATHY' = 'EMPATHY',
+  'PERSEVERANCE' = 'PERSEVERANCE',
+  'HAPPY' = 'HAPPY',
+  'JOYFUL' = 'JOYFUL',
+  'CALM' = 'CALM',
+  'ANGRY' = 'ANGRY',
+  'SCARE' = 'SCARE',
+  'ANXIOUS' = 'ANXIOUS',
+  'ART' = 'ART',
+  'BIOLOGY' = 'BIOLOGY',
+  'CHEMISTRY' = 'CHEMISTRY',
+  'GEOGRAPHY' = 'GEOGRAPHY',
+  'HISTORY' = 'HISTORY',
+  'LITERATURE' = 'LITERATURE',
+  'MATHEMATICS' = 'MATHEMATICS',
+  'OTHER' = 'OTHER',
+}
+
+export enum MainCharacter {
+  'GIRL' = 'GIRL',
+  'BOY' = 'BOY',
+  'DOG' = 'DOG',
+  'CAT' = 'CAT',
+  'HERO' = 'HERO',
+  'PRINCESS' = 'PRINCESS',
   'OTHER' = 'OTHER',
 }

@@ -11,6 +11,8 @@ export class PublicStory extends Story {
     delete (data as any)._id;
     delete (data as any).contentImageDescription;
     delete data.scenarioDescription;
+    delete data.purposeDescription;
+    delete data.characterDescription;
     Object.assign(this, data);
   }
 }

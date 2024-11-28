@@ -24,7 +24,14 @@ import { GetAllStoriesDto } from './dto/get-all-stories.dto';
 import { GetReportsDto, ReportStoryDto } from './dto/report-story.dto';
 
 import { PaginatedData, PaginatedResponse } from '@/general.types';
-import { PublicReport, StoryCounterParams } from './types/stories.types';
+import {
+  Focus,
+  GeneralPurpose,
+  MainCharacter,
+  PublicReport,
+  StoryCounterParams,
+  StoryScenario,
+} from './types/stories.types';
 import { GetUserStoriesLikesDto } from './dto/get-user-stories-likes.dto';
 import { FilterStoriesDto } from './dto/filter-stories.dto';
 import { PublicStory } from './types/public-story.type';
@@ -278,6 +285,59 @@ export class StoriesService {
     });
   }
 
+  /** Checks if the createStoryDto is valid and returns an array of errors. If the dto is valid, it returns an empty array. */
+  private checkCreateStoryDtoValidity(createStoryDto: CreateStoryDto) {
+    const {
+      purpose,
+      purposeDescription,
+      focus,
+      focusDescription,
+      scenario,
+      scenarioDescription,
+      mainCharacter,
+      mainCharacterDescription,
+    } = createStoryDto;
+    const validationErrors: {
+      code: number;
+      message: string;
+      validOptions: string[];
+    }[] = [];
+    if (purpose == GeneralPurpose.OTHER && purposeDescription == '') {
+      validationErrors.push({
+        code: HttpStatus.BAD_REQUEST,
+        message: `If purpose is ${GeneralPurpose.OTHER}. Purpose description is required`,
+        validOptions: [...Object.values(GeneralPurpose)],
+      });
+    }
+
+    if (focus == Focus.OTHER && focusDescription == '') {
+      validationErrors.push({
+        code: HttpStatus.BAD_REQUEST,
+        message: `If focus is ${Focus.OTHER}. Focus description is required`,
+        validOptions: [...Object.values(Focus)],
+      });
+    }
+    if (scenario == StoryScenario.OTHER && scenarioDescription == '') {
+      validationErrors.push({
+        code: HttpStatus.BAD_REQUEST,
+        message: `If scenario is ${StoryScenario.OTHER}. Scenario description is required`,
+        validOptions: [...Object.values(StoryScenario)],
+      });
+    }
+
+    if (
+      mainCharacter == MainCharacter.OTHER &&
+      mainCharacterDescription == ''
+    ) {
+      validationErrors.push({
+        code: HttpStatus.BAD_REQUEST,
+        message: `If mainCharacter is ${MainCharacter.OTHER}. MainCharacter description is required`,
+        validOptions: [...Object.values(MainCharacter)],
+      });
+    }
+
+    return validationErrors;
+  }
   // --------------------------------------------------------------------------------
   // Public methods
   // --------------------------------------------------------------------------------
@@ -289,17 +349,26 @@ export class StoriesService {
   create(createStoryDto: CreateStoryDto): Promise<Story> {
     return new Promise((resolve: (value: any) => void, reject) => {
       const {
-        userId,
+        focus,
+        focusDescription,
         childId,
-        storyNarrator,
         core,
-        purpose,
-        storyStyle,
         finalDetails,
         generateAudios,
         generateImages,
+        mainCharacter,
+        mainCharacterDescription,
+        purpose,
+        purposeDescription,
         scenario,
+        storyNarrator,
+        storyStyle,
+        userId,
       } = createStoryDto;
+      const validationErrors = this.checkCreateStoryDtoValidity(createStoryDto);
+      if (validationErrors.length > 0) {
+        return reject(validationErrors);
+      }
       // Check if the user has enough credits to create a story and search for the child if it exists.
       Promise.all([
         this.usersService.findUserAndCheckCredits(userId),
@@ -388,22 +457,26 @@ export class StoriesService {
               }
 
               const newStory: Story = {
-                title: story.title,
+                focus,
+                focusDescription,
+                character: mainCharacter,
+                characterDescription: `${mainCharacterDescription}. ${story.character}`,
+                childId: child?._id,
                 content,
                 contentImageDescription: story.contentImageDescription,
-                summary: story.summary,
-                character: story.character,
-                storyStyle: storyStyle,
                 core,
-                purpose,
+                deleted: false,
+                finalDetails: finalDetails,
                 narratorId: narrator.id,
+                purpose,
+                purposeDescription: purposeDescription,
+                readingTime: audio.duration || 0,
                 scenario,
                 scenarioDescription: story.scenarioDescription,
+                storyStyle: storyStyle,
+                summary: story.summary,
+                title: story.title,
                 userId: user.id,
-                childId: child?._id,
-                finalDetails: finalDetails,
-                readingTime: audio.duration || 0,
-                deleted: false,
               };
               try {
                 return this.storyModel.create(newStory);

@@ -107,7 +107,7 @@ export class Story {
     type: String,
     trim: true,
     enum: Object.values(Focus),
-    default: '',
+    default: null,
   })
   focus?: keyof typeof Focus | null;
 

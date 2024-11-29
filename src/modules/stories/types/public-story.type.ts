@@ -4,6 +4,7 @@ export class PublicStory extends Story {
   id: string;
   liked?: boolean;
   createdBy?: string;
+  thumbnailUrl?: string;
   constructor(story: StoryDocument) {
     super();
     const data = story.toObject();

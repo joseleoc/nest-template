@@ -169,6 +169,7 @@ export class StoriesService {
     );
   }
 
+  /** Generates the image urls for the story. The first image in the array is the thumbnail. */
   private generateStoryImageUrls(params: {
     story: PublicStory;
   }): Promise<PublicStory> {
@@ -186,11 +187,19 @@ export class StoriesService {
           `images/${content.image}`,
         );
       });
+      promises.unshift(
+        this.cloudStorageService.generatePresignedUrl(
+          `images/${story.thumbnail}`,
+        ),
+      );
 
       Promise.all(promises)
         .then((urls) => {
+          // Sets the thumbnailUrl to the first image in the array.
+          story.thumbnailUrl = urls[0];
           story.content.forEach((content, index) => {
-            content.imageUrl = urls[index];
+            // Adds 1 to the image number to avoid conflicts with the thumbnail.
+            content.imageUrl = urls[index + 1];
           });
           resolve(story);
         })
@@ -229,9 +238,9 @@ export class StoriesService {
         this.getStoryUserName(story.id),
       );
 
-      const ImagesURLsPromises: Promise<PublicStory>[] = generateImages
-        ? stories.map((story) => this.generateStoryImageUrls({ story }))
-        : new Array(stories.length).fill(Promise.resolve(stories));
+      const ImagesURLsPromises: Promise<PublicStory>[] = stories.map((story) =>
+        this.generateStoryImageUrls({ story }),
+      );
 
       // Combines the promises
       Promise.all([
@@ -265,15 +274,18 @@ export class StoriesService {
 
               const content = audios;
               images.forEach((withImage, i) => {
-                content[i].image = withImage.image;
+                // Adds 1 to the image number to avoid conflicts with the thumbnail.
+                // The thumbnail is the first image in the array.
+                content[i].image = withImage.image + 1;
                 content[i].imageUrl = withImage.imageUrl;
               });
+              // Sets the thumbnailUrl to the first image in the array.
+              story.thumbnailUrl =
+                storiesWithImagesURLs.find((st) => st.id === story.id)
+                  ?.thumbnailUrl || '';
               story.content = content;
 
               return story;
-            });
-            storiesWithProperties.forEach((story) => {
-              story.thumbnail = story.content[0].imageUrl || '';
             });
             resolve(storiesWithProperties);
           },
@@ -297,29 +309,29 @@ export class StoriesService {
       mainCharacter,
       mainCharacterDescription,
     } = createStoryDto;
-    const validationErrors: {
+    let validationErrors: {
       code: number;
-      message: string;
-      validOptions: string[];
-    }[] = [];
+      errors: {
+        message: string;
+        validOptions: string[];
+      }[];
+    };
+    const errors: { message: string; validOptions: string[] }[] = [];
     if (purpose == GeneralPurpose.OTHER && purposeDescription == '') {
-      validationErrors.push({
-        code: HttpStatus.BAD_REQUEST,
+      errors.push({
         message: `If purpose is ${GeneralPurpose.OTHER}. Purpose description is required`,
         validOptions: [...Object.values(GeneralPurpose)],
       });
     }
 
     if (focus != null && focus == Focus.OTHER && focusDescription == '') {
-      validationErrors.push({
-        code: HttpStatus.BAD_REQUEST,
+      errors.push({
         message: `If focus is ${Focus.OTHER}. Focus description is required`,
         validOptions: [...Object.values(Focus)],
       });
     }
     if (scenario == StoryScenario.OTHER && scenarioDescription == '') {
-      validationErrors.push({
-        code: HttpStatus.BAD_REQUEST,
+      errors.push({
         message: `If scenario is ${StoryScenario.OTHER}. Scenario description is required`,
         validOptions: [...Object.values(StoryScenario)],
       });
@@ -329,14 +341,19 @@ export class StoriesService {
       mainCharacter == MainCharacter.OTHER &&
       mainCharacterDescription == ''
     ) {
-      validationErrors.push({
-        code: HttpStatus.BAD_REQUEST,
+      errors.push({
         message: `If mainCharacter is ${MainCharacter.OTHER}. MainCharacter description is required`,
         validOptions: [...Object.values(MainCharacter)],
       });
     }
 
-    return validationErrors;
+    if (errors.length > 0) {
+      validationErrors = {
+        code: HttpStatus.BAD_REQUEST,
+        errors,
+      };
+      return validationErrors;
+    } else return null;
   }
   // --------------------------------------------------------------------------------
   // Public methods
@@ -366,10 +383,12 @@ export class StoriesService {
         userId,
       } = createStoryDto;
       const validationErrors = this.checkCreateStoryDtoValidity(createStoryDto);
-      if (validationErrors.length > 0) {
+      if (validationErrors != null) {
         return reject(validationErrors);
       }
       // Check if the user has enough credits to create a story and search for the child if it exists.
+      let addAudios = false;
+      let addImages = false;
       Promise.all([
         this.usersService.findUserAndCheckCredits(userId),
         this.childrenService.findChildById(childId),
@@ -411,7 +430,7 @@ export class StoriesService {
             .then((story: AiStory) => {
               const userCredits = user.credits - 1;
               // Audios promises
-              const addAudios = generateAudios ? canAddAudio : false;
+              addAudios = generateAudios ? canAddAudio : false;
               const audiosPromises = addAudios
                 ? this.textToSpeechService.createAudioFromText({
                     paragraphs: story.content,
@@ -423,10 +442,11 @@ export class StoriesService {
                   };
 
               // Images promises
-              const addImages = generateImages ? canAddImage : false;
-              const imagesPromises = addImages
-                ? this.aiService.generateStoryImages({ story })
-                : Array(story.content.length).fill('');
+              addImages = generateImages ? canAddImage : false;
+              const imagesPromises = this.aiService.generateStoryImages({
+                story,
+                createAllImages: addImages,
+              });
 
               // Returns the story and the audio streams and  updates the user credits.
               return Promise.all([
@@ -477,6 +497,7 @@ export class StoriesService {
                 summary: story.summary,
                 title: story.title,
                 userId: user.id,
+                thumbnail: images[0],
               };
               try {
                 return this.storyModel.create(newStory);
@@ -492,11 +513,11 @@ export class StoriesService {
               const newStory = new PublicStory(story);
               newStory.liked = false;
               return this.generateStoriesMetaParams([newStory], {
-                generateAudios,
-                generateImages,
+                generateAudios: addAudios,
+                generateImages: addImages,
               });
             })
-            .then((story) => resolve(story[0]))
+            .then((storyWithParams) => resolve(storyWithParams[0]))
             .catch((error) => {
               this.logger.error(error);
               reject(error);

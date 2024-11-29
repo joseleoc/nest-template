@@ -139,7 +139,6 @@ export class AiService {
           // ],
         })
         .then((completion) => {
-          console.log({ completion: completion.object });
           let story: AiStory;
 
           if (typeof completion.choices[0].message.content === 'string') {

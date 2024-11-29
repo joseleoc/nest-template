@@ -310,7 +310,6 @@ export class UsersService {
   forgotPassword(params: ForgotPasswordDto): Promise<PublicUser | null> {
     return new Promise((resolve, reject) => {
       const { password, email } = params;
-      console.log('asd');
       this.hashPassword(password)
         .then((hashedPassword) => {
           return this.userModel.findOneAndUpdate(

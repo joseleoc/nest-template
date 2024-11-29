@@ -109,7 +109,7 @@ export class Story {
     enum: Object.values(Focus),
     default: '',
   })
-  focus?: keyof typeof Focus;
+  focus?: keyof typeof Focus | null;
 
   @Prop({ required: false, type: String, trim: true, default: '' })
   focusDescription?: string;

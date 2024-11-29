@@ -310,7 +310,7 @@ export class StoriesService {
       });
     }
 
-    if (focus == Focus.OTHER && focusDescription == '') {
+    if (focus != null && focus == Focus.OTHER && focusDescription == '') {
       validationErrors.push({
         code: HttpStatus.BAD_REQUEST,
         message: `If focus is ${Focus.OTHER}. Focus description is required`,

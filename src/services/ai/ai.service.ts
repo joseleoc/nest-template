@@ -86,7 +86,7 @@ export class AiService {
               - **scenario**: ${prompt.scenario != StoryScenario.OTHER ? prompt.scenario : ''} ${prompt.scenarioDescription != '' ? prompt.scenarioDescription : ''}
               - **storyCore**: ${prompt.core}
               - **storyPurpose**: ${prompt.purpose != GeneralPurpose.OTHER ? prompt.purpose : ''} ${prompt.purposeDescription != '' ? prompt.purposeDescription : ''}
-              - **storyFOcus**: ${prompt.focus != Focus.OTHER ? prompt.focus : ''} ${prompt.focusDescription != '' ? prompt.focusDescription : ''}
+              - **storyFOcus**: ${prompt.focus != null && prompt.focus != Focus.OTHER ? prompt.focus : ''} ${prompt.focusDescription != '' ? prompt.focusDescription : ''}
               - **finalDetails**: ${prompt.finalDetails}
               - **language**: ${prompt.language || user.language}
               - **paragraphLength**: ${prompt.paragraphsLength}

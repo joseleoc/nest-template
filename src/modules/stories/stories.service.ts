@@ -311,6 +311,7 @@ export class StoriesService {
     }
 
     if (focus == Focus.OTHER && focusDescription == '') {
+      console.log({ focus, focusDescription });
       validationErrors.push({
         code: HttpStatus.BAD_REQUEST,
         message: `If focus is ${Focus.OTHER}. Focus description is required`,

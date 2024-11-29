@@ -26,7 +26,7 @@ export const CreateStoryDtoSchema = z.object({
   }),
   scenario: z.nativeEnum(StoryScenario),
   scenarioDescription: z.string().optional().default(''),
-  focus: z.nativeEnum(Focus).optional().default(Focus.OTHER),
+  focus: z.nativeEnum(Focus).optional(),
   focusDescription: z.string().optional().default(''),
   finalDetails: z.string().optional().default(''),
   language: z.nativeEnum(Language),

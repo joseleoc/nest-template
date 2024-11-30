@@ -198,8 +198,7 @@ export class StoriesService {
           // Sets the thumbnailUrl to the first image in the array.
           story.thumbnailUrl = urls[0];
           story.content.forEach((content, index) => {
-            // Adds 1 to the image number to avoid conflicts with the thumbnail.
-            content.imageUrl = urls[index + 1];
+            content.imageUrl = urls[index];
           });
           resolve(story);
         })
@@ -274,15 +273,15 @@ export class StoriesService {
 
               const content = audios;
               images.forEach((withImage, i) => {
-                // Adds 1 to the image number to avoid conflicts with the thumbnail.
-                // The thumbnail is the first image in the array.
-                content[i].image = withImage.image + 1;
+                content[i].image = withImage.image;
                 content[i].imageUrl = withImage.imageUrl;
               });
               // Sets the thumbnailUrl to the first image in the array.
               story.thumbnailUrl =
                 storiesWithImagesURLs.find((st) => st.id === story.id)
-                  ?.thumbnailUrl || '';
+                  ?.thumbnailUrl ||
+                content[0].imageUrl ||
+                '';
               story.content = content;
 
               return story;

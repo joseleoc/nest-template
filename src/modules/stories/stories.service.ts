@@ -187,10 +187,11 @@ export class StoriesService {
           `images/${content.image}`,
         );
       });
+      const thumbnailId = story.thumbnail?.includes('default')
+        ? story.content[0].image
+        : story.thumbnail;
       promises.unshift(
-        this.cloudStorageService.generatePresignedUrl(
-          `images/${story.thumbnail}`,
-        ),
+        this.cloudStorageService.generatePresignedUrl(`images/${thumbnailId}`),
       );
 
       Promise.all(promises)

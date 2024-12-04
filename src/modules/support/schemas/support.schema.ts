@@ -19,8 +19,8 @@ export class Support {
   @Prop({ required: true, type: String })
   type: string;
 
-  @Prop({ required: false, type: String })
-  details?: string;
+  @Prop({ required: true, type: String })
+  description: string;
 }
 
 export const SupportSchema = SchemaFactory.createForClass(Support);

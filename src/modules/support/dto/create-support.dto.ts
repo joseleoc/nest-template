@@ -5,7 +5,7 @@ export const CreateSupportDtoSchema = z.object({
   userId: z.string(),
   //TODO: Add validation for type
   type: z.string(),
-  details: z.string().optional(),
+  description: z.string(),
 });
 
 export class CreateSupportDto extends createZodDto(CreateSupportDtoSchema) {}

@@ -20,6 +20,7 @@ import {
 import { Request } from 'express';
 import { TextToSpeechService } from './services/text-to-speech/text-to-speech.service';
 import { ServicesModule } from './services/services.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 import { SupportModule } from './modules/support/support.module';
 
 @Module({
@@ -64,6 +65,7 @@ import { SupportModule } from './modules/support/support.module';
     NarratorsModule,
     PlansModule,
     ServicesModule,
+    PaymentsModule,
     SupportModule,
   ],
   controllers: [AppController],

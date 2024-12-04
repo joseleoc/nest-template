@@ -64,7 +64,15 @@ export class SupportService {
   // --------------------------------------------------------------------------------
   submitSupport(params: CreateSupportDto) {
     return new Promise((resolve) => {
-      resolve(params);
+      this.supportModel
+        .create(params)
+        .then(() => {
+          resolve({ message: 'Support submitted successfully' });
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          resolve(error);
+        });
     });
   }
 }

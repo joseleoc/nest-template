@@ -15,11 +15,12 @@ export class Support {
   @Prop({ required: true, type: String, trim: true, ref: User.name })
   userId: string;
 
+  //TODO: Add validation for type
   @Prop({ required: true, type: String })
   type: string;
 
-  @Prop({ required: true, type: String })
-  details: string;
+  @Prop({ required: false, type: String })
+  details?: string;
 }
 
 export const SupportSchema = SchemaFactory.createForClass(Support);

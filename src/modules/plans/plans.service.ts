@@ -1,5 +1,5 @@
 import { Model } from 'mongoose';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { Plan, PlanNames } from './schemas/plan.schema';
@@ -7,6 +7,10 @@ import { DefaultPlans } from './plans.constants';
 
 @Injectable()
 export class PlansService {
+  // --------------------------------------------------------------------------------
+  // Local properties
+  // --------------------------------------------------------------------------------
+  private readonly logger = new Logger(PlansService.name);
   // --------------------------------------------------------------------------------
   // Constructor
   // --------------------------------------------------------------------------------
@@ -35,14 +39,24 @@ export class PlansService {
                 (existingPlan) => existingPlan.name === plan.name,
               ),
           );
+          if (documentsToCreate.length === 0) {
+            resolve();
+            return;
+          }
           this.planModel
             .insertMany(documentsToCreate)
             .then(() => {
               resolve();
             })
-            .catch((error) => reject(error));
+            .catch((error) => {
+              this.logger.error(error);
+              reject(error);
+            });
         })
-        .catch((error) => reject(error));
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
     });
   }
 
@@ -54,7 +68,10 @@ export class PlansService {
         .then((plans) => {
           resolve(plans);
         })
-        .catch((error) => reject(error));
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
     });
   }
 
@@ -69,7 +86,10 @@ export class PlansService {
             reject(null);
           }
         })
-        .catch((error) => reject(error));
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
     });
   }
 }

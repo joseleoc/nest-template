@@ -11,8 +11,6 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ChildrenModule } from './modules/children/children.module';
 import { StoriesModule } from './modules/stories/stories.module';
 import { NarratorsModule } from './modules/narrators/narrators.module';
-import { CharactersModule } from './modules/characters/characters.module';
-import { StoriesPlacesModule } from './modules/stories-places/stories-places.module';
 import { PlansModule } from './modules/plans/plans.module';
 import { LoggerModule } from 'nestjs-pino';
 import {
@@ -23,6 +21,7 @@ import { Request } from 'express';
 import { TextToSpeechService } from './services/text-to-speech/text-to-speech.service';
 import { ServicesModule } from './services/services.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { SupportModule } from './modules/support/support.module';
 
 @Module({
   imports: [
@@ -64,11 +63,10 @@ import { PaymentsModule } from './modules/payments/payments.module';
     ChildrenModule,
     StoriesModule,
     NarratorsModule,
-    CharactersModule,
-    StoriesPlacesModule,
     PlansModule,
     ServicesModule,
     PaymentsModule,
+    SupportModule,
   ],
   controllers: [AppController],
   providers: [

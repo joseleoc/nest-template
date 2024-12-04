@@ -1,5 +1,5 @@
 import { Model } from 'mongoose';
-import { genSalt, hashSync } from 'bcrypt';
+import { genSalt, hash } from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
@@ -14,6 +14,7 @@ import { User, UserDocument } from './schemas/user.schema';
 import { PlanNames } from '@/modules/plans/schemas/plan.schema';
 import { ChangePasswordParams, PublicUser } from './types/users.types';
 import { UtilsService } from '@/services/utils/utils.service';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 
 @Injectable()
 export class UsersService {
@@ -192,21 +193,48 @@ export class UsersService {
    * @param userId the user id to check
    * @returns a promise that resolves to an object with the user and a boolean indicating if the user can create a story
    */
-  findUserAndCheckCredits(
-    userId: string,
-  ): Promise<{ canCreateStory: boolean; user: PublicUser | null }> {
+  findUserAndCheckCredits(userId: string): Promise<{
+    user: PublicUser | null;
+    canCreateStory: boolean;
+    canAddAudio: boolean;
+    canAddImage: boolean;
+    canAddText: boolean;
+  }> {
     return new Promise((resolve, reject) => {
       this.findOneById(userId)
         .then((user) => {
           if (user != null && user.deleted === false) {
-            if (user.credits > 0) {
-              resolve({ canCreateStory: true, user: user });
-              return;
-            } else {
-              resolve({ canCreateStory: false, user: user });
-            }
+            this.plansService.findPlanByName(user.plan).then((plan) => {
+              const canAddAudio = plan?.accessToVoice ?? false;
+              const canAddImage = plan?.accessToImage ?? false;
+              const canAddText = plan?.accessToText ?? false;
+              if (user.credits > 0) {
+                resolve({
+                  canCreateStory: true,
+                  user: user,
+                  canAddAudio,
+                  canAddImage,
+                  canAddText,
+                });
+                return;
+              } else {
+                resolve({
+                  canCreateStory: false,
+                  user: user,
+                  canAddAudio: false,
+                  canAddImage: false,
+                  canAddText: false,
+                });
+              }
+            });
           } else {
-            resolve({ canCreateStory: false, user: null });
+            resolve({
+              canCreateStory: false,
+              user: user,
+              canAddAudio: false,
+              canAddImage: false,
+              canAddText: false,
+            });
           }
         })
         .catch((error) =>
@@ -279,11 +307,50 @@ export class UsersService {
     });
   }
 
+  forgotPassword(params: ForgotPasswordDto): Promise<PublicUser | null> {
+    return new Promise((resolve, reject) => {
+      const { password, email } = params;
+      this.hashPassword(password)
+        .then((hashedPassword) => {
+          return this.userModel.findOneAndUpdate(
+            { email },
+            { password: hashedPassword },
+            { new: true },
+          );
+        })
+        .then((updatedUser) => {
+          if (updatedUser == null) {
+            reject({
+              message: 'User not found',
+              code: HttpStatus.NOT_FOUND,
+            });
+            return;
+          }
+          resolve(new PublicUser(updatedUser));
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
+  }
+
   // --------------------------------------------------------------------------------
   // Private methods
   // --------------------------------------------------------------------------------
   private async hashPassword(password: string): Promise<string> {
-    const salt = await genSalt(+this.configService.getOrThrow('APP_SALT'));
-    return hashSync(password, salt);
+    return new Promise((resolve, reject) => {
+      genSalt(+this.configService.getOrThrow('APP_SALT'))
+        .then((salt) => {
+          return hash(password, salt);
+        })
+        .then((hashedPassword) => {
+          resolve(hashedPassword);
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
   }
 }

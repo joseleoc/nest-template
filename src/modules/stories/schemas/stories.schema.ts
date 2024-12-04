@@ -2,16 +2,17 @@ import { HydratedDocument } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Schema as MongooseSchema } from 'mongoose';
 
-import { StoryPurpose } from './story-purpose.schema';
 import { StoryContent } from './stories-content.schema';
 import { User } from '@/modules/users/schemas/user.schema';
 import { Child } from '@/modules/children/schemas/child.schema';
 import { Narrator } from '@/modules/narrators/schemas/narrators.schema';
-
-export enum StoryStyle {
-  'FICTIONAL' = 'FICTIONAL',
-  'NON_FICTIONAL' = 'NON_FICTIONAL',
-}
+import {
+  GeneralPurpose,
+  StoryScenario,
+  StoryCore,
+  StoryStyle,
+  Focus,
+} from '../types/stories.types';
 
 export const StoryDefaultThumbnail = 'story-default-thumbnail.png';
 
@@ -23,15 +24,23 @@ export type StoryDocument = HydratedDocument<Story>;
   toJSON: { versionKey: false },
 })
 export class Story {
+  /** The title of the story */
   @Prop({ required: true, type: String, trim: true })
   title: string;
 
+  /** The content of the story, containing the audios, images and text of each paragraph */
   @Prop({ required: true, type: Array<StoryContent> })
   content: StoryContent[];
 
+  /** The description of the images in the content section, each element is related to the same index in the content array */
+  @Prop({ required: true, type: Array<string>, default: [] })
+  contentImageDescription: string[];
+
+  /** The summary of the story */
   @Prop({ required: true, type: String, trim: true })
   summary: string;
 
+  /** The character of the story */
   @Prop({
     required: true,
     type: String,
@@ -39,6 +48,10 @@ export class Story {
   })
   character: string;
 
+  @Prop({ required: false, type: String, trim: true })
+  characterDescription?: string;
+
+  /** The style of the story */
   @Prop({
     required: true,
     type: String,
@@ -47,15 +60,26 @@ export class Story {
   })
   storyStyle: keyof typeof StoryStyle;
 
-  @Prop({ required: false, type: StoryPurpose })
-  solveProblem?: StoryPurpose;
+  /** The core of the story */
+  @Prop({
+    required: true,
+    type: String,
+    trim: true,
+    enum: Object.values(StoryCore),
+  })
+  core: keyof typeof StoryCore;
 
-  @Prop({ required: false, type: StoryPurpose })
-  teachSomething?: StoryPurpose;
+  @Prop({
+    required: true,
+    type: String,
+    enum: GeneralPurpose,
+  })
+  purpose: keyof typeof GeneralPurpose;
 
-  @Prop({ required: true, type: String, trim: true, default: '' })
-  storyHelp: string;
+  @Prop({ required: false, type: String, trim: true })
+  purposeDescription?: string;
 
+  /** The id of the narrator */
   @Prop({
     required: true,
     type: MongooseSchema.Types.ObjectId,
@@ -65,13 +89,32 @@ export class Story {
   })
   narratorId: string;
 
+  /** The scenario of the story */
   @Prop({
     required: true,
     type: String,
     trim: true,
+    enum: Object.values(StoryScenario),
   })
-  place: string;
+  scenario: keyof typeof StoryScenario;
 
+  @Prop({ required: false, type: String, trim: true })
+  scenarioDescription?: string;
+
+  /** The focus of the story */
+  @Prop({
+    required: false,
+    type: String,
+    trim: true,
+    enum: Object.values(Focus),
+    default: null,
+  })
+  focus?: keyof typeof Focus | null;
+
+  @Prop({ required: false, type: String, trim: true, default: '' })
+  focusDescription?: string;
+
+  /** The thumbnail of the story */
   @Prop({
     required: false,
     type: String,
@@ -80,27 +123,35 @@ export class Story {
   })
   thumbnail?: string;
 
+  /** The id of the child */
   @Prop({ required: false, type: String, trim: true, ref: Child.name })
   childId?: string;
 
+  /** The id of the user */
   @Prop({ required: true, type: String, trim: true, ref: User.name })
   userId: string;
 
+  /** The final details of the story */
   @Prop({ required: false, type: String, default: '' })
   finalDetails?: string;
 
+  /** The reading time of the story */
   @Prop({ required: false, type: Number, default: 0 })
   readingTime?: number;
 
+  /** The number of likes of the story */
   @Prop({ required: false, type: Number, default: 0 })
   likesCount?: number;
 
+  /** The number of views of the story */
   @Prop({ required: false, type: Number, default: 0 })
   viewsCount?: number;
 
+  /** The number of shares of the story */
   @Prop({ required: false, type: Number, default: 0 })
   sharesCount?: number;
 
+  /** Whether the story is deleted or not */
   @Prop({ required: false, type: Boolean, default: false })
   deleted?: boolean;
 }

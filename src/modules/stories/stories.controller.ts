@@ -39,6 +39,10 @@ import {
   getUserStoriesLikesDtoSchema,
 } from './dto/get-user-stories-likes.dto';
 import { SkipAuth } from '@/decorators/index';
+import {
+  FilterStoriesDto,
+  FilterStoriesDtoSchema,
+} from './dto/filter-stories.dto';
 
 @ApiTags('Stories')
 @ApiBearerAuth()
@@ -75,6 +79,11 @@ export class StoriesController {
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'When the user does not exist, is deleted or is not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description:
+      'When the request is not valid. For if the request body is not valid. The error should contain a message and a code that represents where is the error.',
   })
   create(@Body() createStoryDto: CreateStoryDto, @Res() res: Response) {
     this.storiesService
@@ -405,6 +414,46 @@ export class StoriesController {
   ) {
     this.storiesService
       .getUserStoriesLikes(body)
+      .then((stories) => {
+        res.status(HttpStatus.OK).json(stories);
+      })
+      .catch((error) => {
+        this.logger.error(error);
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+      });
+  }
+
+  @Post('/filterStories')
+  @UsePipes(new ZodValidationPipe(FilterStoriesDtoSchema))
+  @ApiOperation({
+    summary: 'Filter stories',
+    description: `Returns an array of stories. 
+    The default pagination is page 0 and limit 10. 
+    If the page or limit is set to 0 or less than 0, it will be set to 10. 
+    If the limit is set to greater than 50, it will be set to 50.`,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'When the stories are found, an array of stories',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            data: { type: 'array', items: { type: 'object' } },
+            totalSearch: { type: 'number' },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error, could be caused by a database error.',
+  })
+  filterStories(@Body() body: FilterStoriesDto, @Res() res: Response) {
+    this.storiesService
+      .filterStories(body)
       .then((stories) => {
         res.status(HttpStatus.OK).json(stories);
       })

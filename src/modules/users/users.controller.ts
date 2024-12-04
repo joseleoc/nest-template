@@ -31,6 +31,10 @@ import {
   ChangePasswordDtoSchema,
 } from './dto/change-password.dto';
 import { ZodValidationPipe } from 'nestjs-zod';
+import {
+  ForgotPasswordDto,
+  ForgotPasswordDtoSchema,
+} from './dto/forgot-password.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -224,6 +228,51 @@ export class UsersController {
           newPassword: changePasswordDto.newPassword,
           userEmail: changePasswordDto.email,
         })
+        .then((user) => {
+          if (user != null) {
+            res.status(HttpStatus.OK).json(user);
+          } else {
+            throw new NotFoundException();
+          }
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          if (error && error.code) {
+            res.status(error.code).json(error);
+            return;
+          }
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+        });
+    } catch (error) {
+      this.logger.error(error);
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @SkipAuth()
+  @Post('/forgotPassword')
+  @UsePipes(new ZodValidationPipe(ForgotPasswordDtoSchema))
+  @ApiOperation({
+    summary: 'Forgot password',
+    description:
+      'Sends a forgot password email to the user with the given email. If the user exists, it updates the password to the new one. This method should only be used when the user is verified to be owner of the account.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'When the user is updated successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error, could be caused by a database error.',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'User not found',
+  })
+  forgotPassword(@Body() body: ForgotPasswordDto, @Res() res: Response) {
+    try {
+      this.usersService
+        .forgotPassword(body)
         .then((user) => {
           if (user != null) {
             res.status(HttpStatus.OK).json(user);

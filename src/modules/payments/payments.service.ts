@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
+import { PaymentSheetDto } from './dto/payment-sheet.dto';
 
 @Injectable()
 export class PaymentsService {
@@ -43,8 +44,9 @@ export class PaymentsService {
   // Public methods
   // --------------------------------------------------------------------------------
 
-  getPaymentSheet(params: any) {
+  getPaymentSheet(params: PaymentSheetDto) {
     return new Promise((resolve, reject) => {
+      const { amount, currency } = params;
       const PublicKey = this.configService.get('STRIPE_PUBLIC_KEY');
       if (!PublicKey) {
         reject('No STRIPE_PUBLIC_KEY found in the environment variables');
@@ -64,8 +66,8 @@ export class PaymentsService {
         .then(([ephemeralKey, customer]) => {
           return Promise.all([
             this.stripe.paymentIntents.create({
-              amount: 1099,
-              currency: 'usd',
+              amount,
+              currency,
               customer: customer.id,
             }),
             ephemeralKey,
@@ -79,8 +81,14 @@ export class PaymentsService {
             customer: customer.id,
             publishableKey: PublicKey,
           });
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject({
+            message: 'Error getting payment sheet',
+            code: HttpStatus.INTERNAL_SERVER_ERROR,
+          });
         });
-      resolve(params);
     });
   }
 }

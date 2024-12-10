@@ -5,6 +5,7 @@ export const AiStorySchema = z.object({
   summary: z.string(),
   content: z.array(z.string()),
   contentImageDescription: z.array(z.string()),
+  characterDescription: z.string(),
   scenarioDescription: z.string(),
   character: z.string(),
 });

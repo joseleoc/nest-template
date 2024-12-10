@@ -52,52 +52,18 @@ export class AiService {
               content: `
               Create a story for a children's app. 
               The story should be in ${prompt.language} language.
-              The story lengths should be at least 2 minutes read with ${prompt.paragraphsLength} or more paragraphs.
-              This should be the kind of story that parents would want their children to read.
+              The story lengths should be at least 2 minutes read with ${prompt.paragraphsLength} or more paragraphs, use as many paragraphs as needed to describe the story and to be engaging for the children.
+              This should be the kind of story that parents would want their children to read, create a story that is engaging, entertaining, and educational, use neurolinguistic programming and use as inspiration successful books in the area of children's stories.
               This should be a ${prompt.storyStyle} story.
               ${this.childAgeConsiderations(child?.age || 7)}
-              Main character is ${prompt.mainCharacter}, ${prompt.mainCharacterDescription}, Provide a detailed description of the character's appearance, in the content section, don't describe the character's appearance, but rather their actions, thoughts, and emotions, the only section that should be high detailed is the character section, in the character section describe the character appearance in detail.
+              Main character is ${prompt.mainCharacter}, ${prompt.mainCharacterDescription}, in the contents fields don't describe the character with high details but in the characterDescription field provide a detailed description of the character's appearance, including the skin, clothes and eye colors, provide the character's age, height, weight, name, and any other relevant information.
               The story should take place in ${prompt.scenario}, ${prompt.scenarioDescription}; Provide a detailed and vivid description of the place, including the atmosphere, surroundings, and key features that set the scene. In the content section, don't describe the setting's appearance, the only section that should be high detailed is the place section, in the place section describe the setting in detail suitable for an AI to generate an image the description should be at least 50 characters and no more than 200 characters.
               The story should be focused in ${prompt.focus}, ${prompt.focusDescription}.
               The story should be about ${prompt.core}, ${prompt.purpose != GeneralPurpose.OTHER ? `focus in ${prompt.purpose}` : ''} ${prompt.purposeDescription != '' ? `The purpose should be centered in ${prompt.purposeDescription}` : ''}.
               ${prompt.finalDetails ? `Take in great consideration this final details: ${prompt.finalDetails}.` : ''}
+              The summary of the story should be engaging and interesting for children and adults and should be no more than 50 words.
               `,
             },
-            // {
-            //   role: 'system',
-            //   content: `Please write a story with a given style for a child of a given age. The story should be at least a given length of paragraphs long. Each paragraph should be between 20 words and 65 words. The story should include:
-            // 1. **Main character**: The main character should have a given characteristics. Provide a detailed description of the character's appearance, in the content section, don't describe the character's appearance, but rather their actions, thoughts, and emotions, the only section that should be high detailed is the character section, in the character section describe the character appearance in detail suitable for an AI to generate an image the description should be 50 characters or less.
-            // 2. **Scenario**: The story should take place in a setting with a given characteristics. Provide a detailed and vivid description of the place, including the atmosphere, surroundings, and key features that set the scene. In the content section, don't describe the setting's appearance, the only section that should be high detailed is the place section, in the place section describe the setting in detail suitable for an AI to generate an image the description should be 50 characters or less.
-            // 3. **Story elements**: The story should revolve around:
-            // - I will provide the core of the story that will be the main idea of the story. The core should be related to a given problem.
-            // - I will provide the purpose of the story that will be the main idea of the story. The purpose should be related to solve the given problem.
-            // - I will provide the story focus that will be the main idea of the story. The focus is the main idea of the story that the story should be round about.
-
-            // 4. **Tone and style**: ${this.childAgeConsiderations(child?.age || 7)} and the story should be enjoyable, imaginative, and fun.
-            //     The story should be positive and educational, free from inappropriate content. Do not include:
-            //     - Any offensive language, references to violence, drugs, or illegal activities.
-            //     - Any sexual content, disturbing themes, or political discussions.
-            //     - Any inappropriate references or unsuitable material for children.
-
-            // 5. **ContentImageDescription**: Provide an array of prompts, one for each content paragraph, to use in a AI image generation model describing each of the contents in a format suitable for a prompt. The prompt should include a similar disney style of a child's story, vibrant colors and should be in hight definition and realistic; describe the main character using the main character's description with high detail; describe the scene using the place's description with high detail. Each prompt in the array should describe in high details the character, scene and style. The prompt should be in english. The promt must specify that each character must be the same, without being modified in each scene, each prompt should not exceed the 700 characters limit.
-
-            // 6. **Final details**: Ensure the story is safe, uplifting, and wholesome for young audiences. Take in great consideration the given final details.`,
-            // },
-            // {
-            //   role: 'user',
-            //   content: `
-            //   - **storyStyle**: ${prompt.storyStyle}
-            //   - **childAge**: ${child?.age || 9}
-            //   - **mainCharacter**: ${prompt.mainCharacter != MainCharacter.OTHER ? prompt.mainCharacter : ''} ${prompt.mainCharacterDescription != '' ? prompt.mainCharacterDescription : ''}
-            //   - **scenario**: ${prompt.scenario != StoryScenario.OTHER ? prompt.scenario : ''} ${prompt.scenarioDescription != '' ? prompt.scenarioDescription : ''}
-            //   - **storyCore**: ${prompt.core}
-            //   - **storyPurpose**: ${prompt.purpose != GeneralPurpose.OTHER ? prompt.purpose : ''} ${prompt.purposeDescription != '' ? prompt.purposeDescription : ''}
-            //   - **storyFocus**: ${prompt.focus != null && prompt.focus != Focus.OTHER ? prompt.focus : ''} ${prompt.focusDescription != '' ? prompt.focusDescription : ''}
-            //   - **finalDetails**: ${prompt.finalDetails}
-            //   - **language**: ${prompt.language || user.language}
-            //   - **paragraphLength**: ${prompt.paragraphsLength}
-            //   `,
-            // },
           ],
         })
         .then((completion) => {
@@ -108,6 +74,7 @@ export class AiService {
             story = completion.choices[0].message.content as any;
           }
           resolve(story);
+          console.log({ characterDescription: story.characterDescription });
           this.logger.log({
             message: 'Story created successfully',
             AICompletion: {
@@ -158,9 +125,17 @@ export class AiService {
       );
       const contentChunks = chunk(contentImageDescription, chunksLength);
       const promises = contentChunks.map((chunk) => {
-        const paragraph = `${chunk[0]}. The main character is ${params.story.character}.`;
-        const prompt = `Aspect ratio: 9:16. Setting: colorful decorations, fantasy environment. Lighting: Warm, soft lighting with glowing accents. Color Palette: Vibrant colors, pastels. Artistic Style: Whimsical storybook illustration, textured and detailed". ${paragraph}`;
-
+        const paragraph = `${chunk[0]}`;
+        const prompt = `
+        Aspect ratio: 9:16. 
+        Setting: colorful decorations, fantasy environment.
+        Lighting: Warm, soft lighting with glowing accents.
+        Color Palette: Vibrant colors, pastels.
+        Artistic Style: Whimsical storybook illustration, textured and detailed".
+        The image should describe this scene: ${paragraph}
+        the main character has this description: ${params.story.characterDescription}
+        `;
+        console.log({ prompt });
         return this.openai.images
           .generate({
             model: 'dall-e-3',

@@ -39,7 +39,7 @@ export class AiService {
       const { prompt, user, child } = params;
       this.openai.chat.completions
         .create({
-          model: 'gpt-4o-mini',
+          model: 'gpt-4o',
           response_format: zodResponseFormat(AiStorySchema, 'story'),
           messages: [
             {
@@ -50,10 +50,12 @@ export class AiService {
             {
               role: 'user',
               content: `
-              Create a story for a children's app. 
+              Create a story. 
               The story should be in ${prompt.language} language.
-              The story lengths should be at least 2 minutes read with ${prompt.paragraphsLength} or more paragraphs, use as many paragraphs as needed to describe the story and to be engaging for the children.
-              This should be the kind of story that parents would want their children to read, create a story that is engaging, entertaining, and educational, use neurolinguistic programming and use as inspiration successful books in the area of children's stories.
+              Write a story that is at least 2 or more minutes long when read aloud, it should have a clear beginning, a rising action that builds tension, a climax where the conflict reaches its peak, a falling action that leads to resolution, and a satisfying conclusion.
+              our story should have at least ${prompt.paragraphsLength} paragraphs to allow for a well-developed plot and characters. Use as many paragraphs as needed to tell your story effectively.
+              The tone of the story should be appropriate for all ages, meaning it should be free from violence or themes that are not acceptable for young readers.
+              Create a story that is engaging, entertaining, and educational.
               This should be a ${prompt.storyStyle} story.
               ${this.childAgeConsiderations(child?.age || 7)}
               Main character is ${prompt.mainCharacter}, ${prompt.mainCharacterDescription}, in the contents fields don't describe the character with high details but in the characterDescription field provide a detailed description of the character's appearance, including the skin, clothes and eye colors, provide the character's age, height, weight, name, and any other relevant information.
@@ -61,7 +63,7 @@ export class AiService {
               The story should be focused in ${prompt.focus}, ${prompt.focusDescription}.
               The story should be about ${prompt.core}, ${prompt.purpose != GeneralPurpose.OTHER ? `focus in ${prompt.purpose}` : ''} ${prompt.purposeDescription != '' ? `The purpose should be centered in ${prompt.purposeDescription}` : ''}.
               ${prompt.finalDetails ? `Take in great consideration this final details: ${prompt.finalDetails}.` : ''}
-              The summary of the story should be engaging and interesting for children and adults and should be no more than 50 words.
+              The summary of the story should be engaging and interesting for young people and adults and should be no more than 50 words.
               `,
             },
           ],

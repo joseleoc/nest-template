@@ -57,12 +57,11 @@ export class AiService {
               The tone of the story should be appropriate for all ages, meaning it should be free from violence or themes that are not acceptable for young readers.
               Create a story that is engaging, entertaining, and educational.
               This should be a ${prompt.storyStyle} story.
-              ${this.childAgeConsiderations(child?.age || 7)}
+              ${prompt.finalDetails && `Take in great consideration this details for the story and try to include every aspect of them: "${prompt.finalDetails}".`}
               Main character is ${prompt.mainCharacter}, ${prompt.mainCharacterDescription}, in the contents fields don't describe the character with high details but in the characterDescription field provide a detailed description of the character's appearance, including the skin, clothes and eye colors, provide the character's age, height, weight, name, and any other relevant information.
               The story should take place in ${prompt.scenario}, ${prompt.scenarioDescription}; Provide a detailed and vivid description of the place, including the atmosphere, surroundings, and key features that set the scene. In the content section, don't describe the setting's appearance, the only section that should be high detailed is the place section, in the place section describe the setting in detail suitable for an AI to generate an image the description should be at least 50 characters and no more than 200 characters.
               The story should be focused in ${prompt.focus}, ${prompt.focusDescription}.
               The story should be about ${prompt.core}, ${prompt.purpose != GeneralPurpose.OTHER ? `focus in ${prompt.purpose}` : ''} ${prompt.purposeDescription != '' ? `The purpose should be centered in ${prompt.purposeDescription}` : ''}.
-              ${prompt.finalDetails ? `Take in great consideration this final details: ${prompt.finalDetails}.` : ''}
               The summary of the story should be engaging and interesting for young people and adults and should be no more than 50 words.
               `,
             },

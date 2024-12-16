@@ -537,10 +537,18 @@ export class StoriesService {
         .findById(id)
         .then((story) => {
           if (story != null) {
-            resolve(new PublicStory(story));
+            return this.generateStoriesMetaParams([new PublicStory(story)]);
           } else {
             resolve(null);
+            return null;
           }
+        })
+        .then((story) => {
+          if (story == undefined) {
+            resolve(null);
+            return;
+          }
+          resolve(story[0]);
         })
         .catch((error) => {
           this.logger.error(error);

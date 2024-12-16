@@ -43,6 +43,9 @@ export class Child {
   })
   deleted: boolean;
 
+  @Prop({ required: false, type: String, trim: true, default: '' })
+  description?: string;
+
   constructor(data: Child) {
     Object.assign(this, data);
   }

@@ -101,6 +101,49 @@ export class StoriesController {
       });
   }
 
+  @Get('getStoryById/:id')
+  @SkipAuth()
+  @ApiOperation({
+    summary: 'Get a story by id',
+    description: 'Returns a story by id',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'When the story is found',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'When the story is not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description:
+      'When the request is not valid. For if the request body is not valid. The error should contain a message and a code that represents where is the error.',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error, could be caused by a database error.',
+  })
+  getStoryById(@Param('id') id: string, @Res() res: Response) {
+    this.storiesService
+      .getStoryById(id)
+      .then((story) => {
+        if (story != null) {
+          res.status(HttpStatus.OK).json(story);
+        } else {
+          res.status(HttpStatus.NOT_FOUND).json({ message: 'Story not found' });
+        }
+      })
+      .catch((error) => {
+        this.logger.error(error);
+        if (error && error.code) {
+          res.status(error.code).json(error);
+          return;
+        }
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+      });
+  }
+
   @Post('getAllStories')
   @SkipAuth()
   @UsePipes(new ZodValidationPipe(GetAllStoriesDtoSchema))

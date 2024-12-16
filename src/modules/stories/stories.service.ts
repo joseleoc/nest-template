@@ -530,6 +530,25 @@ export class StoriesService {
     });
   }
 
+  /** Finds a story by id */
+  getStoryById(id: string): Promise<PublicStory | null> {
+    return new Promise((resolve, reject) => {
+      this.storyModel
+        .findById(id)
+        .then((story) => {
+          if (story != null) {
+            resolve(new PublicStory(story));
+          } else {
+            resolve(null);
+          }
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
+  }
+
   /** Gets all the stories. Paginated. */
   getAllStories(
     params: GetAllStoriesDto,

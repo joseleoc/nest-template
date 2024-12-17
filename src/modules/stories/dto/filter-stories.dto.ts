@@ -25,8 +25,12 @@ export const FilterStoriesDtoSchema = z
     storyStyle: z.nativeEnum(StoryStyle).optional(),
     core: z.nativeEnum(StoryCore).optional(),
     purpose: z.nativeEnum(GeneralPurpose).optional(),
-    narratorGender: z.nativeEnum(Gender).optional(),
-    narratorAgeCategory: z.nativeEnum(NarratorAgeCategory).optional(),
+    narrator: z
+      .object({
+        gender: z.nativeEnum(Gender),
+        ageCategory: z.nativeEnum(NarratorAgeCategory),
+      })
+      .optional(),
     character: z.nativeEnum(MainCharacter).optional(),
     characterGender: z.nativeEnum(Gender).optional(),
     scenario: z.nativeEnum(StoryScenario).optional(),

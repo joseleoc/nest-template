@@ -908,11 +908,37 @@ export class StoriesService {
   }
 
   filterStories(params: FilterStoriesDto): Promise<PublicStory[]> {
-    return new Promise((resolve, reject) => {
-      const { limit: pLimit, page: pPage, sort, sortBy, ...other } = params;
+    return new Promise(async (resolve, reject) => {
+      const {
+        limit: pLimit,
+        page: pPage,
+        sort,
+        sortBy,
+        ...otherParams
+      } = params;
       const { limit, page } = new PaginatedData({ page: pPage, limit: pLimit });
+      let narratorId: string | undefined = undefined;
 
-      let queryStr = JSON.stringify(other);
+      if (otherParams.narrator != null) {
+        const { gender, ageCategory } = otherParams.narrator;
+        delete otherParams.narrator;
+        try {
+          narratorId = (
+            await this.narratorService.findOneByGenderAndAge({
+              gender,
+              ageCategory,
+            })
+          )?.id;
+        } catch (error) {
+          this.logger.error(
+            `Narrator not found when filtering story. gender: ${gender} ageCategory : ${ageCategory} ${error}`,
+          );
+        }
+      }
+
+      const query = { ...otherParams, narratorId };
+
+      let queryStr = JSON.stringify(query);
       queryStr = queryStr.replace(
         /\b(gte|gt|lte|lt)\b/g,
         (match) => `$${match}`,

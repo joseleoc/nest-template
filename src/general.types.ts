@@ -13,9 +13,9 @@ export class PaginatedData {
   page: number;
   limit: number;
 
-  constructor(page: number, limit: number) {
-    this.page = page <= 0 ? 0 : page;
-    this.limit = limit <= 0 ? 10 : limit;
+  constructor(params: { page: number; limit: number }) {
+    this.page = params.page < 0 ? 0 : params.page;
+    this.limit = params.limit <= 0 ? 10 : params.limit;
   }
 }
 

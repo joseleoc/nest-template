@@ -75,7 +75,6 @@ export class AiService {
             story = completion.choices[0].message.content as any;
           }
           resolve(story);
-          console.log({ characterDescription: story.characterDescription });
           this.logger.log({
             message: 'Story created successfully',
             AICompletion: {
@@ -136,7 +135,6 @@ export class AiService {
         The image should describe this scene: ${paragraph}
         the main character has this description: ${params.story.characterDescription}
         `;
-        console.log({ prompt });
         return this.openai.images
           .generate({
             model: 'dall-e-3',

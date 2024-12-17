@@ -502,7 +502,12 @@ export class StoriesController {
       })
       .catch((error) => {
         this.logger.error(error);
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+        if (error && error.code) {
+          res.status(error.code).json(error);
+          return;
+        } else {
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+        }
       });
   }
 }

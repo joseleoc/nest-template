@@ -562,7 +562,10 @@ export class StoriesService {
     params: GetAllStoriesDto,
   ): Promise<PaginatedResponse<PublicStory>> {
     return new Promise((resolve, reject) => {
-      const { page, limit } = new PaginatedData(params.page, params.limit);
+      const { page, limit } = new PaginatedData({
+        page: params.page,
+        limit: params.limit,
+      });
       Promise.all([
         this.storyModel
           .find()
@@ -797,7 +800,10 @@ export class StoriesService {
   /** Gets the reports for a user. Paginated. */
   getReports(params: GetReportsDto): Promise<PublicReport[]> {
     return new Promise((resolve, reject) => {
-      const { page, limit } = new PaginatedData(params.page, params.limit);
+      const { page, limit } = new PaginatedData({
+        page: params.page,
+        limit: params.limit,
+      });
       this.storiesReportModel
         .find()
         .sort({ createdAt: -1 })
@@ -822,7 +828,10 @@ export class StoriesService {
   ): Promise<PaginatedResponse<PublicStory>> {
     return new Promise(async (resolve, reject) => {
       const { userId, page: paramPage, limit: paramLimit, sort } = params;
-      const { page, limit } = new PaginatedData(paramPage, paramLimit);
+      const { page, limit } = new PaginatedData({
+        page: paramPage,
+        limit: paramLimit,
+      });
 
       this.storiesLikesModel
         .aggregate([
@@ -899,8 +908,37 @@ export class StoriesService {
   }
 
   filterStories(params: FilterStoriesDto): Promise<PublicStory[]> {
-    return new Promise((resolve) => {
-      resolve([]);
+    return new Promise((resolve, reject) => {
+      const { limit: pLimit, page: pPage, sort, sortBy, ...other } = params;
+      const { limit, page } = new PaginatedData({ page: pPage, limit: pLimit });
+
+      let queryStr = JSON.stringify(other);
+      queryStr = queryStr.replace(
+        /\b(gte|gt|lte|lt)\b/g,
+        (match) => `$${match}`,
+      );
+      this.storyModel
+        .find(JSON.parse(queryStr))
+        .limit(limit)
+        .skip(page * limit)
+        .sort({
+          likesCount: -1,
+          sharesCount: -1,
+          viewsCount: -1,
+          [sortBy || 'title']: sort === 'asc' ? 1 : -1,
+        })
+        .then((stories) => {
+          const publicStories = stories.map((story) => new PublicStory(story));
+
+          return this.generateStoriesMetaParams(publicStories);
+        })
+        .then((storiesMetaParams) => {
+          resolve(storiesMetaParams);
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
     });
   }
 }

@@ -22,6 +22,13 @@ export class NarratorsService {
       language: Language.EN,
     },
     {
+      name: 'José Borda - Deep',
+      voiceId: 'NDeNvFOosDh4L0JoDYIq',
+      gender: Gender.MALE,
+      ageCategory: NarratorAgeCategory.EDERLY,
+      language: Language.ES,
+    },
+    {
       name: 'Brian Overturf',
       voiceId: 'ryn3WBvkCsp4dPZksMIf',
       gender: Gender.MALE,
@@ -57,11 +64,25 @@ export class NarratorsService {
       language: Language.EN,
     },
     {
+      name: 'Omgpvoice - Expressive',
+      voiceId: 'IZ0jPQ3xydXtRUdWOhNs',
+      gender: Gender.FEMALE,
+      ageCategory: NarratorAgeCategory.EDERLY,
+      language: Language.ES,
+    },
+    {
       name: 'Alicia Speaks-Unique and Pleasant',
       voiceId: 'OOk3INdXVLRmSaQoAX9D',
       gender: Gender.FEMALE,
       ageCategory: NarratorAgeCategory.ADULT,
       language: Language.EN,
+    },
+    {
+      name: 'Samanta',
+      voiceId: 'qBvury71WUJfVeT1STkG',
+      gender: Gender.FEMALE,
+      ageCategory: NarratorAgeCategory.ADULT,
+      language: Language.ES,
     },
     {
       name: 'Hope - upbeat and clear',

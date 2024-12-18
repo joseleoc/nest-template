@@ -29,7 +29,7 @@ export const CreateStoryDtoSchema = z.object({
   focus: z.nativeEnum(Focus).nullable().optional(),
   focusDescription: z.string().optional().default(''),
   finalDetails: z.string().optional().default(''),
-  language: z.nativeEnum(Language),
+  language: z.nativeEnum(Language).default(Language.EN),
   generateAudios: z.boolean().optional().default(true),
   generateImages: z.boolean().optional().default(true),
   paragraphsLength: z.number().min(1).max(20).optional().default(5),

@@ -2,18 +2,37 @@ import { Response } from 'express';
 import {
   Controller,
   Get,
+  Patch,
   HttpStatus,
   NotFoundException,
   Param,
   Res,
+  Body,
+  BadRequestException,
+  Logger,
+  UsePipes,
 } from '@nestjs/common';
 import { NarratorsService } from './narrators.service';
 
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { ObjectId } from 'mongodb';
+import {
+  UpdateNarratorDto,
+  UpdateNarratorDtoSchema,
+} from './dto/update-narrator.dto';
+import { ZodValidationPipe } from 'nestjs-zod';
 
 @ApiTags('Narrators')
 @Controller('narrators')
 export class NarratorsController {
+  logger = new Logger(NarratorsController.name);
   constructor(private readonly narratorsService: NarratorsService) {}
 
   @Get()
@@ -72,5 +91,49 @@ export class NarratorsController {
     } catch (error) {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
     }
+  }
+
+  @Patch()
+  @ApiOperation({
+    summary: 'Updates a narrator document',
+    description:
+      'Updates a narrator document. The id is required and must be a valid ObjectId. This method is intended to be used only by the admin role as an internal endpoint.',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'Bad request, id is required and must be a valid ObjectId or any other validation error, check the error message for more details.',
+  })
+  @ApiOkResponse({
+    description:
+      'Narrator document updated successfully, returns the updated narrator document.',
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error could be caused by a database error.',
+  })
+  @UsePipes(new ZodValidationPipe(UpdateNarratorDtoSchema))
+  updateNarrator(@Body() body: UpdateNarratorDto, @Res() res: Response) {
+    if (body.id == null) {
+      throw new BadRequestException('id is required');
+    }
+    const isValid = ObjectId.isValid(body.id);
+    if (!isValid) {
+      throw new BadRequestException('id is not a valid ObjectId');
+    }
+    this.narratorsService
+      .updateNarrator(body)
+      .then((narrator) => {
+        if (narrator == null) {
+          throw new NotFoundException('narrator not found');
+        }
+        res.status(HttpStatus.OK).json(narrator);
+      })
+      .catch((error) => {
+        this.logger.error(error);
+        if (error?.code != null) {
+          res.status(error.code).json(error);
+          return;
+        }
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+      });
   }
 }

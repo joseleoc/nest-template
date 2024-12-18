@@ -18,6 +18,7 @@ enum sortByOptions {
   'SCENARIO' = 'scenario',
   'character' = 'character',
   'NARRATOR' = 'narrator',
+  'TITLE' = 'title',
 }
 
 export const FilterStoriesDtoSchema = z
@@ -34,7 +35,7 @@ export const FilterStoriesDtoSchema = z
     character: z.nativeEnum(MainCharacter).optional(),
     characterGender: z.nativeEnum(Gender).optional(),
     scenario: z.nativeEnum(StoryScenario).optional(),
-    sortBy: z.nativeEnum(sortByOptions).optional(),
+    sortBy: z.nativeEnum(sortByOptions).optional().default(sortByOptions.TITLE),
     focus: z.nativeEnum(Focus).optional(),
   })
 

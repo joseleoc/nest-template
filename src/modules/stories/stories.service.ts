@@ -381,6 +381,7 @@ export class StoriesService {
         storyNarrator,
         storyStyle,
         userId,
+        language,
       } = createStoryDto;
       const validationErrors = this.checkCreateStoryDtoValidity(createStoryDto);
       if (validationErrors != null) {
@@ -395,6 +396,7 @@ export class StoriesService {
         this.narratorService.findOneByGenderAndAge({
           gender: storyNarrator.gender,
           ageCategory: storyNarrator.ageCategory,
+          language,
         }),
       ])
         .then((res) => {

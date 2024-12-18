@@ -1,4 +1,4 @@
-import { Gender } from '@/general.types';
+import { Gender, Language } from '@/general.types';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
@@ -41,6 +41,14 @@ export class Narrator {
     enum: Object.values(Gender),
   })
   gender: Gender;
+
+  @Prop({
+    required: true,
+    type: String,
+    enum: Object.values(Language),
+    default: Language.EN,
+  })
+  language: Language;
 }
 
 export const NarratorSchema = SchemaFactory.createForClass(Narrator);

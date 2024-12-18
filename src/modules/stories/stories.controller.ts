@@ -14,10 +14,15 @@ import { Response } from 'express';
 import { StoriesService } from './stories.service';
 import { CreateStoryDto, CreateStoryDtoSchema } from './dto/create-story.dto';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import {
   StoryCounterDto,
@@ -470,13 +475,17 @@ export class StoriesController {
   @UsePipes(new ZodValidationPipe(FilterStoriesDtoSchema))
   @ApiOperation({
     summary: 'Filter stories',
-    description: `Returns an array of stories. 
-    The default pagination is page 0 and limit 10. 
-    If the page or limit is set to 0 or less than 0, it will be set to 10. 
-    If the limit is set to greater than 50, it will be set to 50.`,
+    description: `Returns an array of stories.\n
+    The default pagination is page 0 and limit 10.\n
+    If the page or limit is set to 0 or less than 0, it will be set to 10.\n
+    If the limit is set to greater than 50, it will be set to 50.\n
+    The "sort" property could be "asc" or "desc" default is "desc".\n
+    The "sortBy" property could be "title" | "core" | "purpose" | "scenario" | "character" | "narrator", default is "title".\n
+    Narrator is optional but if set, the "narrator.gender" and "narrato.ageCategory" properties are required.\n
+    All the other properties are optional.
+    `,
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
+  @ApiOkResponse({
     description: 'When the stories are found, an array of stories',
     content: {
       'application/json': {
@@ -490,9 +499,18 @@ export class StoriesController {
       },
     },
   })
-  @ApiResponse({
-    status: HttpStatus.INTERNAL_SERVER_ERROR,
+  @ApiInternalServerErrorResponse({
     description: 'Internal server error, could be caused by a database error.',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized, could be caused by a missing or invalid token.',
+  })
+  @ApiCreatedResponse({
+    description: 'N/A',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'Bad request, could be caused by a validation error. Check the error message for more information.',
   })
   filterStories(@Body() body: FilterStoriesDto, @Res() res: Response) {
     this.storiesService

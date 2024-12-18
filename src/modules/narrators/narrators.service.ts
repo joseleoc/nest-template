@@ -3,8 +3,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Narrator, NarratorAgeCategory } from './schemas/narrators.schema';
 import { Model } from 'mongoose';
-import { Gender } from '@/general.types';
+import { Gender, Language } from '@/general.types';
 import { PublicNarrator } from './types/narrators.types';
+import { UpdateNarratorDto } from './dto/update-narrator.dto';
 
 @Injectable()
 export class NarratorsService {
@@ -18,48 +19,63 @@ export class NarratorsService {
       voiceId: 'LruHrtVF6PSyGItzMNHS',
       gender: Gender.MALE,
       ageCategory: NarratorAgeCategory.EDERLY,
+      language: Language.EN,
     },
     {
       name: 'Brian Overturf',
       voiceId: 'ryn3WBvkCsp4dPZksMIf',
       gender: Gender.MALE,
       ageCategory: NarratorAgeCategory.ADULT,
+      language: Language.EN,
+    },
+    {
+      name: 'Dan Dan',
+      voiceId: '9F4C8ztpNUmXkdDDbz3J',
+      gender: Gender.MALE,
+      ageCategory: NarratorAgeCategory.ADULT,
+      language: Language.ES,
     },
     {
       name: 'Tyler Kurk',
       voiceId: 'raMcNf2S8wCmuaBcyI6E',
       gender: Gender.MALE,
       ageCategory: NarratorAgeCategory.YOUNG,
+      language: Language.EN,
     },
     {
-      name: 'Brittney - Male Child - Youthful, Raspy, Cute & Excitable',
-      voiceId: '5HuFhTDIKwL0cGenPHbW',
+      name: 'A-Chan ver.2',
+      voiceId: 'VyTe5Cy1ZXnpHrKVrxwk',
       gender: Gender.MALE,
       ageCategory: NarratorAgeCategory.CHILD,
+      language: Language.EN,
     },
     {
       name: 'Nora',
       voiceId: '0YCdTbygrMV0VFUAAziF',
       gender: Gender.FEMALE,
       ageCategory: NarratorAgeCategory.EDERLY,
+      language: Language.EN,
     },
     {
       name: 'Alicia Speaks-Unique and Pleasant',
       voiceId: 'OOk3INdXVLRmSaQoAX9D',
       gender: Gender.FEMALE,
       ageCategory: NarratorAgeCategory.ADULT,
+      language: Language.EN,
     },
     {
       name: 'Hope - upbeat and clear',
       voiceId: 'tnSpp4vdxKPjI9w0GnoV',
       gender: Gender.FEMALE,
       ageCategory: NarratorAgeCategory.YOUNG,
+      language: Language.EN,
     },
     {
-      name: 'Kade Murdock - Childish voice',
-      voiceId: '0m2tDjDewtOfXrhxqgrJ',
+      name: 'Gigi (Legacy)',
+      voiceId: 'jBpfuIE2acCO8z3wKNLl',
       gender: Gender.FEMALE,
       ageCategory: NarratorAgeCategory.CHILD,
+      language: Language.EN,
     },
   ];
   // --------------------------------------------------------------------------------
@@ -111,16 +127,19 @@ export class NarratorsService {
   findOneByGenderAndAge(params: {
     gender: Gender;
     ageCategory: NarratorAgeCategory;
+    language?: Language;
   }): Promise<PublicNarrator | null> {
     return new Promise((resolve, reject) => {
-      const { gender, ageCategory } = params;
-      this.narratorModel.find({ gender, ageCategory }).then((narrators) => {
-        if (narrators.length > 0) {
-          resolve(new PublicNarrator(narrators[0]));
-        } else {
-          reject(null);
-        }
-      });
+      const { gender, ageCategory, language } = params;
+      this.narratorModel
+        .find({ gender, ageCategory, language: language || Language.EN })
+        .then((narrators) => {
+          if (narrators.length > 0) {
+            resolve(new PublicNarrator(narrators[0]));
+          } else {
+            reject(null);
+          }
+        });
     });
   }
 
@@ -135,11 +154,17 @@ export class NarratorsService {
       this.findAll().then((narrators) => {
         const narratorsToInsert: Omit<PublicNarrator, 'id'>[] = [];
         this.defaultNarrators.forEach((narrator) => {
-          if (!narrators.some((n) => n.ageCategory === narrator.ageCategory)) {
+          if (
+            !narrators.some(
+              (n) =>
+                n.ageCategory === narrator.ageCategory &&
+                narrator.language === n.language,
+            )
+          ) {
             narratorsToInsert.push(narrator);
           }
         });
-
+        console.log(narratorsToInsert);
         if (narratorsToInsert.length > 0) {
           this.narratorModel
             .insertMany(narratorsToInsert)
@@ -152,6 +177,25 @@ export class NarratorsService {
             });
         }
       });
+    });
+  }
+
+  updateNarrator(params: UpdateNarratorDto): Promise<PublicNarrator | null> {
+    return new Promise((resolve, reject) => {
+      const { id, ...other } = params;
+      this.narratorModel
+        .findByIdAndUpdate(id, params, { new: true })
+        .then((narrator) => {
+          if (narrator != null) {
+            resolve(new PublicNarrator(narrator));
+          } else {
+            reject(null);
+          }
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
     });
   }
 }

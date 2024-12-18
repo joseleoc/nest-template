@@ -2,6 +2,7 @@ import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { PaymentSheetDto } from './dto/payment-sheet.dto';
+import { PaymentIntentDto } from './dto/payment-intent.dto';
 
 @Injectable()
 export class PaymentsService {
@@ -86,6 +87,32 @@ export class PaymentsService {
           this.logger.error(error);
           reject({
             message: 'Error getting payment sheet',
+            code: HttpStatus.INTERNAL_SERVER_ERROR,
+          });
+        });
+    });
+  }
+
+  paymentIntent(
+    params: PaymentIntentDto,
+  ): Promise<Stripe.Response<Stripe.PaymentIntent>> {
+    return new Promise((resolve, reject) => {
+      console.log(params);
+      const { amount, currency, paymentMethodTypes } = params;
+      this.stripe.paymentIntents
+        .create({
+          payment_method_types: paymentMethodTypes,
+          amount,
+          currency,
+        })
+        .then((res) => {
+          console.log(res);
+          resolve(res);
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject({
+            message: 'Error getting payment intent',
             code: HttpStatus.INTERNAL_SERVER_ERROR,
           });
         });

@@ -97,7 +97,6 @@ export class PaymentsService {
     params: PaymentIntentDto,
   ): Promise<Stripe.Response<Stripe.PaymentIntent>> {
     return new Promise((resolve, reject) => {
-      console.log(params);
       const { amount, currency, paymentMethodTypes } = params;
       this.stripe.paymentIntents
         .create({
@@ -106,7 +105,6 @@ export class PaymentsService {
           currency,
         })
         .then((res) => {
-          console.log(res);
           resolve(res);
         })
         .catch((error) => {

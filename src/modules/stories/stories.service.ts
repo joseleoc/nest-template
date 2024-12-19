@@ -393,7 +393,7 @@ export class StoriesService {
       Promise.all([
         this.usersService.findUserAndCheckCredits(userId),
         this.childrenService.findChildById(childId),
-        this.narratorService.findOneByGenderAndAge({
+        this.narratorService.findOne({
           gender: storyNarrator.gender,
           ageCategory: storyNarrator.ageCategory,
           language,
@@ -916,6 +916,7 @@ export class StoriesService {
         page: pPage,
         sort,
         sortBy,
+        title,
         ...otherParams
       } = params;
       const { limit, page } = new PaginatedData({ page: pPage, limit: pLimit });
@@ -926,7 +927,7 @@ export class StoriesService {
         delete otherParams.narrator;
         try {
           narratorId = (
-            await this.narratorService.findOneByGenderAndAge({
+            await this.narratorService.findOne({
               gender,
               ageCategory,
             })
@@ -945,8 +946,18 @@ export class StoriesService {
         /\b(gte|gt|lte|lt)\b/g,
         (match) => `$${match}`,
       );
+
+      const queryObject = JSON.parse(queryStr);
+
+      // If title is not null, add it as a regex to the query object, case insensitive.
+      if (title != null) {
+        queryObject.title = {
+          $regex: new RegExp(title),
+          $options: 'i',
+        };
+      }
       this.storyModel
-        .find(JSON.parse(queryStr))
+        .find(queryObject)
         .limit(limit)
         .skip(page * limit)
         .sort({

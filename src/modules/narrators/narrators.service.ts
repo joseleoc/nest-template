@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Narrator, NarratorAgeCategory } from './schemas/narrators.schema';
 import { Model } from 'mongoose';
@@ -145,7 +145,7 @@ export class NarratorsService {
     });
   }
 
-  findOneByGenderAndAge(params: {
+  findOne(params: {
     gender: Gender;
     ageCategory: NarratorAgeCategory;
     language?: Language;
@@ -153,13 +153,30 @@ export class NarratorsService {
     return new Promise((resolve, reject) => {
       const { gender, ageCategory, language } = params;
       this.narratorModel
-        .find({ gender, ageCategory, language: language || Language.EN })
-        .then((narrators) => {
-          if (narrators.length > 0) {
-            resolve(new PublicNarrator(narrators[0]));
+        .findOne({ gender, ageCategory, language: language || Language.EN })
+        .then((narrator) => {
+          if (narrator != null) {
+            return new PublicNarrator(narrator);
+          } else if (language != null) {
+            // Try to find the narrator with the default language
+            return this.findOne({
+              gender,
+              ageCategory,
+            });
+          } else {
+            return null;
+          }
+        })
+        .then((narrator) => {
+          if (narrator != null) {
+            resolve(narrator);
           } else {
             reject(null);
           }
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
         });
     });
   }
@@ -185,7 +202,6 @@ export class NarratorsService {
             narratorsToInsert.push(narrator);
           }
         });
-        console.log(narratorsToInsert);
         if (narratorsToInsert.length > 0) {
           this.narratorModel
             .insertMany(narratorsToInsert)

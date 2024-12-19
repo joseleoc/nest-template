@@ -23,6 +23,7 @@ enum sortByOptions {
 
 export const FilterStoriesDtoSchema = z
   .object({
+    title: z.string().optional(),
     storyStyle: z.nativeEnum(StoryStyle).optional(),
     core: z.nativeEnum(StoryCore).optional(),
     purpose: z.nativeEnum(GeneralPurpose).optional(),

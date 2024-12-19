@@ -11,6 +11,7 @@ import {
   BadRequestException,
   Logger,
   UsePipes,
+  Post,
 } from '@nestjs/common';
 import { NarratorsService } from './narrators.service';
 
@@ -28,6 +29,10 @@ import {
   UpdateNarratorDtoSchema,
 } from './dto/update-narrator.dto';
 import { ZodValidationPipe } from 'nestjs-zod';
+import {
+  FindOneNarratorDto,
+  FindOneNarratorDtoSchema,
+} from './dto/find-one-narrator.dto';
 
 @ApiTags('Narrators')
 @Controller('narrators')
@@ -121,6 +126,42 @@ export class NarratorsController {
     }
     this.narratorsService
       .updateNarrator(body)
+      .then((narrator) => {
+        if (narrator == null) {
+          throw new NotFoundException('narrator not found');
+        }
+        res.status(HttpStatus.OK).json(narrator);
+      })
+      .catch((error) => {
+        this.logger.error(error);
+        if (error?.code != null) {
+          res.status(error.code).json(error);
+          return;
+        }
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+      });
+  }
+
+  @Post('findOne')
+  @ApiOperation({
+    summary: 'Finds a narrator by a given name',
+    description:
+      'Finds a narrator by a given name. This method is intended to be used only by the admin role as an internal endpoint.',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'Bad request, name is required and must be a string or any other validation error, check the error message for more details.',
+  })
+  @ApiOkResponse({
+    description: 'Narrator found successfully, returns the narrator document.',
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error could be caused by a database error.',
+  })
+  @UsePipes(new ZodValidationPipe(FindOneNarratorDtoSchema))
+  findOneByName(@Body() body: FindOneNarratorDto, @Res() res: Response) {
+    this.narratorsService
+      .findOne(body)
       .then((narrator) => {
         if (narrator == null) {
           throw new NotFoundException('narrator not found');

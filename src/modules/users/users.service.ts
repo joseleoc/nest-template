@@ -335,6 +335,38 @@ export class UsersService {
     });
   }
 
+  addCostumerIdToUser(params: {
+    userId: string;
+    customerId: string;
+  }): Promise<PublicUser> {
+    return new Promise((resolve, reject) => {
+      this.userModel
+        .findByIdAndUpdate(
+          params.userId,
+          {
+            $push: { customerIds: params.customerId },
+          },
+          {
+            new: true,
+          },
+        )
+        .then((updatedUser) => {
+          if (updatedUser == null) {
+            reject({
+              message: 'User not found',
+              code: HttpStatus.NOT_FOUND,
+            });
+            return;
+          }
+          resolve(new PublicUser(updatedUser));
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
+  }
+
   // --------------------------------------------------------------------------------
   // Private methods
   // --------------------------------------------------------------------------------

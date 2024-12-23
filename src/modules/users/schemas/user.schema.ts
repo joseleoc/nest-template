@@ -56,6 +56,9 @@ export class User {
   @Prop({ type: Boolean, default: false })
   deleted: boolean;
 
+  @Prop({ type: Array<string>, default: [], required: false })
+  customerIds?: string[];
+
   constructor(user: User) {
     Object.assign(this, user);
   }

@@ -1,8 +1,10 @@
+import Stripe from 'stripe';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import Stripe from 'stripe';
 import { PaymentSheetDto } from './dto/payment-sheet.dto';
 import { PaymentIntentDto } from './dto/payment-intent.dto';
+import { CreateCustomerDto } from './dto/create-customer.dto';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class PaymentsService {
@@ -14,7 +16,10 @@ export class PaymentsService {
   // --------------------------------------------------------------------------------
   // Constructor
   // --------------------------------------------------------------------------------
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private usersService: UsersService,
+  ) {
     this.checkEnvVariables();
     this.setupStripe();
   }
@@ -44,6 +49,74 @@ export class PaymentsService {
   // --------------------------------------------------------------------------------
   // Public methods
   // --------------------------------------------------------------------------------
+
+  createCostumer(params: CreateCustomerDto): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const { email, name, userId } = params;
+      this.stripe.customers
+        .create({
+          email,
+          name,
+        })
+        .then((customer) => {
+          return Promise.all([
+            customer.id,
+            this.usersService.addCostumerIdToUser({
+              userId,
+              customerId: customer.id,
+            }),
+          ]);
+        })
+        .then(([customerId]) => {
+          resolve(customerId);
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject({
+            message: 'Error creating customer',
+            code: HttpStatus.INTERNAL_SERVER_ERROR,
+          });
+        });
+    });
+  }
+
+  createSubscription() {
+    return new Promise((resolve, reject) => {
+      this.stripe.subscriptions
+        .create({
+          customer: 'customerId',
+          items: [
+            {
+              price: 'priceId',
+            },
+          ],
+          payment_behavior: 'default_incomplete',
+          payment_settings: { save_default_payment_method: 'on_subscription' },
+          expand: ['latest_invoice.payment_intent'],
+        })
+        .then((subscription) => {
+          console.log(subscription);
+          //Store the subscription fields to the database
+          const { id, current_period_end, current_period_start, customer } =
+            subscription;
+          resolve({
+            subscriptionId: subscription.id,
+            clientSecret: (
+              (subscription.latest_invoice as Stripe.Invoice)
+                .payment_intent as Stripe.PaymentIntent
+            ).client_secret,
+          });
+        })
+        .catch((error) => {
+          this.logger.error(error);
+
+          reject({
+            message: 'Error creating subscription',
+            code: HttpStatus.INTERNAL_SERVER_ERROR,
+          });
+        });
+    });
+  }
 
   getPaymentSheet(params: PaymentSheetDto) {
     return new Promise((resolve, reject) => {

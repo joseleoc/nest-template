@@ -8,7 +8,9 @@ import { PlansService } from './modules/plans/plans.service';
 import { NarratorsService } from './modules/narrators/narrators.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
+
+  (app as any).disable('x-powered-by');
   app.useLogger(app.get(Logger));
   patchNestJsSwagger();
 

@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import Stripe from 'stripe';
 
 export type SubscriptionDocument = HydratedDocument<Subscription>;
 enum SubscriptionStatus {
@@ -20,6 +21,7 @@ enum SubscriptionStatus {
   toJSON: {
     versionKey: false,
   },
+  timestamps: true,
 })
 export class Subscription {
   @Prop({ required: true, type: String })
@@ -43,9 +45,8 @@ export class Subscription {
   @Prop({
     required: true,
     type: String,
-    enum: Object.values(SubscriptionStatus),
   })
-  status: SubscriptionStatus;
+  status: Stripe.Subscription.Status;
 }
 
 export const SubscriptionSchema = SchemaFactory.createForClass(Subscription);

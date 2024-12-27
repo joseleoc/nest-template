@@ -78,24 +78,22 @@ export class UsersService {
                   }
                 })
                 .then((user) => {
-                  return this.paymentsService
-                    .createCustomer({
+                  return Promise.all([
+                    this.paymentsService.createCustomer({
                       email: user.email,
                       name: user.userName,
-                    })
-                    .then((customer) => {
-                      return this.userModel.findByIdAndUpdate(
-                        user.id,
-                        {
-                          customerIds: { $push: [customer] },
-                        },
-                        { new: true },
-                      );
-                    })
-                    .catch((error) => {
-                      this.logger.error(error);
-                      resolve(user);
-                    });
+                    }),
+                    user,
+                  ]);
+                })
+                .then(([customer, user]) => {
+                  return this.userModel.findByIdAndUpdate(
+                    user.id,
+                    {
+                      customerIds: [customer],
+                    },
+                    { new: true },
+                  );
                 })
                 .then((userWithCustomer) => {
                   if (userWithCustomer == null) {
@@ -111,7 +109,8 @@ export class UsersService {
                   this.logger.error(error);
                   reject({
                     message: 'Error handling the user',
-                    code: HttpStatus.INTERNAL_SERVER_ERROR,
+                    error,
+                    code: HttpStatus.CONFLICT,
                   });
                 });
             } else {

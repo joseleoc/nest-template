@@ -80,6 +80,10 @@ export class UsersController {
       })
       .catch((error) => {
         this.logger.error(error);
+        if (error?.code != null) {
+          res.status(error.code).json(error);
+          return;
+        }
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
       });
   }

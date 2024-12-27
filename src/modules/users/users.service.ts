@@ -107,12 +107,13 @@ export class UsersService {
                   }
                   resolve(new PublicUser(userWithCustomer));
                 })
-                .catch(() =>
+                .catch((error) => {
+                  this.logger.error(error);
                   reject({
                     message: 'Error handling the user',
                     code: HttpStatus.INTERNAL_SERVER_ERROR,
-                  }),
-                );
+                  });
+                });
             } else {
               reject({
                 message: 'Plan not found',

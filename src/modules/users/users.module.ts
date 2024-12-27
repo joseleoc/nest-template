@@ -6,12 +6,14 @@ import { User, UserSchema } from './schemas/user.schema';
 import { PlansModule } from '../plans/plans.module';
 import { ConfigService } from '@nestjs/config';
 import { ServicesModule } from '@/services/services.module';
+import { PaymentsModule } from '../payments/payments.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     PlansModule,
     ServicesModule,
+    PaymentsModule,
   ],
   controllers: [UsersController],
   providers: [UsersService, ConfigService, UsersController],

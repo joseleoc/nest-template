@@ -10,6 +10,14 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     super();
   }
   canActivate(context: ExecutionContext) {
+    const classHandler = context.getClass().name;
+    console.log({ classHandler });
+    if (
+      classHandler === 'StripeWebhookController' ||
+      classHandler === 'SubscriptionWebhookService'
+    ) {
+      return true;
+    }
     const canSkipAuth = this.reflector.getAllAndOverride<boolean>(
       CAN_SKIP_AUTH_KEY,
       [context.getHandler(), context.getClass()],

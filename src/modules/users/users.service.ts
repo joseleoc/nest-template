@@ -15,6 +15,7 @@ import { PlanNames } from '@/modules/plans/schemas/plan.schema';
 import { ChangePasswordParams, PublicUser } from './types/users.types';
 import { UtilsService } from '@/services/utils/utils.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { PaymentsService } from '../payments/payments.service';
 
 @Injectable()
 export class UsersService {
@@ -30,6 +31,7 @@ export class UsersService {
     private configService: ConfigService,
     private plansService: PlansService,
     private utilsService: UtilsService,
+    private paymentsService: PaymentsService,
   ) {}
 
   // --------------------------------------------------------------------------------
@@ -67,19 +69,43 @@ export class UsersService {
                       deleted: false,
                       language: createUserDto.language || Language.EN,
                     };
-                    this.userModel
+                    return this.userModel
                       .create(userToCreate)
-                      .then((res) => {
-                        const user = new PublicUser(res);
-
-                        resolve(user);
-                      })
-                      .catch((error) => {
-                        reject(error);
-                      });
+                      .then((userDoc) => new PublicUser(userDoc));
                   } else {
-                    resolve(new PublicUser(foundUser));
+                    return new PublicUser(foundUser);
+                    // resolve(new PublicUser(foundUser));
                   }
+                })
+                .then((user) => {
+                  return this.paymentsService
+                    .createCustomer({
+                      email: user.email,
+                      name: user.userName,
+                    })
+                    .then((customer) => {
+                      return this.userModel.findByIdAndUpdate(
+                        user.id,
+                        {
+                          customerIds: { $push: [customer] },
+                        },
+                        { new: true },
+                      );
+                    })
+                    .catch((error) => {
+                      this.logger.error(error);
+                      resolve(user);
+                    });
+                })
+                .then((userWithCustomer) => {
+                  if (userWithCustomer == null) {
+                    reject({
+                      message: 'Error handling the user',
+                      code: HttpStatus.INTERNAL_SERVER_ERROR,
+                    });
+                    return;
+                  }
+                  resolve(new PublicUser(userWithCustomer));
                 })
                 .catch(() =>
                   reject({

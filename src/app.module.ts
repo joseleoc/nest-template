@@ -22,12 +22,14 @@ import { TextToSpeechService } from './services/text-to-speech/text-to-speech.se
 import { ServicesModule } from './services/services.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { SupportModule } from './modules/support/support.module';
+import configs from './config/app.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV}`,
+      load: [configs],
     }),
     LoggerModule.forRoot({
       pinoHttp: {

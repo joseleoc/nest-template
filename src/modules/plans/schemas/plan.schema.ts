@@ -34,6 +34,9 @@ export class Plan {
 
   @Prop({ required: true, type: Boolean, default: false })
   accessToImage: boolean;
+
+  @Prop({ required: true, type: String, default: false })
+  priceId: string;
 }
 
 export const PlanSchema = SchemaFactory.createForClass(Plan);

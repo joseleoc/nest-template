@@ -8,6 +8,7 @@ export const DefaultPlans: Plan[] = [
     accessToText: true,
     accessToVoice: false,
     accessToImage: false,
+    priceId: '',
   },
   {
     name: PlanNames.AMAZING_STORIES,
@@ -16,6 +17,7 @@ export const DefaultPlans: Plan[] = [
     accessToText: true,
     accessToVoice: true,
     accessToImage: true,
+    priceId: '',
   },
   {
     name: PlanNames.UNLIMITED_WORLDS,
@@ -24,5 +26,6 @@ export const DefaultPlans: Plan[] = [
     accessToText: true,
     accessToVoice: true,
     accessToImage: true,
+    priceId: '',
   },
 ];

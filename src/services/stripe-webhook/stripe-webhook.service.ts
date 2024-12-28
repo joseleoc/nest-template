@@ -30,10 +30,7 @@ export class SubscriptionWebhookService {
     console.log({ dataObject });
     const { id } = dataObject;
     this.subscriptionsModel
-      .findOneAndUpdate(
-        { subscriptionId: 'sub_1QaiGdDtWVIpSmG73VgAlKOA' },
-        { status: dataObject.status },
-      )
+      .findOneAndUpdate({ subscriptionId: id }, { status: dataObject.status })
       .then((res) => {
         if (res == null) {
           this.logger.error(`Subscription ${id} not found`);
@@ -70,10 +67,7 @@ export class SubscriptionWebhookService {
     }
 
     this.subscriptionsModel
-      .findOneAndUpdate(
-        { subscriptionId: 'sub_1QaiGdDtWVIpSmG73VgAlKOA' },
-        updatedFields,
-      )
+      .findOneAndUpdate({ subscriptionId: id }, updatedFields)
       .then((res) => {
         if (res == null) {
           this.logger.error(`Subscription ${id} not found`);

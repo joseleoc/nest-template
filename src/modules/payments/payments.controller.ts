@@ -19,7 +19,6 @@ import {
 import { ZodValidationPipe } from 'nestjs-zod';
 import { Response } from 'express';
 import Stripe from 'stripe';
-import { SubscriptionWebhookService } from './stripe-webhook/stripe-webhook.service';
 import {
   CreateSubscriptionDto,
   CreateSubscriptionDtoSchema,
@@ -31,10 +30,7 @@ export class PaymentsController {
   // --------------------------------------------------------------------------------
   // Constructor
   // --------------------------------------------------------------------------------
-  constructor(
-    private readonly paymentsService: PaymentsService,
-    private readonly stripeWebhookService: SubscriptionWebhookService,
-  ) {}
+  constructor(private readonly paymentsService: PaymentsService) {}
 
   // --------------------------------------------------------------------------------
   // Public methods

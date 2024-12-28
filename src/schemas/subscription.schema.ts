@@ -3,16 +3,6 @@ import { HydratedDocument } from 'mongoose';
 import Stripe from 'stripe';
 
 export type SubscriptionDocument = HydratedDocument<Subscription>;
-enum SubscriptionStatus {
-  TRAILING = 'trialing',
-  ACTIVE = 'active',
-  CANCELED = 'canceled',
-  INCOMPLETE = 'incomplete',
-  INCOMPLETE_EXPIRED = 'incomplete_expired',
-  PAST_DUE = 'past_due',
-  UNPAID = 'unpaid',
-  PAUSED = 'paused',
-}
 
 @Schema({
   toObject: {

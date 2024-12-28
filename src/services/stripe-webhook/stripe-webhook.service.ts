@@ -1,14 +1,10 @@
-import {
-  InjectStripeClient,
-  InjectStripeModuleConfig,
-  StripeModuleConfig,
-  StripeWebhookHandler,
-} from '@golevelup/nestjs-stripe';
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
 import Stripe from 'stripe';
-import { Subscription } from '../schemas/subscription.schema';
 import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { Injectable, Logger } from '@nestjs/common';
+import { StripeWebhookHandler } from '@golevelup/nestjs-stripe';
+
+import { Subscription } from '@/schemas/subscription.schema';
 
 @Injectable()
 export class SubscriptionWebhookService {
@@ -20,13 +16,11 @@ export class SubscriptionWebhookService {
   // Constructor
   // --------------------------------------------------------------------------------
   constructor(
+    // @InjectStripeClient() private stripe: Stripe,
+    // @InjectStripeModuleConfig() config: StripeModuleConfig,
     @InjectModel(Subscription.name)
     private readonly subscriptionsModel: Model<Subscription>,
-    @InjectStripeClient() private stripe: Stripe,
-    @InjectStripeModuleConfig() config: StripeModuleConfig,
-  ) {
-    console.log(config);
-  }
+  ) {}
 
   @StripeWebhookHandler('customer.subscription.deleted')
   // implement here subscription create in our Database

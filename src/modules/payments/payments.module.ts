@@ -3,16 +3,15 @@ import { PaymentsService } from './payments.service';
 import { PaymentsController } from './payments.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { StripeModule } from '@golevelup/nestjs-stripe';
-import { SubscriptionWebhookService } from './stripe-webhook/stripe-webhook.service';
 import {
   Subscription,
   SubscriptionSchema,
-} from './schemas/subscription.schema';
+} from '../../schemas/subscription.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   controllers: [PaymentsController],
-  providers: [PaymentsService, SubscriptionWebhookService],
+  providers: [PaymentsService],
   imports: [
     MongooseModule.forFeature([
       { name: Subscription.name, schema: SubscriptionSchema },
@@ -30,6 +29,6 @@ import { MongooseModule } from '@nestjs/mongoose';
       },
     }),
   ],
-  exports: [PaymentsService, SubscriptionWebhookService],
+  exports: [PaymentsService],
 })
 export class PaymentsModule {}

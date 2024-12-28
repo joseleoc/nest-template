@@ -44,12 +44,6 @@ export class User {
   @Prop({ default: Language.EN, enum: Object.values(Language) })
   language: Language;
 
-  // @Prop({ default: {}, type: Object })
-  // Billing?: unknown;
-
-  // @Prop({ default: {}, type: Object })
-  // storyConfig?: unknown;
-
   @Prop({ default: 0, type: Number })
   credits: number;
 

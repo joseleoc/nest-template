@@ -5,6 +5,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { StripeWebhookHandler } from '@golevelup/nestjs-stripe';
 
 import { Subscription } from '@/schemas/subscription.schema';
+import { UsersService } from '../users';
+import { PlansService } from '../plans/plans.service';
 
 @Injectable()
 export class SubscriptionWebhookService {
@@ -18,10 +20,21 @@ export class SubscriptionWebhookService {
   constructor(
     // @InjectStripeClient() private stripe: Stripe,
     // @InjectStripeModuleConfig() config: StripeModuleConfig,
+    private readonly userService: UsersService,
+    private readonly plansService: PlansService,
     @InjectModel(Subscription.name)
     private readonly subscriptionsModel: Model<Subscription>,
   ) {}
 
+  // --------------------------------------------------------------------------------
+  // Private Methods
+  // --------------------------------------------------------------------------------
+  /** Trigger when the subscription status is updated and active */
+  private handleUpdateSubscription() {}
+
+  // --------------------------------------------------------------------------------
+  // Public Methods
+  // --------------------------------------------------------------------------------
   @StripeWebhookHandler('customer.subscription.deleted')
   // implement here subscription create in our Database
   async handleSubscriptionUpdate(event: Stripe.Event): Promise<void> {

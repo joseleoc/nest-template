@@ -22,6 +22,7 @@ import { TextToSpeechService } from './services/text-to-speech/text-to-speech.se
 import { ServicesModule } from './services/services.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { SupportModule } from './modules/support/support.module';
+import { StripeWebhookModule } from './modules/stripe-webhook/stripe-webhook.module';
 import configs from './config/app.config';
 
 @Module({
@@ -69,6 +70,7 @@ import configs from './config/app.config';
     ServicesModule,
     PaymentsModule,
     SupportModule,
+    StripeWebhookModule,
   ],
   controllers: [AppController],
   providers: [

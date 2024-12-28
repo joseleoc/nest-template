@@ -2,6 +2,7 @@ import { HydratedDocument } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 export enum PlanNames {
+  FREE_TIER = 'FREE_TIER',
   MAGIC_TALES = 'MAGIC_TALES',
   AMAZING_STORIES = 'AMAZING_STORIES',
   UNLIMITED_WORLDS = 'UNLIMITED_WORLDS',
@@ -21,7 +22,7 @@ export class Plan {
   name: string;
 
   @Prop({ required: true, type: Number, min: 0, default: 5 })
-  creditsLimit: number;
+  creditsLimit: number | 'Infinity';
 
   @Prop({ required: true, type: Number, min: 0 })
   price: number;

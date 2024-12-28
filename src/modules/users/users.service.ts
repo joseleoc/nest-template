@@ -1,4 +1,5 @@
 import { Model } from 'mongoose';
+import { isNumber } from 'lodash';
 import { genSalt, hash } from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
@@ -12,10 +13,10 @@ import { PlansService } from '@/modules/plans/plans.service';
 import { Language } from '@/general.types';
 import { User, UserDocument } from './schemas/user.schema';
 import { PlanNames } from '@/modules/plans/schemas/plan.schema';
-import { ChangePasswordParams, PublicUser } from './types/users.types';
 import { UtilsService } from '@/services/utils/utils.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { PaymentsService } from '../payments/payments.service';
+import { ChangePasswordParams, PublicUser } from './types/users.types';
 
 @Injectable()
 export class UsersService {
@@ -64,7 +65,9 @@ export class UsersService {
                 .then((foundUser: UserDocument | null) => {
                   if (foundUser == null) {
                     const userToCreate: User = {
-                      credits: plan.creditsLimit,
+                      credits: isNumber(plan.creditsLimit)
+                        ? plan.creditsLimit
+                        : parseInt(plan.creditsLimit),
                       ...createUserDto,
                       deleted: false,
                       language: createUserDto.language || Language.EN,
@@ -98,7 +101,8 @@ export class UsersService {
                 .then((userWithCustomer) => {
                   if (userWithCustomer == null) {
                     reject({
-                      message: 'Error handling the user',
+                      message:
+                        'Error handling the user | Creating the customer',
                       code: HttpStatus.INTERNAL_SERVER_ERROR,
                     });
                     return;
@@ -108,7 +112,10 @@ export class UsersService {
                 .catch((error) => {
                   this.logger.error(error);
                   reject({
-                    message: 'Error handling the user',
+                    message:
+                      error?.message ||
+                      error?.err?.message ||
+                      'Error handling the user',
                     error,
                     code: HttpStatus.CONFLICT,
                   });

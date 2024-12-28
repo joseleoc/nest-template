@@ -27,8 +27,8 @@ async function bootstrap() {
   app.enableCors();
 
   const plansService = app.get(PlansService);
-  plansService.createPlansIfNotExist();
   const narratorsService = app.get(NarratorsService);
+  plansService.createPlansIfNotExist();
   narratorsService.createDefaultNarrators();
 
   const port = process.env.PORT ?? 3000;

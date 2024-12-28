@@ -4,7 +4,6 @@ import { TextToSpeechService } from './text-to-speech/text-to-speech.service';
 import { CloudStorageService } from './cloud-storage/cloud-storage.service';
 import { ConfigService } from '@nestjs/config';
 import { UtilsService } from './utils/utils.service';
-import { StripeWebhookService } from '@golevelup/nestjs-stripe';
 
 @Module({
   providers: [
@@ -13,14 +12,7 @@ import { StripeWebhookService } from '@golevelup/nestjs-stripe';
     CloudStorageService,
     ConfigService,
     UtilsService,
-    StripeWebhookService,
   ],
-  exports: [
-    AiService,
-    TextToSpeechService,
-    CloudStorageService,
-    UtilsService,
-    StripeWebhookService,
-  ],
+  exports: [AiService, TextToSpeechService, CloudStorageService, UtilsService],
 })
 export class ServicesModule {}

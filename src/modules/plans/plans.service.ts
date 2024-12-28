@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 
 import { Plan, PlanNames } from './schemas/plan.schema';
 import { DefaultPlans } from './plans.constants';
+import { PublicPlan } from './plans.types';
 
 @Injectable()
 export class PlansService {
@@ -66,7 +67,8 @@ export class PlansService {
       this.planModel
         .find()
         .then((plans) => {
-          resolve(plans);
+          const plansToSend = plans.map((plan) => new PublicPlan(plan));
+          resolve(plansToSend);
         })
         .catch((error) => {
           this.logger.error(error);

@@ -14,12 +14,11 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
   /**
    * Used by the local strategy to validate a user's credentials with the passport library.
    */
-  async validate(username: string, password: string): Promise<PublicUser> {
+  async validate(username: string): Promise<PublicUser> {
     return new Promise(async (resolve, reject) => {
       this.authService
         .validateUser({
           username,
-          password,
         })
         .then((user) => {
           if (!user) {

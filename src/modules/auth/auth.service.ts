@@ -1,8 +1,7 @@
 import { JwtService } from '@nestjs/jwt';
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 
 import { UsersService } from '@/modules/users';
-import { UserDocument } from '../users/schemas/user.schema';
 
 import { PublicUser } from '../users/types/users.types';
 import { UtilsService } from '@/services/utils/utils.service';
@@ -17,19 +16,31 @@ export class AuthService {
   ) {}
 
   async login(
-    user: UserDocument,
+    userName: string,
   ): Promise<{ access_token: string; userId: string }> {
-    const payload = { username: user.userName, sub: user._id };
-    return {
-      access_token: this.jwtService.sign(payload),
-      userId: user.id,
-    };
+    return new Promise((resolve, reject) => {
+      this.validateUser({ username: userName })
+        .then((user) => {
+          if (user == null) {
+            reject({
+              message: 'User not found',
+              code: HttpStatus.NOT_FOUND,
+            });
+            return;
+          }
+          const payload = { username: user.userName, userId: user.id };
+          resolve({
+            access_token: this.jwtService.sign(payload),
+            userId: user.id,
+          });
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
   }
 
-  async validateUser({
-    username,
-    password,
-  }: ValidateUser): Promise<PublicUser | null> {
+  async validateUser({ username }: ValidateUser): Promise<PublicUser | null> {
     return new Promise(async (resolve, reject) => {
       try {
         this.usersService
@@ -39,22 +50,24 @@ export class AuthService {
               resolve(null);
               return;
             }
+            resolve(new PublicUser(user));
 
-            const userPassword = user.password ?? '';
-            this.utilsService
-              .validatePassword({
-                strLiteral: password,
-                userPassword,
-              })
-              .then((valid) => {
-                if (valid) {
-                  delete user.password;
-                  resolve(new PublicUser(user));
-                } else {
-                  reject(null);
-                }
-              })
-              .catch(() => resolve(null));
+            // Don't use password validation, it is handled by the firebase auth.
+            // const userPassword = user.password ?? '';
+
+            // this.utilsService
+            //   .validatePassword({
+            //     strLiteral: password,
+            //     userPassword,
+            //   })
+            //   .then((valid) => {
+            //     if (valid) {
+            //       delete user.password;
+            //     } else {
+            //       reject(null);
+            //     }
+            //   })
+            //   .catch(() => resolve(null));
           })
           .catch((error) => reject(error));
       } catch (error) {

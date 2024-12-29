@@ -161,7 +161,12 @@ export class UsersService {
   findUserDocumentByUserName(userName: string): Promise<UserDocument | null> {
     return new Promise((resolve, reject) => {
       this.userModel
-        .findOne({ userName })
+        .findOne({
+          $or: [
+            { email: { $regex: new RegExp(`^${userName}$`, 'i') } },
+            { userName: { $regex: new RegExp(`^${userName}$`, 'i') } },
+          ],
+        })
         .then((user) => {
           if (user != null && user.deleted === false) {
             resolve(user);

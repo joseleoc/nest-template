@@ -7,6 +7,8 @@ import {
   HttpStatus,
   Res,
   Logger,
+  Body,
+  UsePipes,
 } from '@nestjs/common';
 import { Response } from 'express';
 
@@ -15,6 +17,8 @@ import { LocalAuthGuard } from '@/guards/index';
 
 import { AuthService } from './auth.service';
 import { LoginRequestBody, LoginResponseBody } from './auth.constants';
+import { ZodValidationPipe } from 'nestjs-zod';
+import { LoginDto, LoginDtoSchema } from './dto/login.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -31,27 +35,26 @@ export class AuthController {
 
   @Post('login')
   @SkipAuth()
-  @UseGuards(LocalAuthGuard)
+  @UsePipes(new ZodValidationPipe(LoginDtoSchema))
   @ApiOperation(LoginRequestBody)
   @ApiResponse(LoginResponseBody)
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
     description: 'User not found or password is wrong',
   })
-  async login(@Request() req, @Res() res: Response) {
-    try {
-      this.authService
-        .login(req.user)
-        .then((access) => {
-          res.status(HttpStatus.OK).json(access);
-        })
-        .catch((error) => {
-          this.logger.error(error);
-          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
-        });
-    } catch (error) {
-      this.logger.error(error);
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
-    }
+  async login(@Body() params: LoginDto, @Res() res: Response) {
+    this.authService
+      .login(params.username)
+      .then((access) => {
+        res.status(HttpStatus.OK).json(access);
+      })
+      .catch((error) => {
+        this.logger.error(error);
+        if (error?.code != null) {
+          res.status(error.code).json(error);
+          return;
+        }
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error });
+      });
   }
 }

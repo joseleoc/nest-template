@@ -38,9 +38,7 @@ export class SubscriptionWebhookService {
   @StripeWebhookHandler('customer.subscription.deleted')
   // implement here subscription create in our Database
   async handleSubscriptionUpdate(event: Stripe.Event): Promise<void> {
-    console.log({ event });
     const dataObject = event.data.object as Stripe.Subscription;
-    console.log({ dataObject });
     const { id } = dataObject;
     this.subscriptionsModel
       .findOneAndUpdate({ subscriptionId: id }, { status: dataObject.status })
@@ -64,7 +62,6 @@ export class SubscriptionWebhookService {
     event: Stripe.CustomerSubscriptionUpdatedEvent,
   ): Promise<void> {
     const dataObject = event.data.object as Stripe.Subscription;
-    console.log(dataObject);
     const { id, status, current_period_start, current_period_end } = dataObject;
 
     let updatedFields: Partial<Subscription> = {};

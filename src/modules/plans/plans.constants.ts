@@ -3,7 +3,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 export const DefaultPlans: Plan[] = [
   {
     name: PlanNames.FREE_TIER,
-    creditsLimit: 1,
+    creditsLimit: 0,
     price: 0,
     accessToText: true,
     accessToVoice: false,

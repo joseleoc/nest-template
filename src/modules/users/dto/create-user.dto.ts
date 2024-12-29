@@ -4,10 +4,10 @@ import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 
 export const CreateUserDtoSchema = z.object({
+  userId: z.string().trim(),
   userName: z.string().trim(),
   email: z.string().email().trim(),
-  password: z.string().trim().min(6),
-  plan: z.nativeEnum(PlanNames).default(PlanNames.MAGIC_TALES),
+  plan: z.nativeEnum(PlanNames).default(PlanNames.FREE_TIER),
   language: z.nativeEnum(Language).default(Language.EN),
 });
 

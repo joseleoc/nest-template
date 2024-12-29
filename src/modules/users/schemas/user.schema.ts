@@ -1,5 +1,5 @@
 import { Language } from '@/general.types';
-import { PlanNames } from '@/modules/plans/schemas/plan.schema';
+import { Plan, PlanNames } from '@/modules/plans/schemas/plan.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
@@ -14,6 +14,9 @@ export type UserDocument = HydratedDocument<User>;
   },
 })
 export class User {
+  @Prop({ type: String, trim: true })
+  _id: string;
+
   @Prop({ required: true, type: String, trim: true, unique: true })
   userName: string;
 
@@ -32,14 +35,14 @@ export class User {
   })
   email: string;
 
-  @Prop({ type: String, required: true, trim: true, minlength: 6 })
-  password?: string;
-
   @Prop({ default: Date.now, type: Date })
   createdAt?: Date;
 
-  @Prop({ default: PlanNames.MAGIC_TALES, enum: Object.values(PlanNames) })
+  @Prop({ default: PlanNames.FREE_TIER, enum: Object.values(PlanNames) })
   plan: PlanNames;
+
+  @Prop({ type: String, ref: Plan.name })
+  planId: string;
 
   @Prop({ default: Language.EN, enum: Object.values(Language) })
   language: Language;

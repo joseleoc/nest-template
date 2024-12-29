@@ -1,6 +1,5 @@
 import { Model } from 'mongoose';
 import { isNumber } from 'lodash';
-import { genSalt, hash } from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
@@ -12,11 +11,10 @@ import { PlansService } from '@/modules/plans/plans.service';
 
 import { Language } from '@/general.types';
 import { User, UserDocument } from './schemas/user.schema';
-import { PlanNames } from '@/modules/plans/schemas/plan.schema';
+import { PlanDocument, PlanNames } from '@/modules/plans/schemas/plan.schema';
 import { UtilsService } from '@/services/utils/utils.service';
-import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { PaymentsService } from '../payments/payments.service';
-import { ChangePasswordParams, PublicUser } from './types/users.types';
+import { PublicUser } from './types/users.types';
 
 @Injectable()
 export class UsersService {
@@ -41,91 +39,97 @@ export class UsersService {
   create(createUserDto: CreateUserDto): Promise<PublicUser> {
     return new Promise(async (resolve: (value: PublicUser) => void, reject) => {
       try {
-        createUserDto.password = await this.hashPassword(
-          createUserDto.password,
-        );
         const planNames = Object.values(PlanNames);
         if (!planNames.includes(createUserDto.plan)) {
+          // If the plan is not found, reject with a not found error
           reject({
             message: 'Plan not found',
             code: HttpStatus.NOT_FOUND,
           });
           return;
         }
+        // Find the plan by the name
         this.plansService
           .findPlanByName(createUserDto.plan)
-          .then((plan) => {
-            if (plan != null) {
-              this.userModel
-                .findOneAndUpdate(
-                  { email: createUserDto.email, deleted: true },
-                  { userName: createUserDto.userName, deleted: false },
-                  { new: true },
-                )
-                .then((foundUser: UserDocument | null) => {
-                  if (foundUser == null) {
-                    const userToCreate: User = {
-                      credits: isNumber(plan.creditsLimit)
-                        ? plan.creditsLimit
-                        : parseInt(plan.creditsLimit),
-                      ...createUserDto,
-                      deleted: false,
-                      language: createUserDto.language || Language.EN,
-                    };
-                    return this.userModel
-                      .create(userToCreate)
-                      .then((userDoc) => new PublicUser(userDoc));
-                  } else {
-                    return new PublicUser(foundUser);
-                    // resolve(new PublicUser(foundUser));
-                  }
-                })
-                .then((user) => {
-                  return Promise.all([
-                    this.paymentsService.createCustomer({
-                      email: user.email,
-                      name: user.userName,
-                    }),
-                    user,
-                  ]);
-                })
-                .then(([customer, user]) => {
-                  return this.userModel.findByIdAndUpdate(
-                    user.id,
-                    {
-                      customerIds: [customer],
-                    },
-                    { new: true },
-                  );
-                })
-                .then((userWithCustomer) => {
-                  if (userWithCustomer == null) {
-                    reject({
-                      message:
-                        'Error handling the user | Creating the customer',
-                      code: HttpStatus.INTERNAL_SERVER_ERROR,
-                    });
-                    return;
-                  }
-                  resolve(new PublicUser(userWithCustomer));
-                })
-                .catch((error) => {
-                  this.logger.error(error);
-                  reject({
-                    message:
-                      error?.message ||
-                      error?.err?.message ||
-                      'Error handling the user',
-                    error,
-                    code: HttpStatus.CONFLICT,
-                  });
-                });
-            } else {
+          .then((plan: PlanDocument) => {
+            if (plan == null) {
               reject({
                 message: 'Plan not found',
                 code: HttpStatus.NOT_FOUND,
               });
+              return;
             }
+
+            this.userModel
+              .findOneAndUpdate(
+                { email: createUserDto.email, deleted: true },
+                {
+                  userName: createUserDto.userName,
+                  deleted: false,
+                  plan: plan.name,
+                  planId: plan.id,
+                },
+                { new: true },
+              )
+              .then((foundUser: UserDocument | null) => {
+                if (foundUser == null) {
+                  const userToCreate: User = {
+                    ...createUserDto,
+                    _id: createUserDto.userId,
+                    credits: isNumber(plan.creditsLimit)
+                      ? plan.creditsLimit
+                      : parseInt(plan.creditsLimit),
+                    planId: plan.id,
+                    deleted: false,
+                    language: createUserDto.language || Language.EN,
+                  };
+                  return this.userModel
+                    .create(userToCreate)
+                    .then((userDoc) => new PublicUser(userDoc));
+                } else {
+                  return new PublicUser(foundUser);
+                }
+              })
+              .then((user) => {
+                // Creates the stripe customer and adds the customerId to the user
+                return Promise.all([
+                  this.paymentsService.createCustomer({
+                    email: user.email,
+                    name: user.userName,
+                  }),
+                  user,
+                ]);
+              })
+              .then(([customer, user]) => {
+                return this.userModel.findByIdAndUpdate(
+                  user.id,
+                  {
+                    customerIds: [customer],
+                  },
+                  { new: true },
+                );
+              })
+              .then((userWithCustomer) => {
+                if (userWithCustomer == null) {
+                  reject({
+                    message: 'Error handling the user | Creating the customer',
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
+                  });
+                  return;
+                }
+                resolve(new PublicUser(userWithCustomer));
+              })
+              .catch((error) => {
+                this.logger.error(error);
+                reject({
+                  message:
+                    error?.message ||
+                    error?.err?.message ||
+                    'Error handling the user',
+                  error,
+                  code: HttpStatus.CONFLICT,
+                });
+              });
           })
           .catch(() =>
             reject({
@@ -284,95 +288,6 @@ export class UsersService {
     });
   }
 
-  changePassword({
-    oldPassword,
-    newPassword,
-    userEmail,
-  }: ChangePasswordParams) {
-    return new Promise((resolve, reject) => {
-      this.userModel
-        .findOne({ email: userEmail })
-        .then((user) => {
-          if (user == null || user.deleted === true) {
-            reject({
-              message: 'User not found',
-              code: HttpStatus.NOT_FOUND,
-            });
-            return;
-          }
-          if (oldPassword.length === 0 || newPassword.length === 0) {
-            reject({
-              message: 'Passwords cannot be empty',
-              code: HttpStatus.BAD_REQUEST,
-            });
-            return;
-          }
-          const userPassword = user.password ?? '';
-          return this.utilsService.validatePassword({
-            strLiteral: oldPassword,
-            userPassword,
-          });
-        })
-        .then((isValid) => {
-          if (isValid == false) {
-            reject({
-              message: 'User password is wrong',
-              code: HttpStatus.UNAUTHORIZED,
-            });
-            return;
-          }
-          return this.hashPassword(newPassword);
-        })
-        .then((hashedPassword) => {
-          return this.userModel.findOneAndUpdate(
-            { email: userEmail },
-            { password: hashedPassword },
-          );
-        })
-        .then((updatedUser) => {
-          if (updatedUser == null) {
-            reject({
-              message: 'User not found',
-              code: HttpStatus.NOT_FOUND,
-            });
-          }
-          if (updatedUser != null) resolve(new PublicUser(updatedUser));
-        })
-        .catch((error) => {
-          this.logger.error(error);
-          reject(error);
-        });
-    });
-  }
-
-  forgotPassword(params: ForgotPasswordDto): Promise<PublicUser | null> {
-    return new Promise((resolve, reject) => {
-      const { password, email } = params;
-      this.hashPassword(password)
-        .then((hashedPassword) => {
-          return this.userModel.findOneAndUpdate(
-            { email },
-            { password: hashedPassword },
-            { new: true },
-          );
-        })
-        .then((updatedUser) => {
-          if (updatedUser == null) {
-            reject({
-              message: 'User not found',
-              code: HttpStatus.NOT_FOUND,
-            });
-            return;
-          }
-          resolve(new PublicUser(updatedUser));
-        })
-        .catch((error) => {
-          this.logger.error(error);
-          reject(error);
-        });
-    });
-  }
-
   addCostumerIdToUser(params: {
     userId: string;
     customerId: string;
@@ -397,25 +312,6 @@ export class UsersService {
             return;
           }
           resolve(new PublicUser(updatedUser));
-        })
-        .catch((error) => {
-          this.logger.error(error);
-          reject(error);
-        });
-    });
-  }
-
-  // --------------------------------------------------------------------------------
-  // Private methods
-  // --------------------------------------------------------------------------------
-  private async hashPassword(password: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      genSalt(+this.configService.getOrThrow('APP_SALT'))
-        .then((salt) => {
-          return hash(password, salt);
-        })
-        .then((hashedPassword) => {
-          resolve(hashedPassword);
         })
         .catch((error) => {
           this.logger.error(error);

@@ -4,10 +4,11 @@ export class PublicUser extends User {
   id: string;
   constructor(user: UserDocument) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, createdAt, _id, ...data } = user.toObject();
+    const { createdAt, ...data } = user.toObject();
     super(data);
     Object.assign(this, data);
-    this.id = _id.toString();
+    this.id = data._id;
+    delete (data as any)._id;
   }
 }
 

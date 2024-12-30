@@ -17,3 +17,11 @@ export type ChangePasswordParams = {
   newPassword: string;
   userEmail: string;
 };
+
+export type CheckUserCreditsResponse = {
+  user: PublicUser | null;
+  canCreateStory: boolean;
+  canAddAudio: boolean;
+  canAddImage: boolean;
+  canAddText: boolean;
+};

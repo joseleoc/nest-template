@@ -1,4 +1,4 @@
-import { Language } from '@/general.types';
+import { Language } from '@/types/general.types';
 import { Plan, PlanNames } from '@/modules/plans/schemas/plan.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';

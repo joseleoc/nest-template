@@ -1,7 +1,6 @@
 import { Model } from 'mongoose';
 import { isNumber } from 'lodash';
 import { InjectModel } from '@nestjs/mongoose';
-import { ConfigService } from '@nestjs/config';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 
 import { CreateUserDto } from './dto/create-user.dto';
@@ -9,12 +8,11 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 import { PlansService } from '@/modules/plans/plans.service';
 
-import { Language } from '@/general.types';
+import { Language } from '@/types/general.types';
 import { User, UserDocument } from './schemas/user.schema';
 import { PlanDocument, PlanNames } from '@/modules/plans/schemas/plan.schema';
-import { UtilsService } from '@/services/utils/utils.service';
 import { PaymentsService } from '../payments/payments.service';
-import { PublicUser } from './types/users.types';
+import { CheckUserCreditsResponse, PublicUser } from './types/users.types';
 
 @Injectable()
 export class UsersService {
@@ -27,9 +25,7 @@ export class UsersService {
   // --------------------------------------------------------------------------------
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
-    private configService: ConfigService,
     private plansService: PlansService,
-    private utilsService: UtilsService,
     private paymentsService: PaymentsService,
   ) {}
 
@@ -199,7 +195,10 @@ export class UsersService {
   }
 
   /** Updates the credits of a user */
-  updateCredits(id: string, credits: number): Promise<User | null> {
+  updateCredits(
+    id: string,
+    credits: number | 'Infinity',
+  ): Promise<User | null> {
     return new Promise((resolve, reject) => {
       this.userModel
         .findByIdAndUpdate(id, { credits: credits })
@@ -235,34 +234,41 @@ export class UsersService {
    * @param userId the user id to check
    * @returns a promise that resolves to an object with the user and a boolean indicating if the user can create a story
    */
-  findUserAndCheckCredits(userId: string): Promise<{
-    user: PublicUser | null;
-    canCreateStory: boolean;
-    canAddAudio: boolean;
-    canAddImage: boolean;
-    canAddText: boolean;
-  }> {
+  findUserAndCheckCredits(userId: string): Promise<CheckUserCreditsResponse> {
     return new Promise((resolve, reject) => {
-      this.findOneById(userId)
-        .then((user) => {
-          if (user != null && user.deleted === false) {
+      Promise.all([
+        this.plansService.findSubscriptionByUserId(userId),
+        this.findOneById(userId),
+      ])
+        .then(([subscription, user]) => {
+          if (subscription != null && user != null && user.deleted === false) {
             this.plansService.findPlanByName(user.plan).then((plan) => {
               const canAddAudio = plan?.accessToVoice ?? false;
               const canAddImage = plan?.accessToImage ?? false;
               const canAddText = plan?.accessToText ?? false;
+
+              let canCreateStory = false;
+
+              const actualDate = new Date().getTime();
+              // Check if the current date is after the subscription end date, if true, the user can't create a story
+              if (actualDate > subscription.currentPeriodEnd) {
+                canCreateStory = false;
+              }
+
               if (user.credits > 0) {
                 resolve({
-                  canCreateStory: true,
-                  user: user,
+                  canCreateStory,
+                  user,
                   canAddAudio,
                   canAddImage,
                   canAddText,
                 });
                 return;
               } else {
+                // The user can't create a story if the credits are 0
                 resolve({
-                  canCreateStory: false,
-                  user: user,
+                  canCreateStory,
+                  user,
                   canAddAudio: false,
                   canAddImage: false,
                   canAddText: false,
@@ -271,6 +277,7 @@ export class UsersService {
             });
           } else {
             resolve({
+              // The user can't create a story if the subscription or the user are not found.
               canCreateStory: false,
               user: user,
               canAddAudio: false,
@@ -279,12 +286,16 @@ export class UsersService {
             });
           }
         })
-        .catch((error) =>
-          reject({
+        .catch((error) => {
+          this.logger.error({
+            message: `Error finding subscription or user. UserId: ${userId}`,
             error,
-            message: 'Error checking if the user can create a story',
-          }),
-        );
+          });
+          reject({
+            message: `Error finding subscription or user. UserId: ${userId}`,
+            error,
+          });
+        });
     });
   }
 

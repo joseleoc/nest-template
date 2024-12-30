@@ -18,8 +18,6 @@ export class SubscriptionWebhookService {
   // Constructor
   // --------------------------------------------------------------------------------
   constructor(
-    // @InjectStripeClient() private stripe: Stripe,
-    // @InjectStripeModuleConfig() config: StripeModuleConfig,
     private readonly userService: UsersService,
     private readonly plansService: PlansService,
     @InjectModel(Subscription.name)
@@ -62,31 +60,89 @@ export class SubscriptionWebhookService {
     event: Stripe.CustomerSubscriptionUpdatedEvent,
   ): Promise<void> {
     const dataObject = event.data.object as Stripe.Subscription;
-    const { id, status, current_period_start, current_period_end } = dataObject;
+    const {
+      id: subscriptionId,
+      status,
+      current_period_start,
+      current_period_end,
+    } = dataObject;
+    let priceId: string | undefined;
 
-    let updatedFields: Partial<Subscription> = {};
+    // Loop through subscription items to find priceId
+    for (const item of dataObject.items.data) {
+      if (item.object === 'subscription_item') {
+        priceId = item.price.id;
+        break; // Exit loop after finding the first priceId
+      }
+    }
+
+    let updateSubscriptionFields: Partial<Subscription> = {};
 
     if (status === 'active') {
-      updatedFields = {
+      updateSubscriptionFields = {
         status,
         currentPeriodStart: current_period_start,
         currentPeriodEnd: current_period_end,
       };
     } else {
-      updatedFields = { status };
+      updateSubscriptionFields = { status };
     }
 
     this.subscriptionsModel
-      .findOneAndUpdate({ subscriptionId: id }, updatedFields)
-      .then((res) => {
-        if (res == null) {
-          this.logger.error(`Subscription ${id} not found`);
+      .findOneAndUpdate({ subscriptionId }, updateSubscriptionFields, {
+        new: true,
+      })
+      .then((subscriptionDocument) => {
+        // If subscription is not found, returns.
+        if (subscriptionDocument == null) {
+          this.logger.error(`Subscription ${subscriptionId} not found`);
           return;
         }
-        this.logger.log(`Subscription ${id} updated`);
+        // Logs the subscription update.
+        this.logger.log(`Subscription ${subscriptionId} updated`);
+
+        // If subscription is active, update user credits.
+        if (status == 'active') {
+          if (priceId != undefined) {
+            const { userId } = subscriptionDocument;
+            // Find the plan by the priceId
+            this.plansService
+              .findPlanByPriceId(priceId)
+              .then((plan) => {
+                const { creditsLimit } = plan;
+                // Update the user credits
+                this.userService
+                  .updateCredits(userId, creditsLimit)
+                  .then(() => {
+                    this.logger.log(
+                      `User ${userId} updated credits to ${creditsLimit}`,
+                    );
+                  })
+                  .catch((error) => {
+                    this.logger.error({
+                      message: `Error updating user credits. User ${userId}. Plan ${plan.name}. Credits: ${creditsLimit}. subscriptionId: ${subscriptionId}`,
+                      error,
+                    });
+                  });
+              })
+              .catch((error) => {
+                this.logger.error({
+                  message: `Error finding plan by priceId. PriceId: ${priceId}. subscriptionId: ${subscriptionId}`,
+                  error,
+                });
+              });
+          } else {
+            this.logger.error(
+              `PriceId not found for subscription ${subscriptionId}, status: ${status}, priceId: ${priceId}`,
+            );
+          }
+        }
       })
       .catch((error) => {
-        this.logger.error(error);
+        this.logger.error({
+          message: `Error updating subscription ${subscriptionId}`,
+          error,
+        });
       });
   }
 }

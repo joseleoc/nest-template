@@ -5,6 +5,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Plan, PlanNames } from './schemas/plan.schema';
 import { DefaultPlans } from './plans.constants';
 import { PublicPlan } from './plans.types';
+import {
+  Subscription,
+  SubscriptionDocument,
+} from '@/schemas/subscription.schema';
 
 @Injectable()
 export class PlansService {
@@ -17,6 +21,8 @@ export class PlansService {
   // --------------------------------------------------------------------------------
   constructor(
     @InjectModel(Plan.name) private readonly planModel: Model<Plan>,
+    @InjectModel(Subscription.name)
+    private readonly subscriptionModel: Model<Subscription>,
   ) {}
 
   // --------------------------------------------------------------------------------
@@ -84,6 +90,42 @@ export class PlansService {
         .then((plan) => {
           if (plan != null) {
             resolve(plan);
+          } else {
+            reject(null);
+          }
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
+  }
+
+  findPlanByPriceId(priceId: string): Promise<Plan> {
+    return new Promise((resolve, reject) => {
+      this.planModel
+        .findOne({ priceId })
+        .then((plan) => {
+          if (plan != null) {
+            resolve(plan);
+          } else {
+            reject(null);
+          }
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject(error);
+        });
+    });
+  }
+
+  findSubscriptionByUserId(userId: string): Promise<SubscriptionDocument> {
+    return new Promise((resolve, reject) => {
+      this.subscriptionModel
+        .findOne({ userId })
+        .then((subscription) => {
+          if (subscription != null) {
+            resolve(subscription);
           } else {
             reject(null);
           }

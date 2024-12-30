@@ -14,8 +14,8 @@ export type UserDocument = HydratedDocument<User>;
   },
 })
 export class User {
-  @Prop({ type: String, trim: true })
-  _id: string;
+  @Prop({ type: String, trim: true, unique: true })
+  firebaseUid: string;
 
   @Prop({ required: true, type: String, trim: true, unique: true })
   userName: string;
@@ -62,3 +62,8 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+// Create indexes for efficient querying
+UserSchema.index({ userName: 1 }, { unique: true });
+UserSchema.index({ email: 1 }, { unique: true });
+UserSchema.index({ firebaseUid: 1 }, { unique: true });

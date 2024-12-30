@@ -71,7 +71,7 @@ export class UsersService {
                 if (foundUser == null) {
                   const userToCreate: User = {
                     ...createUserDto,
-                    _id: createUserDto.userId,
+                    firebaseUid: createUserDto.userId,
                     credits: isNumber(plan.creditsLimit)
                       ? plan.creditsLimit
                       : parseInt(plan.creditsLimit),

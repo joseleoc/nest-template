@@ -108,7 +108,9 @@ export class StoriesService {
         .then((story) => {
           if (story != null) {
             this.userModel
-              .findById(story.userId)
+              .findOne({
+                $or: [{ _id: story.userId }, { firebaseUid: story.userId }],
+              })
               .then((user) => {
                 if (user != null) {
                   resolve({
@@ -256,12 +258,10 @@ export class StoriesService {
               // Adds the liked property to the stories
               const liked = likes.find((like) => like?.storyId === story.id);
               story.liked = liked?.liked ?? false;
-
               // Adds the createdBy property to the stories
               story.createdBy =
                 users.find((user) => user?.storyId === story.id)?.userName ||
                 '';
-
               const audios =
                 storiesWithAudiosURLs.find(
                   (withAudio) => story.id === withAudio.id,

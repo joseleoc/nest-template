@@ -7,7 +7,7 @@ export class PublicUser extends User {
     const { createdAt, ...data } = user.toObject();
     super(data);
     Object.assign(this, data);
-    this.id = data._id;
+    this.id = data._id.toString();
     delete (data as any)._id;
   }
 }

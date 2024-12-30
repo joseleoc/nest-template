@@ -1,4 +1,4 @@
-import { Gender, Language } from '@/general.types';
+import { Gender, Language } from '@/types/general.types';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 

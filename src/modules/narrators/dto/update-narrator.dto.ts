@@ -1,4 +1,4 @@
-import { Language } from '@/general.types';
+import { Language } from '@/types/general.types';
 import { z } from 'zod';
 import { NarratorAgeCategory } from '../schemas/narrators.schema';
 import { Gender } from 'elevenlabs/api';

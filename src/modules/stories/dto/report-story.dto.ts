@@ -1,4 +1,4 @@
-import { PaginationDtoSchema } from '@/general.dto';
+import { PaginationDtoSchema } from '@/dto/general.dto';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 

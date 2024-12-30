@@ -1,4 +1,4 @@
-import { Gender, Language } from '@/general.types';
+import { Gender, Language } from '@/types/general.types';
 import { z } from 'zod';
 import { NarratorAgeCategory } from '../schemas/narrators.schema';
 import { createZodDto } from 'nestjs-zod';

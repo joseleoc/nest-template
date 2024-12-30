@@ -1,4 +1,4 @@
-import { Gender } from '@/general.types';
+import { Gender } from '@/types/general.types';
 import { User } from '@/modules/users/schemas/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Schema as MongoSchema } from 'mongoose';

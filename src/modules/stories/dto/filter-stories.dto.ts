@@ -1,4 +1,4 @@
-import { PaginationDtoSchema } from '@/general.dto';
+import { PaginationDtoSchema } from '@/dto/general.dto';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import {
@@ -9,7 +9,7 @@ import {
   StoryScenario,
   StoryStyle,
 } from '../types/stories.types';
-import { Gender } from '@/general.types';
+import { Gender } from '@/types/general.types';
 import { NarratorAgeCategory } from '@/modules/narrators/schemas/narrators.schema';
 
 enum sortByOptions {

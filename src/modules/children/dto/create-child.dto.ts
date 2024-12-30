@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
-import { Gender } from '@/general.types';
+import { Gender } from '@/types/general.types';
 
 export const CreateChildDtoSchema = z.object({
   parentId: z.string(),

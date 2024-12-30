@@ -23,7 +23,7 @@ import { StoriesReports } from './schemas/stories-reports.schema';
 import { GetAllStoriesDto } from './dto/get-all-stories.dto';
 import { GetReportsDto, ReportStoryDto } from './dto/report-story.dto';
 
-import { PaginatedData, PaginatedResponse } from '@/general.types';
+import { PaginatedData, PaginatedResponse } from '@/types/general.types';
 import {
   Focus,
   GeneralPurpose,

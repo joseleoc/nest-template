@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
-import { Gender, Language } from '@/general.types';
+import { Gender, Language } from '@/types/general.types';
 import { NarratorAgeCategory } from '@/modules/narrators/schemas/narrators.schema';
 import {
   Focus,

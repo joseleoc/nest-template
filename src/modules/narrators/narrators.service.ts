@@ -3,7 +3,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Narrator, NarratorAgeCategory } from './schemas/narrators.schema';
 import { Model } from 'mongoose';
-import { Gender, Language } from '@/general.types';
+import { Gender, Language } from '@/types/general.types';
 import { PublicNarrator } from './types/narrators.types';
 import { UpdateNarratorDto } from './dto/update-narrator.dto';
 

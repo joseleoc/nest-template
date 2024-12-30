@@ -1,5 +1,5 @@
 import { PlanNames } from '@/modules/plans/schemas/plan.schema';
-import { Language } from '@/general.types';
+import { Language } from '@/types/general.types';
 import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 

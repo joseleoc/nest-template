@@ -2,6 +2,7 @@ import { ElevenLabsClient } from 'elevenlabs';
 import { Injectable, Logger } from '@nestjs/common';
 import { CloudStorageService } from '../cloud-storage/cloud-storage.service';
 import { Narrator } from '@/modules/narrators/schemas/narrators.schema';
+import appConfig from '@/config/app.config';
 
 @Injectable()
 export class TextToSpeechService {
@@ -15,7 +16,7 @@ export class TextToSpeechService {
   // --------------------------------------------------------------------------------
   constructor(private cloudStorageService: CloudStorageService) {
     this.elevenLabsClient = new ElevenLabsClient({
-      apiKey: process.env.ELEVENLABS_API_KEY,
+      apiKey: appConfig().ELEVENLABS.ELEVENLABS_API_KEY,
     });
   }
   // --------------------------------------------------------------------------------

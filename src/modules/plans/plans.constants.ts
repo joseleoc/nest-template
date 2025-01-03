@@ -1,5 +1,6 @@
+import appConfig from '@/config/app.config';
 import { Plan, PlanNames } from './schemas/plan.schema';
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = appConfig().GENERAL.NODE_ENV === 'production';
 export const DefaultPlans: Plan[] = [
   {
     name: PlanNames.FREE_TIER,

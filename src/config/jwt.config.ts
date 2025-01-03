@@ -5,7 +5,7 @@ export const jwtConfig: JwtModuleAsyncOptions = {
   global: true,
   useFactory: async () => {
     return {
-      secret: appConfig().jwtSecret,
+      secret: appConfig().GENERAL.JWT_SECRET,
       signOptions: { expiresIn: '30d' },
     };
   },

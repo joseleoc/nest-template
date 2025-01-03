@@ -6,6 +6,7 @@ import { patchNestJsSwagger } from 'nestjs-zod';
 
 import { PlansService } from './modules/plans/plans.service';
 import { NarratorsService } from './modules/narrators/narrators.service';
+import appConfig from './config/app.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
@@ -31,7 +32,7 @@ async function bootstrap() {
   plansService.createPlansIfNotExist();
   narratorsService.createDefaultNarrators();
 
-  const port = process.env.PORT ?? 3000;
+  const port = appConfig().GENERAL.PORT ?? 3000;
   await app.listen(port);
 }
 bootstrap();

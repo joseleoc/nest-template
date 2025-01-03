@@ -9,6 +9,7 @@ import { PublicUser } from '../../modules/users/types/users.types';
 import { PublicChild } from '../../modules/children/types/children.types';
 import { CloudStorageService } from '../cloud-storage/cloud-storage.service';
 import { GeneralPurpose } from '@/modules/stories/types/stories.types';
+import appConfig from '@/config/app.config';
 @Injectable()
 export class AiService {
   // --------------------------------------------------------------------------------
@@ -21,9 +22,9 @@ export class AiService {
   // --------------------------------------------------------------------------------
   constructor(private cloudStorageService: CloudStorageService) {
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-      project: process.env.OPENAI_PROJECT,
-      organization: process.env.OPENAI_ORGANIZATION,
+      apiKey: appConfig().OPENAI.OPENAI_API_KEY,
+      project: appConfig().OPENAI.OPENAI_PROJECT,
+      organization: appConfig().OPENAI.OPENAI_ORGANIZATION,
     });
   }
   // --------------------------------------------------------------------------------

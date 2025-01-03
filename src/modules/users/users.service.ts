@@ -226,10 +226,11 @@ export class UsersService {
   updateCredits(
     id: string,
     credits: number | 'Infinity',
+    planName: PlanNames,
   ): Promise<User | null> {
     return new Promise((resolve, reject) => {
       this.userModel
-        .findByIdAndUpdate(id, { credits: credits })
+        .findByIdAndUpdate(id, { credits: credits, plan: planName })
         .then((res) => {
           if (res != null) {
             const updatedUser = new PublicUser(res);

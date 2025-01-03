@@ -35,6 +35,7 @@ import {
 import { GetUserStoriesLikesDto } from './dto/get-user-stories-likes.dto';
 import { FilterStoriesDto } from './dto/filter-stories.dto';
 import { PublicStory } from './types/public-story.type';
+import { PlanNames } from '../plans/schemas/plan.schema';
 
 @Injectable()
 export class StoriesService {
@@ -455,7 +456,11 @@ export class StoriesService {
                 story,
                 audiosPromises,
                 imagesPromises,
-                this.usersService.updateCredits(user.id, userCredits),
+                this.usersService.updateCredits(
+                  user.id,
+                  userCredits,
+                  PlanNames.FREE_TIER,
+                ),
               ]);
             })
             .then((res) => {

@@ -11,6 +11,7 @@ import { Subscription } from '../../schemas/subscription.schema';
 import { Model } from 'mongoose';
 import { PlansService } from '../plans/plans.service';
 import { UsersService } from '../users/users.service';
+import { PlanNames } from '../plans/schemas/plan.schema';
 
 @Injectable()
 export class PaymentsService {
@@ -209,9 +210,13 @@ export class PaymentsService {
             this.plansService
               .findPlanByPriceId(priceId)
               .then((plan) => {
-                const { creditsLimit } = plan;
+                const { creditsLimit, name } = plan;
                 // Update the user credits
-                this.UsersService.updateCredits(userId, creditsLimit)
+                this.UsersService.updateCredits(
+                  userId,
+                  creditsLimit,
+                  name as PlanNames,
+                )
                   .then(() => {
                     this.logger.log(
                       `User ${userId} updated credits to ${creditsLimit}`,

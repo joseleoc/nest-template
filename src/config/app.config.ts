@@ -1,6 +1,7 @@
+import { ENVIRONMENT } from '@/types/general.types';
 import * as process from 'process';
 
-export default () => ({
+export default (): ENVIRONMENT => ({
   GENERAL: {
     NODE_ENV: process.env.NODE_ENV || 'development',
     PORT: process.env.PORT,

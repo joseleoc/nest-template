@@ -11,8 +11,9 @@ import { PlansService } from '@/modules/plans/plans.service';
 import { Language } from '@/types/general.types';
 import { User, UserDocument } from './schemas/user.schema';
 import { PlanDocument, PlanNames } from '@/modules/plans/schemas/plan.schema';
-import { PaymentsService } from '../payments/payments.service';
 import { CheckUserCreditsResponse, PublicUser } from './types/users.types';
+import Stripe from 'stripe';
+import appConfig from '@/config/app.config';
 
 @Injectable()
 export class UsersService {
@@ -20,14 +21,47 @@ export class UsersService {
   // Local properties
   // --------------------------------------------------------------------------------
   private readonly logger = new Logger();
+  private stripe: Stripe;
   // --------------------------------------------------------------------------------
   // Constructor
   // --------------------------------------------------------------------------------
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
     private plansService: PlansService,
-    private paymentsService: PaymentsService,
-  ) {}
+  ) {
+    const stripeApiKey = appConfig().STRIPE_CONFIG.apiKey;
+    if (!stripeApiKey) {
+      throw new Error('No STRIPE_API_KEY found in the environment variables');
+    }
+    this.stripe = new Stripe(stripeApiKey);
+  }
+
+  // --------------------------------------------------------------------------------
+  // Private methods
+  // --------------------------------------------------------------------------------
+  createCustomer(params: PublicUser): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const { email, userName } = params;
+      this.stripe.customers
+        .create({
+          email,
+          name: userName,
+        })
+        .then((customer) => {
+          resolve(customer.id);
+        })
+        .catch((error) => {
+          this.logger.error(error);
+          reject({
+            message:
+              error?.err?.message ||
+              error?.message ||
+              'Error creating customer',
+            code: error?.err?.statusCode || HttpStatus.INTERNAL_SERVER_ERROR,
+          });
+        });
+    });
+  }
 
   // --------------------------------------------------------------------------------
   // Public methods
@@ -88,13 +122,7 @@ export class UsersService {
               })
               .then((user) => {
                 // Creates the stripe customer and adds the customerId to the user
-                return Promise.all([
-                  this.paymentsService.createCustomer({
-                    email: user.email,
-                    name: user.userName,
-                  }),
-                  user,
-                ]);
+                return Promise.all([this.createCustomer(user), user]);
               })
               .then(([customer, user]) => {
                 return this.userModel.findByIdAndUpdate(

@@ -8,6 +8,8 @@ import {
   SubscriptionSchema,
 } from '../../schemas/subscription.schema';
 import { MongooseModule } from '@nestjs/mongoose';
+import { UsersModule } from '../users';
+import { PlansModule } from '../plans/plans.module';
 
 @Module({
   controllers: [PaymentsController],
@@ -28,6 +30,8 @@ import { MongooseModule } from '@nestjs/mongoose';
         return config;
       },
     }),
+    PlansModule,
+    UsersModule,
   ],
   exports: [PaymentsService],
 })

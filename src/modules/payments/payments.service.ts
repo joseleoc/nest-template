@@ -1,12 +1,16 @@
 import Stripe from 'stripe';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectStripeClient } from '@golevelup/nestjs-stripe';
+import {
+  InjectStripeClient,
+  StripeWebhookHandler,
+} from '@golevelup/nestjs-stripe';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
-import { CreateCustomerDto } from './dto/create-customer.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Subscription } from '../../schemas/subscription.schema';
 import { Model } from 'mongoose';
+import { PlansService } from '../plans/plans.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class PaymentsService {
@@ -18,6 +22,8 @@ export class PaymentsService {
   // Constructor
   // --------------------------------------------------------------------------------
   constructor(
+    private plansService: PlansService,
+    private UsersService: UsersService,
     @InjectModel(Subscription.name)
     private readonly subscriptionsModel: Model<Subscription>,
 
@@ -42,30 +48,6 @@ export class PaymentsService {
   // --------------------------------------------------------------------------------
   // Public methods
   // --------------------------------------------------------------------------------
-
-  createCustomer(params: CreateCustomerDto): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const { email, name } = params;
-      this.stripe.customers
-        .create({
-          email,
-          name,
-        })
-        .then((customer) => {
-          resolve(customer.id);
-        })
-        .catch((error) => {
-          this.logger.error(error);
-          reject({
-            message:
-              error?.err?.message ||
-              error?.message ||
-              'Error creating customer',
-            code: error?.err?.statusCode || HttpStatus.INTERNAL_SERVER_ERROR,
-          });
-        });
-    });
-  }
 
   async createSubscriptionSession(params: CreateSubscriptionDto): Promise<{
     subscriptionId: string;
@@ -148,5 +130,118 @@ export class PaymentsService {
     return this.stripe.billingPortal.sessions.create({
       customer: customerId,
     });
+  }
+
+  // --------------------------------------------------------------------------------
+  // Stripe webhook event handlers
+  // --------------------------------------------------------------------------------
+
+  @StripeWebhookHandler('customer.subscription.deleted')
+  async handleSubscriptionUpdate(event: Stripe.Event): Promise<void> {
+    const dataObject = event.data.object as Stripe.Subscription;
+    const { id } = dataObject;
+    this.subscriptionsModel
+      .findOneAndUpdate({ subscriptionId: id }, { status: dataObject.status })
+      .then((res) => {
+        if (res == null) {
+          this.logger.error(`Subscription ${id} not found`);
+          return;
+        }
+        this.logger.log(`Subscription ${id} cancelled`);
+      })
+      .catch((error) => {
+        this.logger.error(error);
+      });
+  }
+
+  @StripeWebhookHandler('customer.subscription.updated')
+  // implement here subscription delete in our Database
+  async handleSubscriptionDelete(
+    event: Stripe.CustomerSubscriptionUpdatedEvent,
+  ): Promise<void> {
+    const dataObject = event.data.object as Stripe.Subscription;
+    const {
+      id: subscriptionId,
+      status,
+      current_period_start,
+      current_period_end,
+    } = dataObject;
+    let priceId: string | undefined;
+
+    // Loop through subscription items to find priceId
+    for (const item of dataObject.items.data) {
+      if (item.object === 'subscription_item') {
+        priceId = item.price.id;
+        break; // Exit loop after finding the first priceId
+      }
+    }
+
+    let updateSubscriptionFields: Partial<Subscription> = {};
+
+    if (status === 'active') {
+      updateSubscriptionFields = {
+        status,
+        currentPeriodStart: current_period_start,
+        currentPeriodEnd: current_period_end,
+      };
+    } else {
+      updateSubscriptionFields = { status };
+    }
+
+    this.subscriptionsModel
+      .findOneAndUpdate({ subscriptionId }, updateSubscriptionFields, {
+        new: true,
+      })
+      .then((subscriptionDocument) => {
+        // If subscription is not found, returns.
+        if (subscriptionDocument == null) {
+          this.logger.error(`Subscription ${subscriptionId} not found`);
+          return;
+        }
+        // Logs the subscription update.
+        this.logger.log(`Subscription ${subscriptionId} updated`);
+
+        // If subscription is active, update user credits.
+        if (status == 'active') {
+          if (priceId != undefined) {
+            const { userId } = subscriptionDocument;
+            // Find the plan by the priceId
+            this.plansService
+              .findPlanByPriceId(priceId)
+              .then((plan) => {
+                const { creditsLimit } = plan;
+                // Update the user credits
+                this.UsersService.updateCredits(userId, creditsLimit)
+                  .then(() => {
+                    this.logger.log(
+                      `User ${userId} updated credits to ${creditsLimit}`,
+                    );
+                  })
+                  .catch((error) => {
+                    this.logger.error({
+                      message: `Error updating user credits. User ${userId}. Plan ${plan.name}. Credits: ${creditsLimit}. subscriptionId: ${subscriptionId}`,
+                      error,
+                    });
+                  });
+              })
+              .catch((error) => {
+                this.logger.error({
+                  message: `Error finding plan by priceId. PriceId: ${priceId}. subscriptionId: ${subscriptionId}`,
+                  error,
+                });
+              });
+          } else {
+            this.logger.error(
+              `PriceId not found for subscription ${subscriptionId}, status: ${status}, priceId: ${priceId}`,
+            );
+          }
+        }
+      })
+      .catch((error) => {
+        this.logger.error({
+          message: `Error updating subscription ${subscriptionId}`,
+          error,
+        });
+      });
   }
 }

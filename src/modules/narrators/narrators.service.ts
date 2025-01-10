@@ -18,14 +18,14 @@ export class NarratorsService {
       name: 'Benjamin - Deep, Warm, Calming',
       voiceId: 'LruHrtVF6PSyGItzMNHS',
       gender: Gender.MALE,
-      ageCategory: NarratorAgeCategory.EDERLY,
+      ageCategory: NarratorAgeCategory.ELDERLY,
       language: Language.EN,
     },
     {
       name: 'José Borda - Deep',
       voiceId: 'NDeNvFOosDh4L0JoDYIq',
       gender: Gender.MALE,
-      ageCategory: NarratorAgeCategory.EDERLY,
+      ageCategory: NarratorAgeCategory.ELDERLY,
       language: Language.ES,
     },
     {
@@ -46,7 +46,7 @@ export class NarratorsService {
       name: 'Tyler Kurk',
       voiceId: 'raMcNf2S8wCmuaBcyI6E',
       gender: Gender.MALE,
-      ageCategory: NarratorAgeCategory.YOUNG,
+      ageCategory: NarratorAgeCategory.TEENAGER,
       language: Language.EN,
     },
     {
@@ -60,14 +60,14 @@ export class NarratorsService {
       name: 'Nora',
       voiceId: '0YCdTbygrMV0VFUAAziF',
       gender: Gender.FEMALE,
-      ageCategory: NarratorAgeCategory.EDERLY,
+      ageCategory: NarratorAgeCategory.ELDERLY,
       language: Language.EN,
     },
     {
       name: 'Omgpvoice - Expressive',
       voiceId: 'IZ0jPQ3xydXtRUdWOhNs',
       gender: Gender.FEMALE,
-      ageCategory: NarratorAgeCategory.EDERLY,
+      ageCategory: NarratorAgeCategory.TEENAGER,
       language: Language.ES,
     },
     {
@@ -88,7 +88,7 @@ export class NarratorsService {
       name: 'Hope - upbeat and clear',
       voiceId: 'tnSpp4vdxKPjI9w0GnoV',
       gender: Gender.FEMALE,
-      ageCategory: NarratorAgeCategory.YOUNG,
+      ageCategory: NarratorAgeCategory.TEENAGER,
       language: Language.EN,
     },
     {

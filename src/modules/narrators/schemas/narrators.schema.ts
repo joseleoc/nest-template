@@ -3,8 +3,8 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
 export enum NarratorAgeCategory {
-  'EDERLY' = 'Ederly',
-  'YOUNG' = 'Young',
+  'ELDERLY' = 'Elderly',
+  'TEENAGER' = 'Teenager',
   'ADULT' = 'Adult',
   'CHILD' = 'Child',
 }

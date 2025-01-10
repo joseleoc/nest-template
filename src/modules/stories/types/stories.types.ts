@@ -66,22 +66,32 @@ export enum GeneralPurpose {
   'BEHAVIOR' = 'BEHAVIOR',
   'SIBLINGS' = 'SIBLINGS',
   'PARENTS' = 'PARENTS',
+  'SCHOOL' = 'SCHOOL',
+  'SLEEP' = 'SLEEP',
+  'SPORTS' = 'SPORTS',
   'OTHER' = 'OTHER',
 }
 
 export enum Focus {
+  // Values
   'RESPECT' = 'RESPECT',
   'KINDNESS' = 'KINDNESS',
   'HONESTY' = 'HONESTY',
   'RESPONSIBILITY' = 'RESPONSIBILITY',
   'EMPATHY' = 'EMPATHY',
   'PERSEVERANCE' = 'PERSEVERANCE',
+  // Emotions
   'HAPPY' = 'HAPPY',
+  'FRUSTRATED' = 'FRUSTRATED',
+  'EMBARASSED' = 'EMBARASSED',
   'JOYFUL' = 'JOYFUL',
   'CALM' = 'CALM',
+  'SAD' = 'SAD',
+  'SCARED' = 'SCARED',
   'ANGRY' = 'ANGRY',
   'SCARE' = 'SCARE',
   'ANXIOUS' = 'ANXIOUS',
+  // Academics
   'ART' = 'ART',
   'BIOLOGY' = 'BIOLOGY',
   'CHEMISTRY' = 'CHEMISTRY',
@@ -89,6 +99,15 @@ export enum Focus {
   'HISTORY' = 'HISTORY',
   'LITERATURE' = 'LITERATURE',
   'MATHEMATICS' = 'MATHEMATICS',
+  'MONEY' = 'MONEY',
+  // Sports
+  'SOCCER' = 'SOCCER',
+  'SWIMMING' = 'SWIMMING',
+  'GYMNASTICS' = 'GYMNASTICS',
+  'BASEBALL' = 'BASEBALL',
+  'BASKETBALL' = 'BASKETBALL',
+  'FOOTBALL' = 'FOOTBALL',
+  // Other
   'OTHER' = 'OTHER',
 }
 

@@ -102,18 +102,47 @@ export class AiService {
    */
   generateStoryImages(params: {
     story: AiStory;
+    createStoryParams: CreateStoryDto;
     createAllImages: boolean;
   }): Promise<string[]> {
     return new Promise((resolve, reject) => {
       const {
         story: { contentImageDescription },
         createAllImages,
+        createStoryParams: { paragraphsLength },
       } = params;
       let imagesQty = 0;
       if (createAllImages) {
-        imagesQty = Math.ceil(contentImageDescription.length / 3);
-        if (imagesQty > 3) imagesQty = 3;
-        if (imagesQty < 1) imagesQty = 1;
+        switch (true) {
+          case paragraphsLength <= 5:
+            // If the story has less than 5 paragraphs, it should have 1 image
+            imagesQty = 2;
+            break;
+
+          case paragraphsLength > 5 && paragraphsLength <= 10:
+            // If the story has between 5 and 10 paragraphs, it should have 3 images
+            imagesQty = 3;
+            break;
+
+          case paragraphsLength > 10 && paragraphsLength <= 15:
+            // if the story has between 10 and 15 paragraphs, it should have 5 images
+            imagesQty = 5;
+            break;
+
+          case paragraphsLength > 15 && paragraphsLength <= 20:
+            // If the story has between 15 and 20 paragraphs, it should have 7 images
+            imagesQty = 7;
+            break;
+
+          case paragraphsLength > 20:
+            // If the story has more than 20 paragraphs, it should have 7 images
+            imagesQty = 7;
+            break;
+
+          default:
+            imagesQty = 1;
+            break;
+        }
       } else {
         imagesQty = 1;
       }

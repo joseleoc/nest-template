@@ -32,12 +32,15 @@ export enum StoryCore {
 }
 
 export enum StoryScenario {
-  'FOREST_KINGDOM' = 'FOREST_KINGDOM',
-  'WIZARDING_SCHOOL' = 'WIZARDING_SCHOOL',
-  'CITY' = 'CITY',
-  'RESTAURANT' = 'RESTAURANT',
   'HOUSE' = 'HOUSE',
+  'APARTMENT' = 'APARTMENT',
   'SCHOOL' = 'SCHOOL',
+  'RESTAURANT' = 'RESTAURANT',
+  'HOTEL' = 'HOTEL',
+  'NATURE' = 'NATURE',
+  'FOREST_KINGDOM' = 'FOREST_KINGDOM',
+  'WIZARD_SCHOOL' = 'WIZARD_SCHOOL',
+  'CITY' = 'CITY',
   'OTHER' = 'OTHER',
 }
 
@@ -117,6 +120,7 @@ export enum MainCharacter {
   'DOG' = 'DOG',
   'CAT' = 'CAT',
   'HERO' = 'HERO',
+  'KING' = 'KING',
   'PRINCESS' = 'PRINCESS',
   'OTHER' = 'OTHER',
 }

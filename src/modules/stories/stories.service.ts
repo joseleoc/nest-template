@@ -448,6 +448,7 @@ export class StoriesService {
               addImages = generateImages ? canAddImage : false;
               const imagesPromises = this.aiService.generateStoryImages({
                 story,
+                createStoryParams: createStoryDto,
                 createAllImages: addImages,
               });
 

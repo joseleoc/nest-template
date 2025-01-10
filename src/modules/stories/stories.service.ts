@@ -897,7 +897,7 @@ export class StoriesService {
                 return story as PublicStory;
               },
             );
-            const likedCount = res[0].totalCount[0].count;
+            const likedCount = res[0].totalCount[0]?.count ?? 0;
             return Promise.all([
               this.generateStoriesMetaParams(publicStories),
               likedCount,

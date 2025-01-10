@@ -1,6 +1,7 @@
 import appConfig from '@/config/app.config';
 import { Plan, PlanNames } from './schemas/plan.schema';
 const isProduction = appConfig().GENERAL.NODE_ENV === 'production';
+
 export const DefaultPlans: Plan[] = [
   {
     name: PlanNames.FREE_TIER,
@@ -14,7 +15,7 @@ export const DefaultPlans: Plan[] = [
       : 'price_1Qb43mDtWVIpSmG7N9uaAZFH',
   },
   {
-    name: PlanNames.MAGIC_TALES,
+    name: PlanNames.LOW_TIER,
     creditsLimit: 5,
     price: 5.99,
     accessToText: true,
@@ -25,7 +26,7 @@ export const DefaultPlans: Plan[] = [
       : 'price_1QZKhuDtWVIpSmG7HM1exAxD',
   },
   {
-    name: PlanNames.AMAZING_STORIES,
+    name: PlanNames.MEDIUM_TIER,
     creditsLimit: 15,
     price: 7.99,
     accessToText: true,
@@ -36,7 +37,7 @@ export const DefaultPlans: Plan[] = [
       : 'price_1QZKyVDtWVIpSmG7P5KXjx4U',
   },
   {
-    name: PlanNames.UNLIMITED_WORLDS,
+    name: PlanNames.HIGH_TIER,
     creditsLimit: Number.POSITIVE_INFINITY,
     price: 15.99,
     accessToText: true,

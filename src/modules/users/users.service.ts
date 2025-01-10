@@ -80,7 +80,7 @@ export class UsersService {
         }
         // Find the plan by the name
         this.plansService
-          .findPlanByName(createUserDto.plan)
+          .findPlanByName(createUserDto.plan as keyof typeof PlanNames)
           .then((plan: PlanDocument) => {
             if (plan == null) {
               reject({
@@ -271,39 +271,41 @@ export class UsersService {
       ])
         .then(([subscription, user]) => {
           if (subscription != null && user != null && user.deleted === false) {
-            this.plansService.findPlanByName(user.plan).then((plan) => {
-              const canAddAudio = plan?.accessToVoice ?? false;
-              const canAddImage = plan?.accessToImage ?? false;
-              const canAddText = plan?.accessToText ?? false;
+            this.plansService
+              .findPlanByName(user.plan as keyof typeof PlanNames)
+              .then((plan) => {
+                const canAddAudio = plan?.accessToVoice ?? false;
+                const canAddImage = plan?.accessToImage ?? false;
+                const canAddText = plan?.accessToText ?? false;
 
-              let canCreateStory = false;
+                let canCreateStory = false;
 
-              const actualDate = new Date().getTime();
-              // Check if the current date is after the subscription end date, if true, the user can't create a story
-              if (actualDate > subscription.currentPeriodEnd) {
-                canCreateStory = false;
-              }
+                const actualDate = new Date().getTime();
+                // Check if the current date is after the subscription end date, if true, the user can't create a story
+                if (actualDate > subscription.currentPeriodEnd) {
+                  canCreateStory = false;
+                }
 
-              if (user.credits > 0) {
-                resolve({
-                  canCreateStory,
-                  user,
-                  canAddAudio,
-                  canAddImage,
-                  canAddText,
-                });
-                return;
-              } else {
-                // The user can't create a story if the credits are 0
-                resolve({
-                  canCreateStory,
-                  user,
-                  canAddAudio: false,
-                  canAddImage: false,
-                  canAddText: false,
-                });
-              }
-            });
+                if (user.credits > 0) {
+                  resolve({
+                    canCreateStory,
+                    user,
+                    canAddAudio,
+                    canAddImage,
+                    canAddText,
+                  });
+                  return;
+                } else {
+                  // The user can't create a story if the credits are 0
+                  resolve({
+                    canCreateStory,
+                    user,
+                    canAddAudio: false,
+                    canAddImage: false,
+                    canAddText: false,
+                  });
+                }
+              });
           } else {
             resolve({
               // The user can't create a story if the subscription or the user are not found.

@@ -11,7 +11,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
   canActivate(context: ExecutionContext) {
     const classHandler = context.getClass().name;
-    console.log(classHandler);
     if (
       classHandler === 'StripeWebhookController' ||
       classHandler === 'SubscriptionWebhookService' ||

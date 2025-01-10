@@ -3,9 +3,9 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 export enum PlanNames {
   FREE_TIER = 'FREE_TIER',
-  MAGIC_TALES = 'MAGIC_TALES',
-  AMAZING_STORIES = 'AMAZING_STORIES',
-  UNLIMITED_WORLDS = 'UNLIMITED_WORLDS',
+  LOW_TIER = 'LIMITED_STORIES',
+  MEDIUM_TIER = 'AMAZING_STORIES',
+  HIGH_TIER = 'UNLIMITED_STORIES',
 }
 
 export type PlanDocument = HydratedDocument<Plan>;

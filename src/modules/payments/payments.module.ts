@@ -10,6 +10,7 @@ import {
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from '../users';
 import { PlansModule } from '../plans/plans.module';
+import { Payment, PaymentSchema } from '@/schemas/payments.schema';
 
 @Module({
   controllers: [PaymentsController],
@@ -17,6 +18,7 @@ import { PlansModule } from '../plans/plans.module';
   imports: [
     MongooseModule.forFeature([
       { name: Subscription.name, schema: SubscriptionSchema },
+      { name: Payment.name, schema: PaymentSchema },
     ]),
     StripeModule.forRootAsync(StripeModule, {
       imports: [ConfigModule],

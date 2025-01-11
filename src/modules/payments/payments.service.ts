@@ -12,6 +12,7 @@ import { Model } from 'mongoose';
 import { PlansService } from '../plans/plans.service';
 import { UsersService } from '../users/users.service';
 import { PlanNames } from '../plans/schemas/plan.schema';
+import { Payment } from '@/schemas/payments.schema';
 
 @Injectable()
 export class PaymentsService {
@@ -27,7 +28,8 @@ export class PaymentsService {
     private UsersService: UsersService,
     @InjectModel(Subscription.name)
     private readonly subscriptionsModel: Model<Subscription>,
-
+    @InjectModel(Payment.name)
+    private readonly paymentsModel: Model<Payment>,
     private configService: ConfigService,
     @InjectStripeClient() private stripe: Stripe,
   ) {
@@ -55,7 +57,7 @@ export class PaymentsService {
     clientSecret: string;
   } | null> {
     return new Promise((resolve, reject) => {
-      const { userId, priceId, customerId } = params;
+      const { userId, priceId, customerId, planId } = params;
 
       this.stripe.subscriptions
         .create({
@@ -100,6 +102,7 @@ export class PaymentsService {
             currentPeriodEnd: subscription.current_period_end,
             customerId: subscription.customer,
             status: subscription.status,
+            planId,
           });
         })
         .then((subscription) => {
@@ -142,13 +145,34 @@ export class PaymentsService {
     const dataObject = event.data.object as Stripe.Subscription;
     const { id } = dataObject;
     this.subscriptionsModel
-      .findOneAndUpdate({ subscriptionId: id }, { status: dataObject.status })
-      .then((res) => {
-        if (res == null) {
+      .findOneAndUpdate(
+        { subscriptionId: id },
+        { status: dataObject.status },
+        { new: true },
+      )
+      .then((subscription) => {
+        if (subscription == null) {
           this.logger.error(`Subscription ${id} not found`);
           return;
         }
         this.logger.log(`Subscription ${id} cancelled`);
+        const { userId, subscriptionId, customerId } = subscription;
+        this.paymentsModel
+          .create({
+            userId,
+            subscriptionId,
+            customerId,
+            amount: dataObject.items.data[0].price.unit_amount,
+            planId: subscription.planId,
+          })
+          .then(() => {
+            this.logger.log(
+              `Payment created for subscription ${subscriptionId}`,
+            );
+          })
+          .catch((error) => {
+            this.logger.error(error);
+          });
       })
       .catch((error) => {
         this.logger.error(error);

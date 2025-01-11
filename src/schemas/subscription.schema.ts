@@ -37,6 +37,9 @@ export class Subscription {
     type: String,
   })
   status: Stripe.Subscription.Status;
+
+  @Prop({ required: true, type: String })
+  planId: string;
 }
 
 export const SubscriptionSchema = SchemaFactory.createForClass(Subscription);

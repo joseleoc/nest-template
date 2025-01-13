@@ -275,11 +275,9 @@ export class UsersService {
             this.plansService
               .findPlanByName(user.plan as keyof typeof PlanNames)
               .then((plan) => {
-                console.log({ plan, user });
                 const canAddAudio = plan?.accessToVoice ?? false;
                 const canAddImage = plan?.accessToImage ?? false;
                 const canAddText = plan?.accessToText ?? false;
-                console.log({ canAddAudio });
                 let canCreateStory = false;
 
                 // Check if the current date is after the subscription end date, if true, the user can't create a story

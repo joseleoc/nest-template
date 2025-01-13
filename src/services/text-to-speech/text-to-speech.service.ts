@@ -19,6 +19,35 @@ export class TextToSpeechService {
       apiKey: appConfig().ELEVENLABS.ELEVENLABS_API_KEY,
     });
   }
+
+  // --------------------------------------------------------------------------------
+  // Private methods
+  // --------------------------------------------------------------------------------
+
+  private async getAudioDuration(
+    audios: { buffer: Buffer }[],
+    bitrateKbps = 128,
+  ): Promise<number> {
+    let totalDuration = 0;
+
+    for (const { buffer } of audios) {
+      try {
+        const fileSizeInBits = buffer.length * 8; // Tamaño del archivo en bits
+        const bitrateInBitsPerSecond = bitrateKbps * 1000; // Bitrate en bits/segundo
+
+        // Calcula la duración en segundos
+        const durationInSeconds = fileSizeInBits / bitrateInBitsPerSecond;
+        totalDuration += durationInSeconds;
+      } catch (error) {
+        this.logger.error(`Error processing audio: ${error.message}`);
+      } finally {
+        // Eliminar el archivo temporal
+      }
+    }
+
+    return Math.floor(totalDuration);
+  }
+
   // --------------------------------------------------------------------------------
   // Public methods
   // --------------------------------------------------------------------------------
@@ -92,15 +121,16 @@ export class TextToSpeechService {
       });
 
       // Executes the upload promises in parallel
-      Promise.all(uploadPromises)
-        .then((uploadRes) => {
+      Promise.all([this.getAudioDuration(audios), Promise.all(uploadPromises)])
+        .then((res) => {
+          const [duration, uploadRes] = res;
           const fileNames = new Array(paragraphs.length);
 
           uploadRes.forEach((res) => {
             fileNames[res.index] = res.fileName;
           });
           // Resolves the promise with the file names and duration
-          resolve({ fileNames, duration: 0 });
+          resolve({ fileNames, duration });
         })
         .catch((error) => {
           this.logger.error(error);

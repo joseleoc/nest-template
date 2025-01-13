@@ -38,7 +38,6 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.4.2",
     "@nestjs/throttler": "^6.3.0",
-    "audio-metadata": "^0.3.0",
     "bcrypt": "5.1.1",
     "date-fns": "4.1.0",
     "elevenlabs": "^0.17.0",

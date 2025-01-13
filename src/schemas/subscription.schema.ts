@@ -24,10 +24,10 @@ export class Subscription {
   clientSecret: string;
 
   @Prop({ required: true, type: Number })
-  currentPeriodStart: number;
+  currentPeriodStart: Date;
 
   @Prop({ required: true, type: Number })
-  currentPeriodEnd: number;
+  currentPeriodEnd: Date;
 
   @Prop({ required: true, type: String })
   customerId: string;

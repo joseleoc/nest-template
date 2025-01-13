@@ -33,6 +33,7 @@ export interface ENVIRONMENT {
         connect?: string;
         connectTest?: string;
       };
+      decorators?: any[];
     };
   };
 }

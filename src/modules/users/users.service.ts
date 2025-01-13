@@ -14,6 +14,7 @@ import { PlanDocument, PlanNames } from '@/modules/plans/schemas/plan.schema';
 import { CheckUserCreditsResponse, PublicUser } from './types/users.types';
 import Stripe from 'stripe';
 import appConfig from '@/config/app.config';
+import { isAfter, isBefore } from 'date-fns';
 
 @Injectable()
 export class UsersService {
@@ -226,11 +227,11 @@ export class UsersService {
   updateCredits(
     id: string,
     credits: number | 'Infinity',
-    planName: PlanNames,
+    plan: PlanNames,
   ): Promise<User | null> {
     return new Promise((resolve, reject) => {
       this.userModel
-        .findByIdAndUpdate(id, { credits: credits, plan: planName })
+        .findByIdAndUpdate(id, { credits: credits, plan: plan })
         .then((res) => {
           if (res != null) {
             const updatedUser = new PublicUser(res);
@@ -274,16 +275,16 @@ export class UsersService {
             this.plansService
               .findPlanByName(user.plan as keyof typeof PlanNames)
               .then((plan) => {
+                console.log({ plan, user });
                 const canAddAudio = plan?.accessToVoice ?? false;
                 const canAddImage = plan?.accessToImage ?? false;
                 const canAddText = plan?.accessToText ?? false;
-
+                console.log({ canAddAudio });
                 let canCreateStory = false;
 
-                const actualDate = new Date().getTime();
                 // Check if the current date is after the subscription end date, if true, the user can't create a story
-                if (actualDate > subscription.currentPeriodEnd) {
-                  canCreateStory = false;
+                if (isAfter(new Date(), subscription.currentPeriodEnd)) {
+                  canCreateStory = true;
                 }
 
                 if (user.credits > 0) {

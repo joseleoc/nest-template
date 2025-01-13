@@ -24,6 +24,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { SupportModule } from './modules/support/support.module';
 import { StripeWebhookModule } from './modules/stripe-webhook/stripe-webhook.module';
 import configs from './config/app.config';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -32,6 +33,14 @@ import configs from './config/app.config';
       envFilePath: `.env.${process.env.NODE_ENV}`,
       load: [configs],
     }),
+    // Rate limit for requests, see https://docs.nestjs.com/techniques/rate-limiting
+    // In this case, the limit is 60 requests per minute
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 60,
+      },
+    ]),
     LoggerModule.forRoot({
       pinoHttp: {
         transport:
@@ -78,6 +87,10 @@ import configs from './config/app.config';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
     TextToSpeechService,
   ],

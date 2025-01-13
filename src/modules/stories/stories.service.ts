@@ -451,7 +451,7 @@ export class StoriesService {
                 createStoryParams: createStoryDto,
                 createAllImages: addImages,
               });
-
+              console.log('USER PLAN: ', user.plan);
               // Returns the story and the audio streams and  updates the user credits.
               return Promise.all([
                 story,
@@ -460,12 +460,13 @@ export class StoriesService {
                 this.usersService.updateCredits(
                   user.id,
                   userCredits,
-                  PlanNames.FREE_TIER,
+                  user.plan,
                 ),
               ]);
             })
             .then((res) => {
               const [story, audio, images] = res;
+              console.log({ audio });
 
               // Creates an array of StoryContent objects with the audio streams and images.
               const content: StoryContent[] = new Array(story.content.length);

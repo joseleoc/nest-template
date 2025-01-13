@@ -1,5 +1,7 @@
 import { ENVIRONMENT } from '@/types/general.types';
+import { SkipThrottle } from '@nestjs/throttler';
 import * as process from 'process';
+import { SkipAuth } from '../decorators';
 
 export default (): ENVIRONMENT => ({
   GENERAL: {
@@ -36,6 +38,7 @@ export default (): ENVIRONMENT => ({
         connect: process.env.STRIPE_WEBHOOK_SECRET_CONNECT,
         connectTest: process.env.STRIPE_WEBHOOK_SECRET_CONNECT_TEST,
       },
+      decorators: [SkipThrottle(), SkipAuth()],
     },
   },
 });

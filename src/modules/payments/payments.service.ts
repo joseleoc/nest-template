@@ -206,8 +206,8 @@ export class PaymentsService {
     if (status === 'active') {
       updateSubscriptionFields = {
         status,
-        currentPeriodStart: current_period_start,
-        currentPeriodEnd: current_period_end,
+        currentPeriodStart: new Date(current_period_start),
+        currentPeriodEnd: new Date(current_period_end),
       };
     } else {
       updateSubscriptionFields = { status };

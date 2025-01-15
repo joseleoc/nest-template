@@ -44,7 +44,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     LoggerModule.forRoot({
       pinoHttp: {
         transport:
-          process.env.NODE_ENV !== 'production'
+          process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'QA'
             ? {
                 target: 'pino-pretty',
                 options: {

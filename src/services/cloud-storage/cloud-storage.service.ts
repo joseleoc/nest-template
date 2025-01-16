@@ -66,6 +66,7 @@ export class CloudStorageService {
           }),
         )
         .then(() => {
+          console.log('Audio to s3 uploaded', remotePath);
           resolve(remotePath);
         })
         .catch((error) => {
@@ -102,6 +103,7 @@ export class CloudStorageService {
         )
         .then(() => {
           resolve(imageKey);
+          console.log('Image to S3 uploaded', imageKey);
         })
         .catch((error) => {
           this.logger.error(error);

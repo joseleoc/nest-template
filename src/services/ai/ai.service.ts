@@ -51,19 +51,71 @@ export class AiService {
             {
               role: 'user',
               content: `
-              Create a story. 
-              The story should be in ${prompt.language} language.
-              Write a story that is at least 2 or more minutes long when read aloud, it should have a clear beginning, a rising action that builds tension, a climax where the conflict reaches its peak, a falling action that leads to resolution, and a satisfying conclusion.
-              our story should have at least ${prompt.paragraphsLength} paragraphs to allow for a well-developed plot and characters. Use as many paragraphs as needed to tell your story effectively.
-              The tone of the story should be appropriate for all ages, meaning it should be free from violence or themes that are not acceptable for young readers.
-              Create a story that is engaging, entertaining, and educational.
-              This should be a ${prompt.storyStyle} story.
-              ${prompt.finalDetails && `Take in great consideration this details for the story and try to include every aspect of them: "${prompt.finalDetails}".`}
-              Main character is ${prompt.mainCharacter}, ${prompt.mainCharacterDescription}, in the contents fields don't describe the character with high details but in the characterDescription field provide a detailed description of the character's appearance, including the skin, clothes and eye colors, provide the character's age, height, weight, name, and any other relevant information.
-              The story should take place in ${prompt.scenario}, ${prompt.scenarioDescription}; Provide a detailed and vivid description of the place, including the atmosphere, surroundings, and key features that set the scene. In the content section, don't describe the setting's appearance, the only section that should be high detailed is the place section, in the place section describe the setting in detail suitable for an AI to generate an image the description should be at least 50 characters and no more than 200 characters.
-              The story should be focused in ${prompt.focus}, ${prompt.focusDescription}.
-              The story should be about ${prompt.core}, ${prompt.purpose != GeneralPurpose.OTHER ? `focus in ${prompt.purpose}` : ''} ${prompt.purposeDescription != '' ? `The purpose should be centered in ${prompt.purposeDescription}` : ''}.
-              The summary of the story should be engaging and interesting for young people and adults and should be no more than 50 words.
+                  Generate an engaging, entertaining, and educational story in ${prompt.language}.  
+
+                  ${
+                    prompt.finalDetails &&
+                    `
+                    ### **Key Priority**:  
+                    - The story must be primarily shaped by the following user-provided details:  
+                      "${prompt.finalDetails}".  
+                    - Ensure that every aspect of the **finalDetails** is meaningfully incorporated and strongly influences the plot, characters, and setting.`
+                  }
+
+                  ### Age-Specific Considerations:  
+                  - The story should be tailored to a child aged **${child?.age || 9}** years. Use the following guidelines for story content and language:  
+                    - **Below 6 years old**:  
+                      - **Content**: Focus on simple situations, friendly characters, and teaching basic values like kindness, sharing, and honesty.  
+                      - **Language**: Use short, simple sentences with familiar and repetitive words. Avoid complex vocabulary or abstract concepts.  
+                    - **6-7 years old**:  
+                      - **Content**: Introduce adventurous elements with mild suspense and a clear, uplifting message. Scenarios should remain relatable to the child's experiences.  
+                      - **Language**: Use slightly longer sentences with an engaging yet simple vocabulary. Include dialogue and actions that spark curiosity but avoid overly complex ideas.  
+                    - **8-10 years old**:  
+                      - **Content**: Develop an elaborate adventure with challenges that involve logic or problem-solving. Characters should have depth and relatable emotions.  
+                      - **Language**: Use more descriptive language with occasional advanced vocabulary. Allow for more complex sentences and ideas that encourage critical thinking and engagement.
+                    - **Above 10 years old**:  
+                      - **Content**: Introduce intricate plots with layered challenges, moral dilemmas, and nuanced characters. Themes can involve broader topics such as teamwork, resilience, or discovery.  
+                      - **Language**: Use sophisticated vocabulary and sentence structures. Incorporate vivid descriptions, dialogue with subtext, and moments that challenge the reader's imagination or perspective.
+
+                  ### Story Structure:  
+                  - The story must be long enough to last **at least 2 minutes** when read aloud.  
+                  - Include these narrative elements:  
+                    - A **clear beginning** to set up the plot and characters.  
+                    - A **rising action** that builds tension.  
+                    - A **climax** where the conflict reaches its peak.  
+                    - A **falling action** leading to resolution.  
+                    - A **satisfying conclusion**.  
+
+                  ### Length and Style:  
+                  - Write at least ${prompt.paragraphsLength} paragraphs to fully develop the story, its plot, and characters. Expand as needed for depth.  
+                  - The tone should be free from violence or inappropriate themes.  
+
+                  ### Creative Specifications:  
+                  - The story's style should match ${prompt.storyStyle}.  
+                  - If additional details are provided (${!!prompt.finalDetails}), integrate them meaningfully: "${prompt.finalDetails}".  
+
+                  ### Character Details:  
+                  - The main character is ${prompt.mainCharacter},${prompt.mainCharacterDescription ?? `, described as ${prompt.mainCharacterDescription}`}.  
+                    - In the **content** field:  
+                      - Avoid detailed physical descriptions of the main character. Focus on their actions, personality, or role in the story.  
+                    - In the **characterDescription** field:  
+                      - Provide a detailed description of the main character's appearance, intended for creating a visual representation using tools like DALL-E.  
+                      - Include attributes such as:  
+                        - Skin color, eye color, and clothing details.  
+                        - Age, height, weight, and unique identifiers (e.g., hairstyle, accessories).  
+
+                  ### Setting Details:  
+                  - The story takes place in ${prompt.scenario}, ${prompt.scenarioDescription ?? `described as: ${prompt.scenarioDescription}`}.  
+                    - In the **placeDescription** field, provide vivid details about the setting, including atmosphere, surroundings, and key features (50-200 characters).  
+                  - Avoid over-describing the setting in the **content** field; only use high-level details there.  
+
+                  ### Focus and Purpose:  
+                  - The story should center around ${prompt.focus}${prompt.focusDescription ?? `, with the specific focus: ${prompt.focusDescription}`}.  
+                  - It should explore themes related to ${prompt.core}.
+                  - If applicable (${prompt.purpose != GeneralPurpose.OTHER}), emphasize ${prompt.purpose}.  
+
+                  ### Summary:  
+                  - Provide a summary that is **engaging** and appeals to both young and adult readers, no longer than 50 words.
               `,
             },
           ],
@@ -199,12 +251,4 @@ export class AiService {
   // --------------------------------------------------------------------------------
   // Private methods
   // --------------------------------------------------------------------------------
-  private childAgeConsiderations(childAge: number): string {
-    if (childAge < 6)
-      return 'The story should be focused on simple situations, friendly characters and teaching about simple values.';
-    else if (childAge < 8)
-      return 'The story should be an adventure with suspense and a clear message with a language suitable for a child aged 7-8 years.';
-    else
-      return 'Elaborate an adventure, challenges involving a bit of logic, and characters with more depth suitable for a child aged 8-10 years.';
-  }
 }

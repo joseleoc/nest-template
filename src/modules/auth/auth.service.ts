@@ -3,7 +3,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 
 import { UsersService } from '@/modules/users';
 import { User } from '../users/entities/user.entity';
-import { ValidateUserDTO } from './dto/auth.dto';
+import { LoginDTO } from './dto/auth.dto';
 import createHttpError from 'http-errors';
 
 @Injectable()
@@ -21,11 +21,12 @@ export class AuthService {
   }
 
   async validateUser({
-    username,
+    userName,
     password,
-  }: ValidateUserDTO): Promise<Omit<User, 'password'>> {
+  }: LoginDTO): Promise<Omit<User, 'password'>> {
+    console.log('🚀 ~ AuthService ~ validateUser ~ LoginDTO:', LoginDTO);
     try {
-      const user = await this.usersService.findUserByUserName(username);
+      const user = await this.usersService.findUserByUserName(userName);
       if (user && user.password === password) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password, ...returnedUser } = user;

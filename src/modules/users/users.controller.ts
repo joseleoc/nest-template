@@ -6,9 +6,7 @@ import {
   Patch,
   Param,
   Delete,
-  HttpException,
   HttpStatus,
-  HttpCode,
   Res,
 } from '@nestjs/common';
 import { Response } from 'express';
@@ -22,22 +20,23 @@ import {
   SwaggerCreateUserResponse,
 } from './users.constants';
 import { SkipAuth } from '@/decorators/index';
+import { handleError } from '@/utils';
 
-@ApiTags('Users')
-@Controller('users')
+@ApiTags('User')
+@Controller('user')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post('/create')
+  @Post()
   @SkipAuth()
-  @HttpCode(HttpStatus.CREATED)
   @ApiOperation(SwaggerCreateUser)
   @ApiResponse(SwaggerCreateUserResponse)
-  create(@Body() createUserDto: CreateUserDto) {
+  async create(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
     try {
-      return this.usersService.create(createUserDto);
+      const user = await this.usersService.create(createUserDto);
+      res.status(HttpStatus.CREATED).json(user);
     } catch (error) {
-      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw handleError(error);
     }
   }
 
@@ -47,28 +46,36 @@ export class UsersController {
   }
 
   @Get(':id')
-  findUserById(@Param('id') id: string, @Res() res: Response) {
-    this.usersService
-      .findUserById(id)
-      .then((user) => {
-        if (user != null) {
-          res.status(HttpStatus.OK).json(user);
-        } else {
-          res.status(HttpStatus.NOT_FOUND).json({ message: 'User not found' });
-        }
-      })
-      .catch((error) => {
-        throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
-      });
+  async findUserById(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const user = await this.usersService.findUserById(id);
+      res.status(HttpStatus.OK).json(user);
+    } catch (error) {
+      throw handleError(error);
+    }
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @Res() res: Response,
+  ) {
+    try {
+      const user = await this.usersService.update(id, updateUserDto);
+      res.status(HttpStatus.OK).json(user);
+    } catch (error) {
+      throw handleError(error);
+    }
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  async delete(@Param('id') id: string, @Res() res: Response) {
+    try {
+      await this.usersService.delete(id);
+      res.status(HttpStatus.NO_CONTENT).send();
+    } catch (error) {
+      throw handleError(error);
+    }
   }
 }

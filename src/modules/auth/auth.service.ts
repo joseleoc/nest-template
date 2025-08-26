@@ -1,9 +1,10 @@
 import { JwtService } from '@nestjs/jwt';
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 
 import { UsersService } from '@/modules/users';
 import { User } from '../users/entities/user.entity';
 import { ValidateUserDTO } from './dto/auth.dto';
+import createHttpError from 'http-errors';
 
 @Injectable()
 export class AuthService {
@@ -23,19 +24,17 @@ export class AuthService {
     username,
     password,
   }: ValidateUserDTO): Promise<Omit<User, 'password'>> {
-    return new Promise(async (resolve: (value: any) => void, reject) => {
-      try {
-        const user = await this.usersService.findUserByUserName(username);
-        if (user && user.password === password) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { password, ...returnedUser } = user;
-          resolve(returnedUser);
-        } else {
-          reject(null);
-        }
-      } catch (error) {
-        reject(error);
+    try {
+      const user = await this.usersService.findUserByUserName(username);
+      if (user && user.password === password) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password, ...returnedUser } = user;
+        return returnedUser;
+      } else {
+        throw createHttpError(HttpStatus.UNAUTHORIZED, 'Unauthorized');
       }
-    });
+    } catch (error) {
+      throw createHttpError(HttpStatus.INTERNAL_SERVER_ERROR, error.message);
+    }
   }
 }

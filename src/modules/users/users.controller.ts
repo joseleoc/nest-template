@@ -8,6 +8,7 @@ import {
   Delete,
   HttpStatus,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -21,6 +22,7 @@ import {
 } from './users.constants';
 import { SkipAuth } from '@/decorators/index';
 import { handleError } from '@/utils';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('User')
 @Controller('user')
@@ -41,6 +43,7 @@ export class UsersController {
   }
 
   @Get()
+  @UseGuards(AuthGuard('jwt'))
   findAll() {
     return this.usersService.findAll();
   }
